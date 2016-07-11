@@ -1,0 +1,32 @@
+<div data-role="popup" data-dismissible="true" id="popupChecks" data-theme="a" class="ui-corner-all">
+    <div style="padding:10px 20px; width: 90%">
+        <h3>Check Register</h3>
+        <table data-role="table" data-mode="columntoggle" class="ui-responsive table-stroke" style="width: 100%">
+            <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Clear</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% 
+                for (var k in checks) { 
+                    var check = checks[k];
+            %>
+                <tr id="<%= k %>">
+                    <td><%= check.number %></td>
+                    <td><% if ("link" in check) { %>&#x1f517;<% } %><%= check.description %></td>
+                    <td><%= check.amount.toCurrency() %></td>
+                    <td>
+                        <a href="#" title="clear" id="clear_<%= k %>" class="ui-btn ui-icon-check ui-btn-icon-notext ui-corner-all" id="btnClear">Clear</a>
+                    </td>
+                </tr>
+            <% 
+                }
+            %>
+            </tbody>
+        </table>
+    </div>
+</div>

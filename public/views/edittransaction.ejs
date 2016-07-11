@@ -1,0 +1,57 @@
+<%
+    if (("paid" in this) == false) {
+        this.paid = false;
+    }
+    if (("check" in this) == false) {
+        this.check = "";
+    }
+    if (("checkLink" in this) == false) {
+        this.checkLink = "";
+    }
+%>
+<div data-role="popup" id="transactionEditor" data-theme="a" class="ui-corner-all">
+    <div style="padding:10px 20px">
+        <h3>Edit Transaction</h3>
+        <div class="ui-field-contain">
+            <label for="date">Date</label>
+            <input type="date" id="date" value="<%= date %>">
+            <label for="category">Category</label>
+            <select id="category">
+                <%
+                for (var n = 0; n < CATEGORIES.length; n++) { 
+                    if (CATEGORIES[n] == category) {
+                %>
+                    <option selected><%= CATEGORIES[n] %></option>
+                <%
+                    } else { 
+                %>
+                    <option><%= CATEGORIES[n] %></option>
+                <%
+                    }
+                } 
+                %>
+            </select>
+            <label for="name">Name</label>
+            <input type="text" id="name" value="<%= name %>">
+            <label for="type">
+                <input type="checkbox" id="type" <% if (Math.sign(amount) > 0) { %>checked<% } %>>
+                Deposit
+            </label>
+            <label for="cash">
+                <input type="checkbox" id="cash" <% if (cash == true) { %>checked<% } %>>
+                Cash
+            </label>
+            <label for="check">Check#</label>
+            <input type="text" id="checkNumber" value="<%= check ? check : "" %>">
+            <input type="hidden" id="checkLink" value="<%= checkLink ? checkLink : "" %>">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" value="<%= Math.abs(amount) %>">
+            <label for="paid">
+                <input type="checkbox" id="paid" <% if (paid == true) { %>checked<% } %>>
+                Paid
+            </label>
+            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+            <% if (id) { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
+        </div>
+    </div>
+</div>

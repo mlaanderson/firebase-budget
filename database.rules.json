@@ -1,0 +1,24 @@
+{
+    "rules": {
+        ".read": false,
+        ".write": false,
+        "$uid": {
+            ".read": "auth != null && $uid === auth.uid",
+            ".write": "auth != null && $uid === auth.uid",
+            "accounts": {
+                ".indexOn": ["name"],
+                "$id": {
+                    "periods": {
+                        ".indexOn": ["start", "end"]
+                    },
+                    "transactions": {
+                        ".indexOn": ["date", "category", "name", "recurring"]
+                    },
+                    "checks": {
+                        ".indexOn": ["link", "number"]
+                    }
+                }
+            }
+        }
+    }
+}

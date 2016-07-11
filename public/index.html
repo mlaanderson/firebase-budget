@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Anderson Budget</title>
+    <meta name="viewport" content="width=device-width">
+
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link rel="apple-touch-icon" href="/images/budget-iphone.png"/>
+    <link rel="apple-touch-icon" sizes="76x76" href="/images/budget-ipad.png"/>
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/budget-iphone-retina.png"/>
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/budget-ipad-retina.png"/>
+
+    <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jquery.mobile-1.4.5.min.css">
+    <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jqm-icon-pack-fa.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/3.1.0/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyDhs0mPVlovk6JHnEdv6HeU2jy3M8VRoSk",
+        authDomain: "budget-dacac.firebaseapp.com",
+        databaseURL: "https://budget-dacac.firebaseio.com",
+        storageBucket: "budget-dacac.appspot.com",
+      };
+      firebase.initializeApp(config);
+    </script>
+
+    <script src="/jquery.mobile/js/jquery-1.12.4.min.js"></script>
+    <script src="/jquery.mobile/js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="js/jquery.canvasjs.min.js"></script>
+    <script src="js/ejs.min.js"></script>
+    <script src="js/ejs.ext.js"></script>
+    <script src="js/date.ext.js"></script>
+    <script src="js/math.ext.js"></script>
+    <script src="js/app.js"></script>
+  </head>
+  <body>
+  <div data-role="page" id="transactions">
+
+    <div data-role="header" data-position="fixed">
+        <h1>&nbsp;</h1>
+        <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
+            <a href="#" title="Previous Period" class="ui-btn ui-icon-arrow-l ui-btn-icon-notext ui-corner-all" id="btnPrev">Prev</a>
+            <select id="periodMenu" data-icon="calendar">
+            </select>
+            <a href="#" title="Next Period" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnNext">Next</a>
+        </div>
+        <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
+            <a href="#" title="Edit" class="ui-btn ui-icon-edit ui-btn-icon-notext ui-corner-all" id="btnEditTransaction">Edit</a>
+            <a href="#" title="Add" class="ui-btn ui-icon-plus ui-btn-icon-notext ui-corner-all" id="btnAddTransaction">Add</a>
+        </div>
+    </div><!-- /header -->
+
+    <div role="main" class="ui-content" id="main"></div>
+
+    <div data-role="footer" data-position="fixed">
+        <h4>&copy;2016</h4>
+        <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
+            <a href="#" class="ui-btn ui-icon-power ui-btn-icon-notext ui-corner-all" id="btnLogout" title="Logout">Logout</a>
+        </div>
+        <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
+            <a href="#" title="Check Register" class="ui-btn ui-icon-grid ui-btn-icon-notext ui-corner-all" id="btnCheck">Check</a>
+            <a href="#" title="Cash" class="ui-btn ui-icon-money ui-btn-icon-notext ui-corner-all" id="btnCash">Cash</a>
+        </div>
+        <div id="footer_info">
+            <div id="chart_div"></div>
+            <div id="info_div">
+            </div>
+        </div>
+    </div>
+  </body>
+</html>

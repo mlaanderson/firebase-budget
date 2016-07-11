@@ -1,0 +1,60 @@
+<%
+    if (("cash" in this) == false) {
+        this.cash = false;
+    }
+
+%>
+<div data-role="popup" id="recurringEditor" data-theme="a" class="ui-corner-all">
+    <div style="padding:10px 20px">
+        <h3>Edit Recurring Transaction</h3>
+        <div class="ui-field-contain">
+            <label for="period">Every</label>
+            <input type="text" id="period" value="<%= period %>">
+            <label for="start">From</label>
+            <input type="date" id="start" value="<%= start %>">
+            <label for="end">Until</label>
+            <input type="date" id="end" value="<%= end %>">
+            <label for="category">Category</label>
+            <select id="category">
+                <%
+                for (var n = 0; n < CATEGORIES.length; n++) { 
+                    if (CATEGORIES[n] == category) {
+                %>
+                    <option selected><%= CATEGORIES[n] %></option>
+                <%
+                    } else { 
+                %>
+                    <option><%= CATEGORIES[n] %></option>
+                <%
+                    }
+                } 
+                %>
+            </select>
+            <label for="name">Name</label>
+            <input type="text" id="name" value="<%= name %>">
+            <label for="type">
+                <input type="checkbox" id="type" <% if (Math.sign(amount) > 0) { %>checked<% } %>>
+                Deposit
+            </label>
+            <label for="cash">
+                <input type="checkbox" id="cash" <% if (cash == true) { %>checked<% } %>>
+                Cash
+            </label>
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" value="<%= Math.abs(amount) %>">
+            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+        </div>
+    </div>
+<script>
+    //$('#period').on('keyup', function() {
+    //    try {
+    //        new Timespan($('#period').val());
+    //        $('#period').css('background-color', '');
+    //        $('#btnSave').prop('disabled', false);
+    //    } catch(err) {
+    //        $('#period').css('background-color', '#f99'); 
+    //        $('#btnSave').prop('disabled', true);
+    //    }
+    //});
+</script>
+</div>
