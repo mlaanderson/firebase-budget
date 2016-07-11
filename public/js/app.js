@@ -3,6 +3,7 @@ var m_totalLock = false;
 var m_today;
 var m_totalWorker = new Worker('js/total_worker.js');
 var m_periodStart, m_periodEnd;
+var totals = [], transactions = [], chart, rendering = false;
 
 var CATEGORIES = [
     "Income",
@@ -434,10 +435,10 @@ function saveRecurring(e) {
                 .endAt(id)
                 .once('value', 
             function(snap) {
-                var transactions = snap.val();
+                var trans = snap.val();
                 var minDate = Date.max(Date.parseFb(data.start), new Date());
-                for (var k in transactions) {
-                    if (Date.parseFb(transactions[k].date).ge(minDate) == true) {
+                for (var k in trans) {
+                    if (Date.parseFb(trans[k].date).ge(minDate) == true) {
                         m_primaryAccount.child('transactions').child(k).remove()
                     }
                 }
@@ -461,7 +462,7 @@ function saveRecurring(e) {
                 $('#recurringEditor').empty();
                 $('#recurringEditor').remove();
                 
-                //updateRunningTotal();
+                updateRunningTotal();
             });
         });
     } else {
@@ -606,22 +607,18 @@ function app_AuthStateChanged(user) {
             .then(function(snap) {
                 if (snap.val() != null) {
                     m_primaryAccount = snap.ref;
-                    
                 } else {
                     // this is the first time login
                     m_primaryAccount = root().child('accounts').push();
                     m_primaryAccount.set({name: 'Primary'});
                 }
+                
+                root().child('name').once('value', function(nsnap) {
+                    if (nsnap.val() != null) { console.log("Running on", nsnap.val()); }
+                });
+                
                 // setup the transaction listeners
                 m_primaryAccount.child('transactions').on('child_changed', updateScreen);
-                
-                if ($('#footer_info').css('display') != 'none') {
-                    m_primaryAccount
-                        .child('transactions')
-                        .orderByChild('date')
-                        //.startAt(m_today.toFbString())
-                        .on('value', populateChart);
-                }
                 
                 m_primaryAccount.child('periods').once('value', function(s)
                 {
@@ -655,7 +652,6 @@ function app_DoAuth(credentials, callback) {
         });
 }
 
-    var totals = [], transactions = [], chart, rendering = false;
     
 function populateChart(snap) {
     var points = snap.val();
@@ -711,11 +707,11 @@ function populateChart(snap) {
             dateTotal = items[n].data.total;
         }
         
-        transactions.push({
-            x: new Date(Date.parse(items[n].data.date)),
-            y: items[n].data.amount,
-            label: items[n].data.category + ": " + items[n].data.name
-        });
+        //transactions.push({
+        //    x: new Date(Date.parse(items[n].data.date)),
+        //    y: items[n].data.amount,
+        //    label: items[n].data.category + ": " + items[n].data.name
+        //});
     }
     if ((trDate.ge(perStart.subtract('1 month'))) && (trDate.le(perStart.add('3 months')))) {
         totals.push({

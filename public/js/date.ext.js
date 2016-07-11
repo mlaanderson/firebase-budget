@@ -164,7 +164,8 @@ Date.today = function() {
 }
 
 Date.parseFb = function(value) {
-    var offset = new Date().getTimezoneOffset() * 60000;
+    var result = new Date(Date.parse(value));
+    var offset = result.getTimezoneOffset() * 60000;
     
     return new Date(Date.parse(value) + offset);
 }
@@ -198,6 +199,11 @@ Date.prototype.add = function(value) {
     
     if (value.getTimeStruct().months != 0) {
         result.setUTCMonth(result.getUTCMonth() + value.getTimeStruct().months);
+    }
+    
+    if (this.getTimezoneOffset() != result.getTimezoneOffset()) {
+        // adjust for the timezone offset
+        result = new Date(result.getTime() + 60000 * (result.getTimezoneOffset() - this.getTimezoneOffset()));
     }
     
     return result;
