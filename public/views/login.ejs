@@ -63,15 +63,22 @@
         });
     }
     
+    function openPopup() {
+        try {
+            $('#popupLogin').popup('open');
+        } catch (err) {
+            $('#popupLogin').popup('close');
+            setTimeout(openPopup, 500);
+        }
+    }
+    
     $('#popupLogin').ready(function () {
         $.mobile.loading();
         
-        console.log($('#popupLogin'));
         $('#popupLogin').popup({
             history: false,
             overlayTheme: 'b',
             afteropen: function() {
-                console.log('afterOpen');
                 $('#btnSignIn').on('click', login_OnClick);
                 
                 $('#email').on('keydown', login_OnKeyPress);
@@ -81,10 +88,7 @@
         }); 
         
         // for some reason IE fails without the timeout
-        setTimeout(function() {
-            $('#popupLogin').popup('open');
-        }, 500);
-        
+        openPopup();
     });
 </script>
 </div>

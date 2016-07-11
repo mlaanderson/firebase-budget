@@ -596,6 +596,12 @@ function btnNext_Click(e) {
 function app_AuthStateChanged(user) {
     if (user == null) {
         m_primaryAccount = null;
+
+        // clear the chart
+        while (totals.length > 0) { totals.pop(); }
+        chart.render();
+        $('#main table').remove();
+        
         ejs.renderFile('login', {} , function(template) {
             $('body').append(template); //.ready(loginInit);
         });
