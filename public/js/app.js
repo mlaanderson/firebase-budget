@@ -596,8 +596,9 @@ function btnNext_Click(e) {
 function app_AuthStateChanged(user) {
     if (user == null) {
         m_primaryAccount = null;
-        $('#chart_div').empty();
-        render('login');
+        ejs.renderFile('login', {} , function(template) {
+            $('body').append(template); //.ready(loginInit);
+        });
     } else {
         root()
             .child('accounts')

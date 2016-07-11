@@ -13,7 +13,6 @@
         </div>
         <button type="button" id="btnSignIn" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Sign in</button>
     </div>
-</div>
 <script>
     var login;
     
@@ -63,19 +62,29 @@
             }
         });
     }
-
-    $('#popupLogin').ready(function() {
+    
+    $('#popupLogin').ready(function () {
         $.mobile.loading();
         
+        console.log($('#popupLogin'));
         $('#popupLogin').popup({
             history: false,
-            overlayTheme: 'b'
-        }).popup('open');
+            overlayTheme: 'b',
+            afteropen: function() {
+                console.log('afterOpen');
+                $('#btnSignIn').on('click', login_OnClick);
+                
+                $('#email').on('keydown', login_OnKeyPress);
+                $('#password').on('keydown', login_OnKeyPress);
+                $('#email').focus();
+            }
+        }); 
         
-        $('#btnSignIn').on('click', login_OnClick);
-
-        $('#email').on('keydown', login_OnKeyPress);
-        $('#password').on('keydown', login_OnKeyPress);
-        $('#email').focus();
+        // for some reason IE fails without the timeout
+        setTimeout(function() {
+            $('#popupLogin').popup('open');
+        }, 500);
+        
     });
 </script>
+</div>
