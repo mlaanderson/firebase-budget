@@ -20,17 +20,27 @@ if (Number.toLocaleStringSupportsLocales() == true) {
 } else {
     Number.prototype.toCurrency = function() {
         var result = Math.sign(this) < 0 ? "-$" : "$";
-        result += Math.abs(this.toFixed(2));
+        var fixed = Math.abs(this).toFixed(2);
         
-        if (result.indexOf('.') < 0) {
-            result += '.00';
+        if (fixed.indexOf('.') < 0) {
+            fixed += '.00';
         }
         
-        while ((result.length - result.indexOf('.')) < 3) {
-            result += '0';
+        while ((fixed.length - fixed.indexOf('.')) < 3) {
+            fixed += '0';
         }
         
-        return result;
+        if (fixed.indexOf('.') > 3) {
+            var idx = fixed.indexOf('.');
+            // this needs commas
+            fixed = fixed.slice(0, idx - 3)  + ',' + fixed.slice(idx - 3);
+            
+            while ((idx = fixed.indexOf(',')) > 3) {
+                fixed = fixed.slice(0, idx - 3)  + ',' + fixed.slice(idx - 3);
+            }
+        }
+        
+        return result + fixed;
     }
 }
 

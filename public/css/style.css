@@ -1,3 +1,8 @@
+* {
+    content-box: border-box;
+    position: relative;
+    /*transition: all 0.2s ease;*/
+}
 
 table {
     border-collapse: collapse;
@@ -23,6 +28,16 @@ th.trAmount, th.trTotal, td.trAmount, td.trTotal {
     text-align: right;
 }
 
+#total_calc {
+    border-top: 2px solid #333;
+}
+
+#main {
+    overflow-y: scroll;
+    padding: 0;
+}
+
+
 @media only screen and (min-device-width: 1024px) {
     body { background-color: #e9e9e9; }
     .ui-mobile .ui-page-active, .ui-header-fixed, .ui-footer-fixed {
@@ -32,10 +47,6 @@ th.trAmount, th.trTotal, td.trAmount, td.trTotal {
     
     #btnEditTransaction {
         display: none;
-    }
-    
-    #main {
-        overflow-y: scroll;
     }
     
     #footer_info {
@@ -82,11 +93,26 @@ th.trAmount, th.trTotal, td.trAmount, td.trTotal {
         display: none;
     }
     
-    #main tr td:first-child, #main tr td:first-child+td, #main tr th:first-child, #main tr th:first-child+th {
+    #main .trDate {
         display: none;
     }
     
     #main td {
         font-size: 0.85em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #main .trCategory {
+        display: none;
+    }
+    
+    #main .trName {
+        width: 50%;
+    }
+    
+    #main .trAmount {
+        width: 25%;
     }
 }

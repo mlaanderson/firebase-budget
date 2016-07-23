@@ -19,39 +19,95 @@ if (items.length > 0) {
         <% if (items[n].paid) { %><span title="Paid">&#x2713;</span><%}%>
     </td>
     <td class="trAmount" style="text-align: right"><%= items[n].amount.toCurrency() %></td>
-    <td class="trTotal" style="text-align: right"><%= items[n].total.toCurrency() %></td>
 </tr>
 <% 
     }
+
 }
 %>
 
 <script>
     var nameHoverTimeout, namePopup;
     
-    function handleUpdate(snapshot) {
+        function handleUpdate(snapshot, action) {
         var id = snapshot.key;
         var val = snapshot.val();
+        var perStart = Date.parseFb(m_periodStart);
+        var perEnd = Date.parseFb(m_periodEnd);
+        var trDate = Date.parseFb(val.date);
 
         if ($('#' + id).length > 0) {
-            $('#' + id + ' td.trDate').text(new Date(val.date).format('MMM d, yyyy'));
-            $('#' + id + ' td.trCategory').text(val.category);
-            $('#' + id + ' td.trName').empty().append(
-                val.name + " " + 
-                (val.cash ? "<span title='Cash'>$</span>" : "") + 
-                (val.checkLink ? "<span title='Check'>\u2328</span>": "") +
-                (val.recurring ? "<span title='Recurring'>\u21bb</span>" : "") +
-                (val.paid ? "<span title='Paid'>\u2713</span>" : "")
-            );
-            $('#' + id + ' td.trAmount').text(val.amount.toCurrency());
-            $('#' + id + ' td.trTotal').text(val.total.toCurrency());
+            if (action == 'remove') {
+                $('#' + id).remove();
+            } else if (action == 'change') {
+                if (trDate.lt(perStart) || trDate.gt(perEnd)) {
+                    $('#' + id).remove();
+                } else {
+                    $('#' + id + ' td.trDate').text(new Date(val.date).format('MMM d, yyyy'));
+                    $('#' + id + ' td.trCategory').text(val.category);
+                    $('#' + id + ' td.trName').empty().append(
+                        val.name + " " + 
+                        (val.cash ? "<span title='Cash'>$</span>" : "") + 
+                        (val.checkLink ? "<span title='Check'>\u2328</span>": "") +
+                        (val.recurring ? "<span title='Recurring' recurring='" + val.recurring + "'>\u21bb</span>" : "") +
+                        (val.paid ? "<span title='Paid'>\u2713</span>" : "")
+                    );
+                    $('#' + id + ' td.trAmount').text(val.amount.toCurrency());
+                    $('[recurring]').on('click', function(e) {
+                        editRecurring(e.target.getAttribute('recurring'));
+                    });
+                }
+            } 
+        } else if (action == 'add') {
+            if (trDate.ge(perStart) && trDate.le(perEnd)) {
+                // search for the last category match
+                var prev = $('.trCategory:contains("' + val.category + '")').last().parent();
+                
+                if (prev.length <= 0) {
+                    prev = $('.trCategory').last().parent();
+                }
+                
+                if (prev.length > 0) {
+                    var row = prev.clone();
+                    row.attr('id', snapshot.key);
+                    
+                    // change the background if this is a new category
+                    if (row.children('.trCategory').text() != val.category) {
+                        if (row.hasClass('row_0') == true) {
+                            row.removeClass('row_0').addClass('row_1');
+                        } else {
+                            row.removeClass('row_1').addClass('row_0');
+                        }
+                    }
+                    
+                    // insert the new row, and call myself recursively
+                    // with the "change" action
+                    row.insertAfter(prev);
+                    row.children('td').on('mouseout', row_MouseOut);
+                    row.on('mouseover', row_MouseOver);
+                    row.on('dblclick', row_DoubleClick);
+                    row.on('taphold', row_TapHold);
+                    row.on('click', row_Click);
+                    row.disableSelection();
+                    
+                    
+                    handleUpdate(snapshot, "change");
+                } else {
+                    selectPeriod();
+                }
+            }
+        }
+        
+        if ($('#info_' + id).is('tr')) {
+            previewTransaction(id);
         }
     }
     
-    $('#main tr').on('mouseout', function() { 
+    function row_MouseOut() {
         $('tr').css('background-color', ''); 
-    });
-    $('#main td').on('mouseover', function(e) {
+    }
+    
+    function row_MouseOver(e) {
         e.target = $(e.target);
         
         $('tr').css('background-color', '');
@@ -63,19 +119,20 @@ if (items.length > 0) {
         if (e.target.is('tr')) {
             e.target.css('background-color', '#eef');
         }
-    });
-    $('tr').on('dblclick', function(e) {
+    }
+    
+    function row_DoubleClick(e) {
         e.preventDefault();
         
         editTransaction(e.currentTarget.id);
-    });
+    }
     
-    $('#main tr').on('taphold', function(e) {
+    function row_TapHold(e) {
         e.preventDefault();
         editTransaction(e.currentTarget.id);
-    });
+    }
     
-    $('#main tr').on('click', function(e) {
+    function row_Click(e) {
         e.preventDefault();
         e.target = $(e.target);
         
@@ -84,34 +141,18 @@ if (items.length > 0) {
         }
         
         previewTransaction(e.currentTarget.id);
-    });
+    }
     
+    
+    $('#main tr').on('mouseout', row_MouseOut);
+    $('#main td').on('mouseover', row_MouseOver);
+    $('#main tr').on('dblclick', row_DoubleClick);
+    $('#main tr').on('taphold', row_TapHold);
+    $('#main tr').on('click', row_Click);
     $('#main tr').disableSelection();
     
-    $('.trName').on('mouseover', function(e) {
-        nameHoverTimeout = setTimeout(function() {
-            var id = $(e.currentTarget).parent()[0].id;
-            m_primaryAccount.child('transactions/' + id).once('value', function(snapshot) {
-                var name = snapshot.val().name;
-                var category = snapshot.val().category;
-                m_primaryAccount.child('transactions').orderByChild('name').startAt(name).endAt(name).once('value', function(snap) {
-                    var trs = snap.val();
-                    var sum = 0;
-                    for (k in trs) {
-                        if (category == trs[k].category) {
-                            sum += trs[k].amount;
-                        }
-                    }
-                    $(e.currentTarget).prop('title', Math.abs(sum).toCurrency());
-                });
-            });
-        }, 100);
-    });
-    $('.trName').on('mouseout', function() { 
-        clearTimeout(nameHoverTimeout); 
-    });
-    
     $('[recurring]').on('click', function(e) {
-        editRecurring(e.target.getAttribute('recurring'));
+        var id = e.target.getAttribute('recurring');
+        editRecurring(id);
     });
 </script>
