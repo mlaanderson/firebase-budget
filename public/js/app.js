@@ -112,6 +112,15 @@ function Initialize() {
     
     m_today = Date.today();
     
+    history.pushState({ today: m_today.toFbString() }, "", "");
+    $(window).on('popstate', function(evt) {
+        if ((evt.originalEvent.state) && (evt.originalEvent.state.today)) {
+            evt.preventDefault();
+            m_today = Date.parseFb(evt.originalEvent.state.today);
+            selectPeriod();
+        }
+    });
+    
     $('#btnLogout').on('click', btnLogout_Click);
     $('#btnPrev').on('click', btnPrev_Click);
     $('#btnNext').on('click', btnNext_Click);
@@ -167,7 +176,6 @@ function root() {
 }
 
 function updateRunningTotal() {
-    console.time('totalTest');
     m_primaryAccount
         .child('transactions')
         .once('value', function(snapshot) {
@@ -218,7 +226,6 @@ function updateRunningTotal() {
                     chart.render();
                 }
                 
-                console.timeEnd('totalTest');
                 $('#main tfoot .trTotal').text(perSum.toCurrency())
             });
         });
@@ -648,6 +655,7 @@ function btnCash_Click() {
 }
 
 function periodMenu_Change() {
+    history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = new Date($('#periodMenu').val());
     selectPeriod();
 }
@@ -677,12 +685,14 @@ function btnLogout_Click(e) {
 
 function btnPrev_Click(e) {
     e.preventDefault();
+    history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = m_today.subtract("2 weeks");
     selectPeriod();
 }
 
 function btnNext_Click(e) {
     e.preventDefault();
+    history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = m_today.add("2 weeks");
     selectPeriod();
 }
@@ -700,6 +710,23 @@ function app_AuthStateChanged(user) {
             $('body').append(template); //.ready(loginInit);
         });
     } else {
+        root()
+            .child('config')
+            .on('value', function(snap) {
+                // get/update the configuration information
+                var config = snap.val();
+                
+                if (config == null) {
+                    for (var n = 0; n < CATEGORIES.length; n++) {
+                        root().child('config/categories').push(CATEGORIES[n]);
+                    }
+                } else {
+                    CATEGORIES = [];
+                    for (var key in config.categories) {
+                        CATEGORIES.push(config.categories[key]);
+                    }
+                }
+            });
         root()
             .child('accounts')
             .orderByChild('name')
