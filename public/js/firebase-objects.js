@@ -13,11 +13,18 @@ function __defineFbProperty(fo, key) {
     });
 }
 
+function __addChildListener(fo, child, key) {
+    child.on("change", (function(data) {
+        data.path.unshift(key);
+        data.sender = this;
+        this.emit("change", data);
+    }).bind(fo));
+}
+
 function FirebaseObject(ref, asArray) {
     var _ref = ref;
     var _shadow = {};
     var _listeners = {};
-    var _setup = true;
     
     asArray = asArray || false;
     
@@ -37,8 +44,36 @@ function FirebaseObject(ref, asArray) {
         });
     }
     
-    function emit(event, data) {
+    Object.defineProperty(this, "ref", {
+        get: function() { return _ref; }
+    });
+    
+    this.emit = function(event, data) {
         if (_listeners[event]) {
+            // add a couple helper methods to data
+            data.getPath = (function() {
+                return this.path.join('/');
+            }).bind(data);
+            
+            Object.defineProperty(data, "valueRef", {
+                get: function() {
+                    var obj = this.sender;
+                    for (var n = 0; n < this.path.length - 1; n++) {
+                        obj = obj[this.path[n]];
+                    }
+                    return obj.get(this.path[this.path.length - 1]);
+                },
+                set: function(val) {
+                    var obj = this.sender;
+                    for (var n = 0; n < this.path.length - 1; n++) {
+                        obj = obj[this.path[n]];
+                    }
+                    obj.set(this.path[this.path.length - 1], val);
+                },
+                configurable: true,
+                enumerable: true
+            });
+            
             for (var n = 0; n < _listeners[event].length; n++) {
                 _listeners[event][n](data);
             }
@@ -48,38 +83,43 @@ function FirebaseObject(ref, asArray) {
     function _handleChange(snapshot) {
         var value = snapshot.val();
         
-        _shadow = {};
-        
         for (var key in value) {
             var child;
             if ($.isPlainObject(value[key]) == true) {
                 if (FirebaseObject.prototype.isPrototypeOf(_shadow[key]) == false) {
                     child = new FirebaseObject(_ref.child(key));
+                    __addChildListener(this, child, key);
                 } else {
                     // it is already defined as a FirebaseObject, it will update
                     // its own children.
                     child = _shadow[key];
                 }
+                _shadow[key] = child;
             } else if ($.isArray(value[key]) == true) {
                 if (FirebaseObject.prototype.isPrototypeOf(_shadow[key]) == false) {
                     child = new FirebaseObject(_ref.child(key), true);
+                    __addChildListener(this, child, key);
                 } else {
                     // it is already defined as a FirebaseObject, it will update
                     // its own children.
                     child = _shadow[key];
                 }
+                _shadow[key] = child;
             } else {
-                if ((_setup == false) && (_shadow[key] !== value[key])) {
-                    // fire an on changed event
-                    emit(key, { sender: this, old: _shadow[key], current: value[key] });
-                }
+                var oldVal = (key in _shadow) ? _shadow[key] : null;
                 child = value[key];
+                _shadow[key] = child;
+                if ((true === key in _shadow) && (oldVal !== value[key])) {
+                    // fire an on changed event with the key name
+                    this.emit(key, { sender: this, path: [key], old: oldVal, current: value[key] });
+                    
+                    // on an on changed event with "change"
+                    this.emit("change", { sender: this, path: [key], old: oldVal, current: value[key] });
+                }
             }
-            _shadow[key] = child;
             
             __defineFbProperty(this, key);
         }
-        _setup = false;
     }
     
     function _handleAuth(authData) {
