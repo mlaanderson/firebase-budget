@@ -8,5 +8,4 @@ It allows reccurring transactions with a fairly simple interface.
 
 ## Broken and/or Missing
 
-* No way to create new recurring transactions
 * Recurring transaction editor replaces even modified transactions, should be a way to mark or disassociate altered transactions.
