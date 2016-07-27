@@ -418,9 +418,9 @@ function editTransaction(transId) {
                 history: false,
                 overlayTheme: 'b',
                 afteropen: function() {
-                    $('#btnSave').on('click', { id: transId }, saveTransaction);
-                    $('#btnDelete').on('click', {id: transId }, deleteTransaction);
-                    $('#transactionEditor input').on('keypress', function(evt) {
+                    $('#btnSave').off('click').on('click', { id: transId }, saveTransaction);
+                    $('#btnDelete').off('click').on('click', {id: transId }, deleteTransaction);
+                    $('#transactionEditor input').off('keypress').on('keypress', function(evt) {
                         if (evt.charCode == 13) {
                             evt.preventDefault();
                             saveTransaction({
@@ -452,7 +452,7 @@ function addTransaction() {
             history: false,
             overlayTheme: 'b',
             afteropen: function() {
-                $('#btnSave').on('click', { id: null }, saveTransaction);
+                $('#btnSave').off('click').on('click', { id: null }, saveTransaction);
             }
         }).popup('open');
     });
@@ -580,7 +580,7 @@ function editRecurring(transId) {
                 history: false,
                 overlayTheme: 'b',
                 afteropen: function() {
-                    $('#btnSave').on('click', { id: transId }, saveRecurring);
+                    $('#btnSave').off('click').on('click', { id: transId }, saveRecurring);
                 }
             }).popup('open');
         });
@@ -602,7 +602,7 @@ function newRecurring() {
             history: false,
             overlayTheme: 'b',
             afteropen: function() {
-                $('#btnSave').on('click', saveRecurring);
+                $('#btnSave').off('click').on('click', saveRecurring);
             }
         }).popup('open');
     });
@@ -683,7 +683,7 @@ function btnCheck_Click() {
                 overlayTheme: 'b',
                 afteropen: function() {
                     for (var k in checks) {
-                        $('#clear_' + k).on('click', { id: k }, clearCheck);
+                        $('#clear_' + k).off('click').on('click', { id: k }, clearCheck);
                     }
                 }
             }).popup('open');
