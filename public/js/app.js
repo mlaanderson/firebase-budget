@@ -717,14 +717,9 @@ function app_AuthStateChanged(user) {
                 var config = snap.val();
                 
                 if (config == null) {
-                    for (var n = 0; n < CATEGORIES.length; n++) {
-                        root().child('config/categories').push(CATEGORIES[n]);
-                    }
+                        root().child('config/categories').set(CATEGORIES[n]);
                 } else {
-                    CATEGORIES = [];
-                    for (var key in config.categories) {
-                        CATEGORIES.push(config.categories[key]);
-                    }
+                    CATEGORIES = config.categories;
                 }
             });
         root()

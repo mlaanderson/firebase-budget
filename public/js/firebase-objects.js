@@ -122,9 +122,23 @@ function FirebaseObject(ref, asArray) {
         }
     }
     
+    function _handleChildRemoved(snap) {
+        // delete the property reference
+        var oldData = this[snap.key];
+        
+        this.emit("remove", {
+            sender: this,
+            path: [snap.key],
+            old: oldData,
+            current: null
+        });
+        delete this[snap.key];
+    }
+    
     function _handleAuth(authData) {
         if (authData != null) {
             _ref.on('value', _handleChange.bind(this));
+            _ref.on('child_removed', _handleChildRemoved.bind(this));
         }
     }
     
