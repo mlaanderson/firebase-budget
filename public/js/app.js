@@ -422,6 +422,16 @@ function editTransaction(transId) {
                 afteropen: function() {
                     $('#btnSave').on('click', { id: transId }, saveTransaction);
                     $('#btnDelete').on('click', {id: transId }, deleteTransaction);
+                    $('#transactionEditor input').on('keypress', function(evt) {
+                        if (evt.charCode == 13) {
+                            evt.preventDefault();
+                            saveTransaction({
+                                data: {
+                                    id: transId
+                                }
+                            });
+                        }
+                    });
                 }
             }).popup('open');
         });
