@@ -8,6 +8,9 @@
     if (("checkLink" in this) == false) {
         this.checkLink = "";
     }
+    if (("note" in this) == false) {
+        this.note = "";
+    }
 %>
 <div data-role="popup" id="transactionEditor" data-theme="a" class="ui-corner-all">
     <div style="padding:10px 20px">
@@ -50,6 +53,8 @@
                 <input type="checkbox" id="paid" <% if (paid == true) { %>checked<% } %>>
                 Paid
             </label>
+            <label for="note">Notes</label>
+            <textarea id="note"><%= note %></textarea>
             <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
             <% if (id) { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
         </div>

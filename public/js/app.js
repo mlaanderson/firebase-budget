@@ -301,6 +301,7 @@ function saveTransaction(e) {
     var isDeposit = $('#type').prop('checked');
     var checkNumber = $('#checkNumber').val();
     var checkLink = $('#checkLink').val();
+    var note = $('#note').val();
     
     if ((checkNumber != "") && (checkLink == "")) {
         // create the new check
@@ -322,6 +323,9 @@ function saveTransaction(e) {
         }
     }
     
+    if (note === "") {
+        note = null;
+    }
     
     var data = {
         'date': $('#date').val(),
@@ -330,7 +334,8 @@ function saveTransaction(e) {
         'amount': $('#amount').val() * (isDeposit ? 1 : -1),
         'cash': $('#cash').prop('checked') && (isDeposit == false),
         'total': 0,
-        'paid': $('#paid').prop('checked')
+        'paid': $('#paid').prop('checked'), 
+        'note': note
     }
     
     if (checkNumber != "") {
