@@ -6,7 +6,7 @@ for (var n = 0; n < items.length; n++) {
 __total = Math.abs(__total);
 %>
 <div><em><%= title %> - <%= __total.toCurrency() %></em></div>
-<table>
+<table id="info_table">
     <thead>
         <tr><th>Date</th><th>Amount</th></tr>
     </thead>
@@ -14,7 +14,7 @@ __total = Math.abs(__total);
     <%
     for (var n = 0; n < items.length; n++) {
     %>
-    <tr id="info_<%= items[n].__key__ %>">
+    <tr id="info_<%= items[n].__key__ %>" item="<%= items[n].__key__ %>">
         <td class="in_date"><%= Date.parseFb(items[n].date).format('MMM d, 2016') %></td>
         <td class="in_amount"><%= items[n].amount.toCurrency() %></td>
     </tr>
@@ -23,3 +23,14 @@ __total = Math.abs(__total);
     %>
     </tbody>
 </table>
+<script>
+    $('#info_table tr').on('click', function(evt) {
+        var targ = $(evt.target);
+        if (targ.is('tr') == false) {
+            targ = targ.parents('tr');
+        }
+        if (targ.attr('item')) {
+            navigateTo(targ.attr('item'));
+        }
+    });
+</script>

@@ -782,6 +782,17 @@ function app_DoAuth(credentials, callback) {
         });
 }
 
+function navigateTo(transId) {
+    m_primaryAccount.child('transactions').child(transId).once('value', function(snap) {
+        var tr = snap.val();
+        if (tr !== null) {
+            history.pushState({ today: m_today.toFbString()}, document.title, "");
+            m_today = Date.parseFb(tr.date);
+            selectPeriod();
+        }
+    });
+}
+
 $('#chart_div').ready(function() {
     $('#chart_div').CanvasJSChart({
         zoomEnabled: true,
