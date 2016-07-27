@@ -333,7 +333,6 @@ function saveTransaction(e) {
         'name': $('#name').val(),
         'amount': $('#amount').val() * (isDeposit ? 1 : -1),
         'cash': $('#cash').prop('checked') && (isDeposit == false),
-        'total': 0,
         'paid': $('#paid').prop('checked'), 
         'note': note
     }
@@ -360,7 +359,6 @@ function saveTransaction(e) {
                 m_primaryAccount.child('checks').child(oldCheckLink).child('link').remove();
             }
 
-            data.total = snap.val().total;
             m_primaryAccount.child('transactions').child(e.data.id).update(data).then(function() {
                 $('#transactionEditor').empty();
                 $('#transactionEditor').popup('close');
