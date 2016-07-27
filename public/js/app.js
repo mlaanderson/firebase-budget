@@ -469,7 +469,7 @@ function previewTransaction(id) {
                 
                 // then display them in the info_div
                 ejs.renderFile('info', { title: item.name, items: items }, function(template) {
-                    $('#info_div').empty().append($(template));
+                    $('.info_div').empty().append($(template));
                 });
             });
     });

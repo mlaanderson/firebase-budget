@@ -15,7 +15,7 @@ __total = Math.abs(__total);
     for (var n = 0; n < items.length; n++) {
     %>
     <tr id="info_<%= items[n].__key__ %>" item="<%= items[n].__key__ %>">
-        <td class="in_date"><%= Date.parseFb(items[n].date).format('MMM d, 2016') %></td>
+        <td class="in_date"><%= Date.parseFb(items[n].date).format('MMM d, yyyy') %></td>
         <td class="in_amount"><%= items[n].amount.toCurrency() %></td>
     </tr>
     <%
