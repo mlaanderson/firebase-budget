@@ -1,8 +1,7 @@
 var m_primaryAccount = null;
 var m_totalLock = false;
 var m_today;
-//var m_totalWorker = new Worker('js/total_worker.js');
-var m_periodStart, m_periodEnd;
+var m_periodStart, m_periodEnd, m_lastPeriodStart;
 var totals = [], transactions = [], chart, rendering = false;
 
 var CATEGORIES = [
@@ -21,7 +20,95 @@ var CATEGORIES = [
     "Debt"
 ];
 
-
+var chart_config = {
+    "type": "serial",
+    "balloonDateFormat": "MMM DD",
+    "categoryField": "date",
+    "dataDateFormat": "YYYY-MM-DD",
+    "maxSelectedSeries": 0,
+    "mouseWheelScrollEnabled": true,
+    "zoomOutOnDataUpdate": false,
+    "maxZoomFactor": 19,
+    "zoomOutButtonTabIndex": -2,
+    "sequencedAnimation": false,
+    "startEffect": "bounce",
+    "accessible": false,
+    "autoDisplay": true,
+    "hideBalloonTime": 2000,
+    "theme": "dark",
+    "categoryAxis": {
+        "position": "top",
+        "parseDates": true
+    },
+    "chartCursor": {
+        "enabled": true,
+        "animationDuration": 0.25,
+        "bulletsEnabled": false,
+        "categoryBalloonEnabled": false,
+        "categoryBalloonAlpha": 0,
+        "fullWidth": false,
+        "leaveAfterTouch": false,
+        "oneBalloonOnly": true,
+        "selectionAlpha": 1
+    },
+    "chartScrollbar": {
+        "enabled": true,
+        "dragIcon": "dragIconRoundSmall",
+        "graph": "AmGraph-1",
+        "gridAlpha": 0,
+        "maximum": 5000,
+        "minimum": -500,
+        "oppositeAxis": true,
+        "selectedBackgroundAlpha": 0,
+        "updateOnReleaseOnly": true
+    },
+    "trendLines": [],
+    "graphs": [
+        {
+            "balloonColor": "#FFFFFF",
+            "balloonText": "[[description]]",
+            "bullet": "square",
+            "bulletAxis": "ValueAxis-1",
+            "bulletBorderAlpha": 1,
+            "bulletField": "amount",
+            "bulletHitAreaSize": 2,
+            "color": "#000000",
+            "columnWidth": 0,
+            "descriptionField": "description",
+            "fillAlphas": 0.18,
+            "id": "AmGraph-1",
+            "lineAlpha": 1,
+            "lineColor": "#008000",
+            "lineThickness": 2,
+            "minDistance": 19,
+            "negativeFillAlphas": 0.19,
+            "negativeFillColors": "#FF0000",
+            "negativeLineColor": "#FF0000",
+            "switchable": false,
+            "title": "graph 1",
+            "type": "step",
+            "valueAxis": "ValueAxis-1",
+            "valueField": "amount"
+        }
+    ],
+    "guides": [],
+    "valueAxes": [
+        {
+            "id": "ValueAxis-1",
+            "title": ""
+        }
+    ],
+    "allLabels": [],
+    "balloon": {
+        "animationDuration": 0,
+        "borderAlpha": 0.96,
+        "disableMouseEvents": false,
+        "fixedPosition": false,
+        "horizontalPadding": 7
+    },
+    "titles": [],
+    "dataProvider": []
+};
 function sortObjectByKey(me, key, sorter) {
     // returns an array with the sub objects
     // adds __key__ to each item
@@ -140,16 +227,6 @@ function Initialize() {
         $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
     });
-    //m_totalWorker.onmessage = totalWorker_Message;
-}
-
-function totalWorker_Message(e) {
-    //var data = e.data;
-    //if (typeof data == "object") {
-    //    m_primaryAccount.child('transactions').child(data.key).update({total: data.total});
-    //} else {
-    //    console.log(data.toString());
-    //}
 }
 
 function render(file, data, callback) {
@@ -212,18 +289,36 @@ function updateRunningTotal() {
                 
                 if ($('#footer_info').css('display') !== 'none') {
                     var perStart = Date.parseFb(m_periodStart);
+                    var chStart, chLeft, chRight;
                     
-                    for (var date in sums) {
-                        var trDate = Date.parseFb(date);
-                        if ((trDate.ge(perStart.subtract('1 month'))) && (trDate.le(perStart.add('3 months')))) {
-                            totals.push({
-                                x: trDate,
-                                y: sums[date]
-                            });
-                        }
+                    // keep the zoom level the same, but base it on the current period
+                    if (m_lastPeriodStart) {
+                        chStart = Date.parseFb(m_lastPeriodStart);
+                        var chLeftDiff = chStart.subtract(chart.startDate);
+                        var chRightDiff = chart.endDate.subtract(chStart);
+                        
+                        chLeft = perStart.subtract(chLeftDiff);
+                        chRight = perStart.add(chRightDiff);
+                        
+                    } else {
+                        chStart = perStart;
+                        chLeft = perStart.subtract('2 weeks');
+                        chRight = perStart.add('3 months');
                     }
                     
-                    chart.render();
+
+                    chart.dataProvider = [];
+                    for (var date in sums) {
+                        var trDate = Date.parseFb(date);
+                        chart.dataProvider.push({
+                            "date": date,
+                            "amount": sums[date],
+                            "description": trDate.format("MMM dd") + ": " + sums[date].toCurrency()
+                        });
+                    }
+                    
+                    chart.validateData();
+                    chart.zoomToDates(chLeft, chRight);
                 }
                 
                 $('#main tfoot .trTotal').text(perSum.toCurrency())
@@ -265,8 +360,14 @@ function selectPeriod() {
             var start = snap.val().start;
             var end = snap.val().end;
             
+            if (m_periodStart) {
+                m_lastPeriodStart = m_periodStart;
+            }
+            
             m_periodStart = start;
             m_periodEnd = end;
+            
+            
             
             
             document.title = Date.parseFb(start).format('MMM d') + " - " +
@@ -399,7 +500,6 @@ function deleteTransaction(e) {
 }
 
 function editSelectedTransaction(e) {
-    console.log('editSelectedTransaction');
     var id = $('#btnEditTransaction').prop('targetId');
     e.preventDefault();
     $('*').blur();
@@ -496,8 +596,6 @@ function saveRecurring(e) {
     };
     
     $.mobile.loading('show');
-    
-    console.log(data);
     
     if ((e.data) && (e.data.id)) {
         var id = e.data.id;
@@ -715,8 +813,8 @@ function app_AuthStateChanged(user) {
         m_primaryAccount = null;
 
         // clear the chart
-        while (totals.length > 0) { totals.pop(); }
-        chart.render();
+        //while (totals.length > 0) { totals.pop(); }
+        //chart.render();
         $('#main table').remove();
         
         ejs.renderFile('login', {} , function(template) {
@@ -802,32 +900,33 @@ function navigateTo(transId) {
 }
 
 $('#chart_div').ready(function() {
-    $('#chart_div').CanvasJSChart({
-        zoomEnabled: true,
-        toolTip: {
-            contentFormatter: function(e) {
-                var str = "";
-                if (e.entries.length >= 0) {
-                    str = "<b>" + e.entries[0].dataPoint.x.format('MMM d') + ":</b>" +
-                        " " + e.entries[0].dataPoint.y.toCurrency();
-                }
-                return str;
-            }
-        },
-        axisX: {
-            labelAngle: -30,
-            gridThickness: 2
-        },
-        axisY: {
-            includeZero: true,
-            minimum: -1000,
-            maximum: 5000
-        },
-        data: [
-            { type: "stepArea", dataPoints: totals }
-        ]
-    });
-    chart = $('#chart_div').CanvasJSChart();
+    //$('#chart_div').CanvasJSChart({
+    //    zoomEnabled: true,
+    //    toolTip: {
+    //        contentFormatter: function(e) {
+    //            var str = "";
+    //            if (e.entries.length >= 0) {
+    //                str = "<b>" + e.entries[0].dataPoint.x.format('MMM d') + ":</b>" +
+    //                    " " + e.entries[0].dataPoint.y.toCurrency();
+    //            }
+    //            return str;
+    //        }
+    //    },
+    //    axisX: {
+    //        labelAngle: -30,
+    //        gridThickness: 2
+    //    },
+    //    axisY: {
+    //        includeZero: true,
+    //        minimum: -1000,
+    //        maximum: 5000
+    //    },
+    //    data: [
+    //        { type: "stepArea", dataPoints: totals }
+    //    ]
+    //});
+    //chart = $('#chart_div').CanvasJSChart();
+    chart = AmCharts.makeChart('chart_div', chart_config);
 });
 
 // EOF

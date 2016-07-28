@@ -3,10 +3,23 @@
 function __defineFbProperty(fo, key) {
     Object.defineProperty(fo, key.toString(), {
         get: function() {
-            return fo.get(key);
+            return fo.get(key.toString());
         },
         set: function(val) {
-            fo.set(key, val);
+            fo.set(key.toString(), val);
+        },
+        configurable: true,
+        enumerable: true
+    });
+}
+
+function __defineFbIndexProperty(fo, key, n) {
+    Object.defineProperty(fo, n.toString(), {
+        get: function() {
+            return fo.get(key.toString());
+        },
+        set: function(val) {
+            fo.set(key.toString(), val);
         },
         configurable: true,
         enumerable: true
@@ -21,31 +34,33 @@ function __addChildListener(fo, child, key) {
     }).bind(fo));
 }
 
-function FirebaseObject(ref, asArray) {
+function FirebaseObject(ref, path) { 
     var _ref = ref;
     var _shadow = {};
+    var _arrayMap = [];
     var _listeners = {};
+    path = path || "";
     
-    asArray = asArray || false;
-    
-    if (asArray == true) {
-        // add the length property
-        Object.defineProperty(this, 'length', {
-            get: function() {
-                if (Object.getOwnPropertyNames) {
-                    return Object.getOwnPropertyNames(_shadow).length;
-                }
-                var n = 0;
-                for (var k in _shadow) {
-                    n++;
-                }
-                return n;
+    // add the length property
+    Object.defineProperty(this, 'length', {
+        get: function() {
+            if (Object.getOwnPropertyNames) {
+                return Object.getOwnPropertyNames(_shadow).length;
             }
-        });
-    }
+            var n = 0;
+            for (var k in _shadow) {
+                n++;
+            }
+            return n;
+        }
+    });
     
     Object.defineProperty(this, "ref", {
         get: function() { return _ref; }
+    });
+    
+    Object.defineProperty(this, "path", {
+        get: function() { return path; }
     });
     
     this.emit = function(event, data) {
@@ -82,12 +97,13 @@ function FirebaseObject(ref, asArray) {
     
     function _handleChange(snapshot) {
         var value = snapshot.val();
+        var n = 0;
         
         for (var key in value) {
             var child;
             if ($.isPlainObject(value[key]) == true) {
                 if (FirebaseObject.prototype.isPrototypeOf(_shadow[key]) == false) {
-                    child = new FirebaseObject(_ref.child(key));
+                    child = new FirebaseObject(_ref.child(key), path + (path.length > 0 ? "/" : "") + key);
                     __addChildListener(this, child, key);
                 } else {
                     // it is already defined as a FirebaseObject, it will update
@@ -97,7 +113,7 @@ function FirebaseObject(ref, asArray) {
                 _shadow[key] = child;
             } else if ($.isArray(value[key]) == true) {
                 if (FirebaseObject.prototype.isPrototypeOf(_shadow[key]) == false) {
-                    child = new FirebaseObject(_ref.child(key), true);
+                    child = new FirebaseObject(_ref.child(key), path + (path.length > 0 ? "/" : "") + key);
                     __addChildListener(this, child, key);
                 } else {
                     // it is already defined as a FirebaseObject, it will update
@@ -119,6 +135,10 @@ function FirebaseObject(ref, asArray) {
             }
             
             __defineFbProperty(this, key);
+            if (/^-.{19}/.test(key)) {
+                _arrayMap.push(key);
+                __defineFbIndexProperty(this, key, n++);
+            }
         }
     }
     
@@ -164,6 +184,27 @@ function FirebaseObject(ref, asArray) {
             _listeners[event] = [];
         }
         _listeners[event].push(handler);
+    }
+    
+    this.toJSON = function() {
+        var result = {};
+        for (var key in _shadow) {
+            var idx = _arrayMap.indexOf(key);
+            if (idx >= 0) {
+                if (FirebaseObject.prototype.isPrototypeOf(_shadow[key]) === true) {
+                    result[idx] = _shadow[key].toJSON();
+                } else {
+                    result[idx] = _shadow[key];
+                }
+            } else {
+                if (FirebaseObject.prototype.isPrototypeOf(_shadow[key]) === true) {
+                    result[key] = _shadow[key].toJSON();
+                } else {
+                    result[key] = _shadow[key];
+                }
+            }
+        }
+        return result;
     }
     
     if (_ref.onAuth) { // Firebase 2.x
