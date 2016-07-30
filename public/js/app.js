@@ -73,17 +73,16 @@ var chart_config = {
             "bulletField": "amount",
             "bulletHitAreaSize": 2,
             "color": "#000000",
+            "colorField": "color",
             "columnWidth": 0,
             "descriptionField": "description",
             "fillAlphas": 0.18,
+            "fillColorsField": "color",
             "id": "AmGraph-1",
             "lineAlpha": 1,
-            "lineColor": "#008000",
+            "lineColorField": "color",
             "lineThickness": 2,
             "minDistance": 19,
-            "negativeFillAlphas": 0.19,
-            "negativeFillColors": "#FF0000",
-            "negativeLineColor": "#FF0000",
             "switchable": false,
             "title": "graph 1",
             "type": "step",
@@ -313,10 +312,25 @@ function updateRunningTotal() {
                         chart.dataProvider.push({
                             "date": date,
                             "amount": sums[date],
-                            "description": trDate.format("MMM dd") + ": " + sums[date].toCurrency()
+                            "description": trDate.format("MMM dd") + ": " + sums[date].toCurrency(),
+                            "color": (sums[date] < 0 ? "#ff0000" : "#008800")
                         });
                     }
                     
+                    // chart.validateData();
+
+                    // Adjust for AmCharts using the pixel position to determine negative values
+                    //var chartStep = 1.5 * (chart.graphs[0].valueAxis.max - chart.graphs[0].valueAxis.min) / chart.categoryAxis.height;
+                    //console.log(chartStep); 
+                    //
+                    //for (var n = 0; n < chart.dataProvider.length; n++) {
+                    //    if (chart.dataProvider[n].amount > 0 && chart.dataProvider[n].amount < chartStep) {
+                    //        // adjust the visual display
+                    //        
+                    //        chart.dataProvider[n].amount = chartStep;
+                    //    }
+                    //}
+
                     chart.validateData();
                     chart.zoomToDates(chLeft, chRight);
                 }

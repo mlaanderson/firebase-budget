@@ -3,6 +3,10 @@ Math.roundTo = function (value, digits) {
     return Math.round(value * div) / div;
 }
 
+if ("sign" in Math === false) {
+    Math.sign = function(a){a=Number(a);return 0===a||isNaN(a)?a:0<a?1:-1}
+}
+
 Number.toLocaleStringSupportsLocales = function() {
   var number = 0;
   try {

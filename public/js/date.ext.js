@@ -237,7 +237,7 @@ Date.prototype.equals = function(other) {
     other = other || new Date();
     
     if (Date.prototype.isPrototypeOf(other) == false) {
-        other = new Date(other);
+        other = Date.parseFb(other);
     }
     
     return this.getTime() == other.getTime();
@@ -247,7 +247,7 @@ Date.prototype.lessThan = function(other) {
     other = other || new Date();
     
     if (Date.prototype.isPrototypeOf(other) == false) {
-        other = new Date(other);
+        other = Date.parseFb(other);
     }
     
     return this.getTime() < other.getTime();
@@ -257,7 +257,7 @@ Date.prototype.greaterThan = function(other) {
     other = other || new Date();
     
     if (Date.prototype.isPrototypeOf(other) == false) {
-        other = new Date(other);
+        other = Date.parseFb(other);
     }
     
     return this.getTime() > other.getTime();

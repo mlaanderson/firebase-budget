@@ -212,4 +212,23 @@ function FirebaseObject(ref, path) {
     } else { // Firebase 3.x
         _ref.database.app.auth().onAuthStateChanged(_handleAuth.bind(this));
     }
+    
+    //if ((typeof Symbol !== "undefined") && Symbol.iterator) {
+    //    console.log('creating Symbol.iterator');
+    //    // add an iterator
+    //    this[Symbol.iterator] = function * () {
+    //        let properties = Object.keys(this);
+    //        let count = 0;
+    //        var isDone = false;
+    //        
+    //        let next = function() { 
+    //            if (count > properties.length) {
+    //                isDone = true;
+    //            }
+    //            return { done: isDone, value: this[properties[count++]] };
+    //        }
+    //        
+    //        return next;
+    //    }
+    //}
 }
