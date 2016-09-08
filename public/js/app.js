@@ -191,6 +191,26 @@ function sortTransactionsByDate(obj) {
     return result;
 }
 
+function downloadJson() {
+    root().once('value', function(snap) {
+        var data = JSON.stringify(snap.val());
+        var filename = 'budget-' + (new Date()).toFbString() + ".json"
+        var blob  = new Blob([data], { type: 'application/json'});
+
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+        } else {
+            var elem = window.document.createElement('a');
+            elem.href = window.URL.createObjectURL(blob);
+            elem.download = filename;
+            elem.style = "display: none";
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
+    });
+}
+
 function Initialize() {
     $.mobile.loading();
     
@@ -216,6 +236,7 @@ function Initialize() {
     $('#btnAddTransaction').on('click', addTransaction);
     $('#btnEditTransaction').on('click', editSelectedTransaction);
     $('#btnNewRecurring').on('click', newRecurring);
+    $('#btnDownload').on('click', downloadJson);
     $('#main').on('mouseout', function() {
         setTimeout(function() {
             $('#btnEditTransaction').prop('targetId', '');
@@ -576,6 +597,7 @@ function previewTransaction(id) {
     $('#btnEditTransaction').prop('targetId', id);
     m_primaryAccount.child('transactions').child(id).once('value', function(tsnap) {
         var item = tsnap.val();
+        if (item === null) return;
         m_primaryAccount.child('transactions').orderByChild('name')
             .startAt(item.name).endAt(item.name)
             .once('value', function(snap) {
