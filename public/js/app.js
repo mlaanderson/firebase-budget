@@ -193,7 +193,7 @@ function sortTransactionsByDate(obj) {
 
 function downloadJson() {
     root().once('value', function(snap) {
-        var data = JSON.stringify(snap.val());
+        var data = JSON.stringify(snap.val(), null, 4);
         var filename = 'budget-' + (new Date()).toFbString() + ".json"
         var blob  = new Blob([data], { type: 'application/json'});
 
