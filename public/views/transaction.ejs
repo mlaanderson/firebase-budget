@@ -18,7 +18,7 @@ if (items.length > 0) {
         <% if (items[n].checkLink) { %><span title="Check">&#x2328;</span><%}%>
         <% if (items[n].recurring) { %><span id="<%= items[n].__key__ %>_recurring" recurring="<%= items[n].recurring %>" title="Recurring">&#x21bb;</span><%}%>
         <% if (items[n].paid) { %><span title="Paid">&#x2713;</span><%}%>
-        <% if (hasNote == true) { %><span title="<%= items[n].note %>">&#x2709;</span><% } %>
+        <% if (hasNote == true) { %><span title="<%= items[n].note.replace(/"/g, '&quot;') %>">&#x2709;</span><% } %>
     </td>
     <td class="trAmount" style="text-align: right"><%= items[n].amount.toCurrency() %></td>
 </tr>
