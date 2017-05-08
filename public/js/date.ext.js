@@ -271,11 +271,51 @@ Date.prototype.lessThanEquals = function(other) {
     return this.equals(other) || this.lessThan(other);
 }
 
+Date.prototype.periodCalc = function(start, length) {
+    var startDate = Date.parseFb(start);
+    var endDate = startDate;
+
+    while (endDate.add(length).le(this) === true) {
+        endDate = endDate.add(length);
+    }
+
+    return endDate;
+}
+
+Date.periodCalc = function(start, length) {
+    return Date.today().periodCalc(start, length);
+}
+
 Date.prototype.eq = Date.prototype.equals;
 Date.prototype.lt = Date.prototype.lessThan;
 Date.prototype.gt = Date.prototype.greaterThan;
 Date.prototype.le = Date.prototype.lessThanEquals;
 Date.prototype.ge = Date.prototype.greaterThanEquals;
+
+Date.prototype.daysInMonth = function() {
+    var month = this.getUTCMonth();
+    if (month == 1) {
+        // February
+        var year = this.getUTCFullYear();
+        if ((year % 400) == 0) {
+            return 29;
+        }
+        if ((year % 100) == 0) {
+            return 28;
+        }
+        if ((year % 4) == 0) {
+            return 29;
+        }
+        return 28;
+    }
+    if ((month < 7) && ((month % 2) == 0)) {
+        return 31;
+    }
+    if ((month > 6) && ((month % 2) == 1)) {
+        return 31;
+    }
+    return 30;
+}
 
 Date.DAYSOFWEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 Date.ABBRDAYSOFWEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

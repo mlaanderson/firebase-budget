@@ -20,6 +20,9 @@ var CATEGORIES = [
     "Debt"
 ];
 
+var PERIOD_START = "2016-06-24";
+var PERIOD_LENGTH = "2 weeks";
+
 var chart_config = {
     "type": "serial",
     "balloonDateFormat": "MMM DD",
@@ -385,49 +388,35 @@ function updateScreenRemove(snapshot) {
 function selectPeriod() {
     $.mobile.loading('show');
     $('*').blur();
+    var start = m_today.periodCalc(PERIOD_START, PERIOD_LENGTH);
+    var end = start.add(PERIOD_LENGTH).subtract("1 day").toFbString();
+
+    start = start.toFbString();
+    m_periodStart = start;
+    m_periodEnd = end;
+    
+    document.title = Date.parseFb(start).format('MMM d') + " - " +
+        Date.parseFb(end).format('MMM d');
+    
+    $('#tblTransactions tbody').empty();
     m_primaryAccount
-        .child('periods')
-        .orderByChild('start')
-        .endAt(m_today.toFbString())
-        .limitToLast(1)
-        .once('child_added')
-        .then(function(snap) {
-            var start = snap.val().start;
-            var end = snap.val().end;
-            
-            if (m_periodStart) {
-                m_lastPeriodStart = m_periodStart;
-            }
-            
-            m_periodStart = start;
-            m_periodEnd = end;
-            
-            
-            
-            
-            document.title = Date.parseFb(start).format('MMM d') + " - " +
-                Date.parseFb(end).format('MMM d');
-            
-            $('#tblTransactions tbody').empty();
-            m_primaryAccount
-                .child('transactions')
-                .orderByChild('date')
-                .startAt(start)
-                .endAt(end)
-                .once('value')
-                .then(function(tsnap) {
-                    var items = sortTransactions(tsnap.val());
-                    ejs.renderFile('transaction', { items: items }, function(template) {
-                        $('#tblTransactions tbody').append($(template));
-                        $.mobile.loading('hide');
-                        $('#periodMenu').val(start);
-                        $('#periodMenu').selectmenu('refresh');
-                        $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
-                        $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
-                        
-                        updateRunningTotal();
-                    });
-                });
+        .child('transactions')
+        .orderByChild('date')
+        .startAt(start)
+        .endAt(end)
+        .once('value')
+        .then(function(tsnap) {
+            var items = sortTransactions(tsnap.val());
+            ejs.renderFile('transaction', { items: items }, function(template) {
+                $('#tblTransactions tbody').append($(template));
+                $.mobile.loading('hide');
+                $('#periodMenu').val(start);
+                $('#periodMenu').selectmenu('refresh');
+                $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+                $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+                
+                updateRunningTotal();
+            });
         });
 }
 
@@ -483,38 +472,45 @@ function saveTransaction(e) {
         data.check = null;
         data.checkLink = null;
     }
-    
-    if (e.data.id) {
-        m_primaryAccount.child('transactions').child(e.data.id).once('value', function(snap) {
-            var oldAmount = snap.val().amount;
-            var oldCheckLink = snap.val().checkLink;
-            
-            
-            if ((checkLink == "") && (oldCheckLink !== undefined)) {
-                // remove the links
-                m_primaryAccount.child('checks').child(oldCheckLink).child('link').remove();
-            }
 
-            m_primaryAccount.child('transactions').child(e.data.id).update(data).then(function() {
+    m_primaryAccount.child('periods').orderByChild('start').limitToFirst(1).once('child_added', function(persnap) {
+        if (Date.parseFb(data.date).lt(persnap.val().start) === true) {
+            data.date = persnap.val().start;
+        }
+
+        if (e.data.id) {
+            m_primaryAccount.child('transactions').child(e.data.id).once('value', function(snap) {
+                var oldAmount = snap.val().amount;
+                var oldCheckLink = snap.val().checkLink;
+                
+                
+                if ((checkLink == "") && (oldCheckLink !== undefined)) {
+                    // remove the links
+                    m_primaryAccount.child('checks').child(oldCheckLink).child('link').remove();
+                }
+
+                m_primaryAccount.child('transactions').child(e.data.id).update(data).then(function() {
+                    $('#transactionEditor').empty();
+                    $('#transactionEditor').popup('close');
+                    $('#transactionEditor').remove();
+                    
+                    $.mobile.loading('hide');
+                });
+            });
+        } else {
+            var ref = m_primaryAccount.child('transactions').push();
+            if (checkLink != "") {
+                m_primaryAccount.child('checks').child(checkLink).update({ link: ref.key });
+            }
+            ref.set(data).then(function() {
                 $('#transactionEditor').empty();
                 $('#transactionEditor').popup('close');
                 $('#transactionEditor').remove();
-                
                 $.mobile.loading('hide');
             });
-        });
-    } else {
-        var ref = m_primaryAccount.child('transactions').push();
-        if (checkLink != "") {
-            m_primaryAccount.child('checks').child(checkLink).update({ link: ref.key });
         }
-        ref.set(data).then(function() {
-            $('#transactionEditor').empty();
-            $('#transactionEditor').popup('close');
-            $('#transactionEditor').remove();
-            $.mobile.loading('hide');
-        });
-    }
+    });
+    
     
 }
 
@@ -704,6 +700,30 @@ function saveRecurring(e) {
 }
 
 
+function deleteRecurring(e) {
+    console.log(e.data);
+
+    $.mobile.loading('show');
+
+    m_primaryAccount.child('transactions')
+        .orderByChild('recurring')
+        .startAt(e.data.id)
+        .endAt(e.data.id)
+        .once("value", function(snap) {
+            var transactions = snap.val();
+            for (var key in transactions) {
+                if (Date.parseFb(transactions[key].date).ge(m_periodStart) == true) {
+                    m_primaryAccount.child('transactions').child(key).remove();
+                }
+            }
+            $('#recurringEditor').popup('close');
+            $('#recurringEditor').empty();
+            $('#recurringEditor').remove();
+            $.mobile.loading('hide');
+        });
+
+}
+
 function editRecurring(transId) {
     m_primaryAccount.child('recurring').child(transId).once('value', function(snap) {
         var trans = snap.val();
@@ -715,6 +735,7 @@ function editRecurring(transId) {
                 overlayTheme: 'b',
                 afteropen: function() {
                     $('#btnSave').off('click').on('click', { id: transId }, saveRecurring);
+                    $('#btnDelete').off('click').on('click', { id: transId }, deleteRecurring);
                 }
             }).popup('open');
         });
@@ -803,7 +824,7 @@ function btnCash_Click() {
 
 function periodMenu_Change() {
     history.pushState({ today: m_today.toFbString()}, document.title, "");
-    m_today = new Date($('#periodMenu').val());
+    m_today = Date.parseFb($('#periodMenu').val());
     selectPeriod();
 }
 
@@ -833,14 +854,14 @@ function btnLogout_Click(e) {
 function btnPrev_Click(e) {
     e.preventDefault();
     history.pushState({ today: m_today.toFbString()}, document.title, "");
-    m_today = m_today.subtract("2 weeks");
+    m_today = m_today.subtract(PERIOD_LENGTH);
     selectPeriod();
 }
 
 function btnNext_Click(e) {
     e.preventDefault();
     history.pushState({ today: m_today.toFbString()}, document.title, "");
-    m_today = m_today.add("2 weeks");
+    m_today = m_today.add(PERIOD_LENGTH);
     selectPeriod();
 }
 
@@ -867,6 +888,10 @@ function app_AuthStateChanged(user) {
                         root().child('config/categories').set(CATEGORIES[n]);
                 } else {
                     CATEGORIES = config.categories;
+                    if (config.periods !== undefined) {
+                        PERIOD_START = config.periods.start || "2016-06-24";
+                        PERIOD_LENGTH = config.periods.length || "2 weeks";
+                    }
                 }
             });
         root()
@@ -891,24 +916,30 @@ function app_AuthStateChanged(user) {
                 m_primaryAccount.child('transactions').on('child_changed', updateScreenChange);
                 m_primaryAccount.child('transactions').on('child_added', updateScreenAdd);
                 m_primaryAccount.child('transactions').on('child_removed', updateScreenRemove);
-                
-                m_primaryAccount.child('periods').once('value', function(s)
-                {
-                    var periods = sortObjectByKey(s.val(), 'start'); 
-                    render('index');
-                    
-                    for (var n = 0; n < periods.length; n++) {
-                        $('#periodMenu').append(
-                            $('<option>', { value: periods[n].start })
-                                .text(
-                                    Date.parseFb(periods[n].start).format('M/d') + "-" +
-                                    Date.parseFb(periods[n].end).format('M/d/yyyy')
-                                )
-                        );
-                    }
-                
-                    selectPeriod();
+
+                render("index");
+                for (var dateStart = Date.parseFb(PERIOD_START); dateStart.lt(m_today.add("5 years")); dateStart = dateStart.add(PERIOD_LENGTH)) {
+                    $('#periodMenu').append(
+                        $('<option>', { value: dateStart.toFbString() }).text(
+                            dateStart.format('M/d') + "-" + 
+                            dateStart.add(PERIOD_LENGTH).subtract("1 day").format('M/d/yyyy')
+                        )
+                    );
+                }
+
+
+                $('#periodMenu').children().each(function(n, el) {
+                    var opt = $(el); 
+                    if (Date.parseFb(opt.val()).lt(PERIOD_START) === true) { 
+                        opt.remove(); 
+                    } 
                 });
+
+                if (m_today.lt(PERIOD_START) === true) {
+                    m_today = Date.parseFb(PERIOD_START);
+                }
+                selectPeriod();
+
             });
     }
 }
@@ -935,33 +966,51 @@ function navigateTo(transId) {
     });
 }
 
+function archive(allButPeriod) {
+    var stopDate = Date.today().subtract(allButPeriod).periodCalc(PERIOD_START, PERIOD_LENGTH);
+    m_primaryAccount.child('transactions').orderByChild("date").endAt(stopDate.toFbString()).once("value", (snap) => {
+        var summedValues = {};
+        var vals = snap.val();
+        var archivedValues = vals;
+
+        for (var key in vals) {
+            var tr = vals[key];
+            if (summedValues[tr.category] === undefined) {
+                // add the category
+                summedValues[tr.category] = {}
+            }
+
+            if (summedValues[tr.category][tr.name] === undefined) {
+                summedValues[tr.category][tr.name] = {
+                    category: tr.category,
+                    name: tr.name,
+                    date: stopDate.subtract("1 day").toFbString(),
+                    amount: Math.roundTo(tr.amount,2),
+                    paid: true
+                };
+            } else {
+                summedValues[tr.category][tr.name].amount = Math.roundTo(summedValues[tr.category][tr.name].amount + tr.amount, 2);
+            }
+            m_primaryAccount.child('transactions').child(key).remove();
+        }
+
+        for (var category in summedValues) {
+            for (var name in summedValues[category]) {
+                m_primaryAccount.child('transactions').push(summedValues[category][name]);
+            }
+        }
+
+        for (var key in vals) {
+            m_primaryAccount.child('archives').push(vals[key]);
+        }
+
+        root().child('config/periods/start').set(stopDate.toFbString());
+        PERIOD_START = stopDate.toFbString();
+
+    });
+}
+
 $('#chart_div').ready(function() {
-    //$('#chart_div').CanvasJSChart({
-    //    zoomEnabled: true,
-    //    toolTip: {
-    //        contentFormatter: function(e) {
-    //            var str = "";
-    //            if (e.entries.length >= 0) {
-    //                str = "<b>" + e.entries[0].dataPoint.x.format('MMM d') + ":</b>" +
-    //                    " " + e.entries[0].dataPoint.y.toCurrency();
-    //            }
-    //            return str;
-    //        }
-    //    },
-    //    axisX: {
-    //        labelAngle: -30,
-    //        gridThickness: 2
-    //    },
-    //    axisY: {
-    //        includeZero: true,
-    //        minimum: -1000,
-    //        maximum: 5000
-    //    },
-    //    data: [
-    //        { type: "stepArea", dataPoints: totals }
-    //    ]
-    //});
-    //chart = $('#chart_div').CanvasJSChart();
     chart = AmCharts.makeChart('chart_div', chart_config);
 });
 
