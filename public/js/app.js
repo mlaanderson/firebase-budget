@@ -289,21 +289,25 @@ function updateRunningTotal() {
                         chLeft = perStart.subtract('2 weeks');
                         chRight = perStart.add('3 months');
                     }
-                    
 
-                    chart.dataProvider = [];
-                    for (var date in sums) {
-                        var trDate = Date.parseFb(date);
-                        chart.dataProvider.push({
-                            "date": date,
-                            "amount": sums[date],
-                            "description": trDate.format("MMM dd") + ": " + sums[date].toCurrency(),
-                            "color": (sums[date] < 0 ? "#ff0000" : "#008800")
-                        });
-                    }
+                    m_lastPeriodStart = chLeft;
                     
-                    chart.validateData();
-                    chart.zoomToDates(chLeft, chRight);
+                    // only update the chart on devices where it is displayed
+                    if ($('#footer_info').css('display') !== "none") {
+                        chart.dataProvider = [];
+                        for (var date in sums) {
+                            var trDate = Date.parseFb(date);
+                            chart.dataProvider.push({
+                                "date": date,
+                                "amount": sums[date],
+                                "description": trDate.format("MMM dd") + ": " + sums[date].toCurrency(),
+                                "color": (sums[date] < 0 ? "#ff0000" : "#008800")
+                            });
+                        }
+                        
+                        chart.validateData();
+                        chart.zoomToDates(chLeft, chRight);
+                    }
                 }
                 
                 $('#main tfoot .trTotal').text(perSum.toCurrency())
