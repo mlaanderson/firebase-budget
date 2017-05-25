@@ -2,7 +2,7 @@
     <div style="padding:10px 20px">
         <h3>Configuration</h3>
         <div class="ui-field-contain">
-            <label for="date">Date</label>
+            <label for="date">Start Date</label>
             <% if (HTMLInputElement.supportsType('date') == true) { %>
                 <input type="date" id="date" value="<%= date %>">
             <% } else {
@@ -77,6 +77,7 @@
             <% } %>
             <label for="period_length">Period</label>
             <input type="text" id="period_length" value="<%= length %>">
+            <!--
             <label for="add_category">Categories</label>
             <input type="text" id="add_category" value="" placeholder="Add new category...">
             <div>
@@ -86,6 +87,7 @@
                     <% } %>
                 </ul>
             </div>
+            -->
             <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
         </div>
     </div>

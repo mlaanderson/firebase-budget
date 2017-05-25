@@ -335,6 +335,7 @@ function Initialize() {
     $('#btnEditTransaction').on('click', editSelectedTransaction);
     $('#btnNewRecurring').on('click', newRecurring);
     $('#btnDownload').on('click', downloadJson);
+    $('#btnConfig').on('click', showConfig);
     $('#main').on('mouseout', function() {
         setTimeout(function() {
             $('#btnEditTransaction').prop('targetId', '');
@@ -409,26 +410,7 @@ function app_AuthStateChanged(user) {
                 m_primaryAccount.child('transactions').on('child_removed', updateScreenRemove);
 
                 render("index");
-                for (var dateStart = Date.parseFb(PERIOD_START); dateStart.lt(m_today.add("5 years")); dateStart = dateStart.add(PERIOD_LENGTH)) {
-                    $('#periodMenu').append(
-                        $('<option>', { value: dateStart.toFbString() }).text(
-                            dateStart.format('M/d') + "-" + 
-                            dateStart.add(PERIOD_LENGTH).subtract("1 day").format('M/d/yyyy')
-                        )
-                    );
-                }
-
-
-                $('#periodMenu').children().each(function(n, el) {
-                    var opt = $(el); 
-                    if (Date.parseFb(opt.val()).lt(PERIOD_START) === true) { 
-                        opt.remove(); 
-                    } 
-                });
-
-                if (m_today.lt(PERIOD_START) === true) {
-                    m_today = Date.parseFb(PERIOD_START);
-                }
+                updatePeriods();
                 selectPeriod();
 
             });
@@ -454,6 +436,32 @@ $('#chart_div').ready(function() {
 /********************************************************************
  * GUI
  *******************************************************************/
+
+function updatePeriods() {
+    $('#periodMenu').empty();
+    for (var dateStart = Date.parseFb(PERIOD_START); dateStart.lt(m_today.add("5 years")); dateStart = dateStart.add(PERIOD_LENGTH)) {
+        $('#periodMenu').append(
+            $('<option>', { value: dateStart.toFbString() }).text(
+                dateStart.format('M/d') + "-" + 
+                dateStart.add(PERIOD_LENGTH).subtract("1 day").format('M/d/yyyy')
+            )
+        );
+    }
+
+
+    $('#periodMenu').children().each(function(n, el) {
+        var opt = $(el); 
+        if (Date.parseFb(opt.val()).lt(PERIOD_START) === true) { 
+            opt.remove(); 
+        } 
+    });
+
+    if (m_today.lt(PERIOD_START) === true) {
+        m_today = Date.parseFb(PERIOD_START);
+    }
+
+    $('#periodMenu').selectmenu('refresh');
+}
 
 function render(file, data, callback) {
     if ((callback === undefined) && (Function.prototype.isPrototypeOf(data) === true)) {
@@ -584,6 +592,7 @@ function navigateTo(transId) {
         }
     });
 }
+
 
 /********************************************************************
  * Data Event Handlers
@@ -964,11 +973,24 @@ function removeCategory(e) {
 
 function saveConfig(e) {
      $.mobile.loading('show');
+     var config = {
+        categories: CATEGORIES,
+        periods: {
+            start: $('#date').val(),
+            length: $('#period_length').val()
+        }
+    };
+    
      $('#configEditor').popup('close');
 
      // todo actually store and update
+     root().child('config').set(config);
 
-     console.log(e);
+     PERIOD_LENGTH = config.periods.length;
+     PERIOD_START = config.periods.start;
+
+     updatePeriods();
+     
      $.mobile.loading('hide');
 }
 
