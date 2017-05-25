@@ -1,6 +1,7 @@
 <div data-role="popup" data-dismissible="false" id="popupLogin" data-theme="a" class="ui-corner-all">
     <div style="padding:10px 20px;">
         <h3>Please sign in</h3>
+        <button type="button" id="btnSignInGoogle" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Sign in with Google</button>
         <div class="ui-field-contain">
             <label for="email" class="ui-hidden-accessible">Username:</label>
             <input type="email" id="email" value="" placeholder="username" data-theme="b">
@@ -62,11 +63,17 @@
             }
         });
     }
+
+    function loginGoogle_OnClick(event) {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithRedirect(provider);
+    }
     
     function openPopup() {
         try {
             $('#popupLogin').popup('open');
         } catch (err) {
+            console.log('IE Fix Login Popup', err);
             $('#popupLogin').popup('close');
             setTimeout(openPopup, 500);
         }
@@ -80,6 +87,7 @@
             overlayTheme: 'b',
             afteropen: function() {
                 $('#btnSignIn').on('click', login_OnClick);
+                $('#btnSignInGoogle').on('click', loginGoogle_OnClick);
                 
                 $('#email').on('keydown', login_OnKeyPress);
                 $('#password').on('keydown', login_OnKeyPress);

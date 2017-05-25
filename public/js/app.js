@@ -216,26 +216,6 @@ function root() {
  * DATA
  *******************************************************************/
 
-function downloadJson() {
-    root().once('value', function(snap) {
-        var data = JSON.stringify(snap.val(), null, 4);
-        var filename = 'budget-' + (new Date()).toFbString() + ".json"
-        var blob  = new Blob([data], { type: 'application/json'});
-
-        if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(blob, filename);
-        } else {
-            var elem = window.document.createElement('a');
-            elem.href = window.URL.createObjectURL(blob);
-            elem.download = filename;
-            elem.style = "display: none";
-            document.body.appendChild(elem);
-            elem.click();
-            document.body.removeChild(elem);
-        }
-    });
-}
-
 function updateRunningTotal() {
     m_primaryAccount
         .child('transactions')
@@ -381,6 +361,7 @@ function app_AuthStateChanged(user) {
             $('body').append(template); //.ready(loginInit);
         });
     } else {
+        $('#popupLogin').remove();
         root()
             .child('config')
             .on('value', function(snap) {
@@ -388,7 +369,14 @@ function app_AuthStateChanged(user) {
                 var config = snap.val();
                 
                 if (config == null) {
-                        root().child('config/categories').set(CATEGORIES[n]);
+                        root().child('config/categories').set(CATEGORIES);
+                        root().child('config/periods').set({
+                            length: '2 weeks',
+                            start: Date.today().toFbString()
+                        });
+                        root().child('accounts').push({
+                            name: 'Primary'
+                        })
                 } else {
                     CATEGORIES = config.categories;
                     if (config.periods !== undefined) {
@@ -968,6 +956,48 @@ function newRecurring() {
 }
 
 /********************************************************************
+ * Config
+ *******************************************************************/
+function removeCategory(e) {
+    console.log($(e.target));
+}
+
+function saveConfig(e) {
+     $.mobile.loading('show');
+     $('#configEditor').popup('close');
+
+     // todo actually store and update
+
+     console.log(e);
+     $.mobile.loading('hide');
+}
+
+function showConfig() {
+    ejs.renderFile("config", {
+        length: PERIOD_LENGTH,
+        date: PERIOD_START,
+        categories: CATEGORIES
+    }, function(template) {
+        var dialog = $(template).popup({
+            history: false,
+            overlayTheme: 'b',
+            afteropen: function() {
+                $('#categories').listview().listview('refresh');
+
+                $('#btnSave').on('click', saveConfig);
+                $('.category_item').on('click', removeCategory);
+            },
+            afterclose: function() {
+                $('#btnSave').off('click');
+                $('.category_item').off('click');
+
+                $('.ui-popup-container').remove();
+            }
+        }).popup("open");
+    })
+}
+
+/********************************************************************
  * Misc. Dialogs
  *******************************************************************/
 
@@ -1064,6 +1094,45 @@ function archive(allButPeriod) {
         root().child('config/periods/start').set(stopDate.toFbString());
         PERIOD_START = stopDate.toFbString();
 
+    });
+}
+
+function downloadJson() {
+    root().once('value', function(snap) {
+        var data = JSON.stringify(snap.val(), null, 4);
+        var filename = 'budget-' + (new Date()).toFbString() + ".json"
+        var blob  = new Blob([data], { type: 'application/json'});
+
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+        } else {
+            var elem = window.document.createElement('a');
+            elem.href = window.URL.createObjectURL(blob);
+            elem.download = filename;
+            elem.style = "display: none";
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
+    });
+}
+
+function backup() {
+    m_primaryAccount.once('value').then(function(snap) {
+        var data = JSON.stringify(snap.val());
+        root().child('backups').push({
+            date: Date.today().toFbString(),
+            data: data
+        });
+    });
+}
+
+function restore(key) {
+    root().child('backups').child(key).once('value').then(function(snap) {
+        var back = snap.val();
+        if (back.data) {
+            m_primaryAccount.set(JSON.parse(back.data));
+        }
     });
 }
 

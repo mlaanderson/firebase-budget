@@ -1,0 +1,92 @@
+<div data-role="popup" id="configEditor" data-theme="a" class="ui-corner-all">
+    <div style="padding:10px 20px">
+        <h3>Configuration</h3>
+        <div class="ui-field-contain">
+            <label for="date">Date</label>
+            <% if (HTMLInputElement.supportsType('date') == true) { %>
+                <input type="date" id="date" value="<%= date %>">
+            <% } else {
+                var dt = Date.parseFb(date); 
+                %>
+                <input type="hidden" id="date" value="<%= date %>">
+                <select id="date-month">
+                    <% for (var mn = 0; mn < 12; mn ++) { %>
+                        <option value="<%= mn + 1 %>" 
+                            <% if (mn == dt.getUTCMonth()) {
+                                %>selected<%
+                            }%>><%= Date.MONTHS[mn] %></option>
+                    <% } %>
+                </select>
+                <select id="date-day">
+                    <% for (var dy = 1; dy <= dt.daysInMonth(); dy ++) {
+                        %>
+                        <option value="<%= dy %>" 
+                            <% if (dy == dt.getUTCDate()) {
+                                console.log(date, dy, dt, dt.getDate());
+                                %>selected<%
+                            }%>><%= dy %></option>
+                    <% 
+                    } %>
+                </select>
+                <select id="date-year">
+                    <% for (var yr = 2016; yr <= 2100; yr ++) { %>
+                        <option value="<%= yr %>" 
+                            <% if (yr == dt.getUTCFullYear()) {
+                                %>selected<%
+                            }%>><%= yr %></option>
+                    <% } %>
+                </select>
+                <script>
+                    function monthVal() {
+                        if ($('#date-month').val() > 9) {
+                            return $('#date-month').val().toString();
+                        }
+                        return '0' + $('#date-month').val().toString();
+                    }
+                    
+                    function dayVal() {
+                        if ($('#date-day').val() > 9) {
+                            return $('#date-day').val().toString();
+                        }
+                        return '0' + $('#date-day').val().toString();
+                    }
+                    
+                    function repopulateDays() {
+                        var date = Date.parseFb($('#date-year').val() + '-' + monthVal() + '-01');
+                        console.log($('#date-year').val(), $('#date-month').val(), date, date.daysInMonth());
+                        $('#date-day').empty();
+                        $('#date-day').append($('<option selected>1</option>'));
+                        for (var dy = 2; dy <= date.daysInMonth(); dy++) {
+                            $('#date-day').append($('<option>' + dy + '</option>'));
+                        }
+                    }
+
+                    console.log('Setting up the date fields');
+                    $('#date-month').change(function() {
+                        repopulateDays();
+                        $('#date').val($('#date-year').val() + '-' + monthVal() + '-' +  dayVal());
+                    });
+                    $('#date-year').change(function() {
+                        repopulateDays();
+                        $('#date').val($('#date-year').val() + '-' + monthVal() + '-' +  dayVal());
+                    });
+                    $('#date-day').change(function() {
+                        $('#date').val($('#date-year').val() + '-' + monthVal() + '-' +  dayVal());
+                    });
+                </script>
+            <% } %>
+            <label for="period_length">Period</label>
+            <input type="text" id="period_length" value="<%= length %>">
+            <label for="add_category">Categories</label>
+            <input type="text" id="add_category" value="" placeholder="Add new category...">
+            <div>
+                <ul id="categories" data-role="listview" style="max-height: <%= $(window).height() / 3 %>px; overflow-y: scroll">
+                    <% for (var cat in categories) { %>
+                        <li data-icon="delete"><a id="category_<%= cat %>" href="#" class="category_item"><%= categories[cat] %></a></li>
+                    <% } %>
+                </ul>
+            </div>
+            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+        </div>
+    </div>
+</div>
