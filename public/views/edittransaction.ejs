@@ -115,6 +115,10 @@
                 <input type="checkbox" id="cash" <% if (cash == true) { %>checked<% } %>>
                 Cash
             </label>
+            <label for="transfer">
+                <input type="checkbox" id="transfer" <% if (typeof transfer !== "undefined" && transfer === true) { %>checked<% } %>>
+                Transfer to Savings
+            </label>
             <label for="check">Check#</label>
             <input type="text" id="checkNumber" value="<%= check ? check : "" %>">
             <input type="hidden" id="checkLink" value="<%= checkLink ? checkLink : "" %>">

@@ -331,6 +331,7 @@ function Initialize() {
     $('#btnCheck').on('click', btnCheck_Click);
     $('#periodMenu').on('change', periodMenu_Change);
     $('#btnCash').on('click', btnCash_Click);
+    $('#btnTransfer').on('click', btnTransfer_Click);
     $('#btnAddTransaction').on('click', addTransaction);
     $('#btnEditTransaction').on('click', editSelectedTransaction);
     $('#btnNewRecurring').on('click', newRecurring);
@@ -662,6 +663,7 @@ function saveTransaction(e) {
         'name': $('#name').val(),
         'amount': $('#amount').val() * (isDeposit ? 1 : -1),
         'cash': $('#cash').prop('checked') && (isDeposit == false),
+        'transfer': $('#transfer').prop('checked') && (isDeposit == false),
         'paid': $('#paid').prop('checked'), 
         'note': note
     }
@@ -677,32 +679,30 @@ function saveTransaction(e) {
         data.checkLink = null;
     }
 
-    m_primaryAccount.child('periods').orderByChild('start').limitToFirst(1).once('child_added', function(persnap) {
-        if (Date.parseFb(data.date).lt(persnap.val().start) === true) {
-            data.date = persnap.val().start;
-        }
+    if (Date.parseFb(data.date).lt(PERIOD_START) === true) {
+        data.date = PERIOD_START;
+    }
 
-        if (e.data.id) {
-            m_primaryAccount.child('transactions').child(e.data.id).once('value', function(snap) {
-                var oldAmount = snap.val().amount;
-                var oldCheckLink = snap.val().checkLink;
-                
-                
-                if ((checkLink == "") && (oldCheckLink !== undefined)) {
-                    // remove the links
-                    m_primaryAccount.child('checks').child(oldCheckLink).child('link').remove();
-                }
-
-                m_primaryAccount.child('transactions').child(e.data.id).update(data).then(closeTransactionEditor);
-            });
-        } else {
-            var ref = m_primaryAccount.child('transactions').push();
-            if (checkLink != "") {
-                m_primaryAccount.child('checks').child(checkLink).update({ link: ref.key });
+    if (e.data.id) {
+        m_primaryAccount.child('transactions').child(e.data.id).once('value', function(snap) {
+            var oldAmount = snap.val().amount;
+            var oldCheckLink = snap.val().checkLink;
+            
+            
+            if ((checkLink == "") && (oldCheckLink !== undefined)) {
+                // remove the links
+                m_primaryAccount.child('checks').child(oldCheckLink).child('link').remove();
             }
-            ref.set(data).then(closeTransactionEditor);
+
+            m_primaryAccount.child('transactions').child(e.data.id).update(data).then(closeTransactionEditor);
+        });
+    } else {
+        var ref = m_primaryAccount.child('transactions').push();
+        if (checkLink != "") {
+            m_primaryAccount.child('checks').child(checkLink).update({ link: ref.key });
         }
-    });
+        ref.set(data).then(closeTransactionEditor);
+    }
     
     
 }
@@ -826,6 +826,8 @@ function saveRecurring(e) {
         'name': $('#name').val(),
         'amount': $('#amount').val() * (isDeposit ? 1 : -1),
         'cash': $('#cash').prop('checked') && (isDeposit == false),
+        'transfer': $('#transfer').prop('checked') && (isDeposit == false),
+        'note': $('#note').val() || null,
         'period': $('#period').val()
     };
     
@@ -1041,7 +1043,7 @@ function btnCash_Click() {
             var total = 0;
             
             for (var n = 0; n < items.length; n++) {
-                if ((items[n].cash == true) && (items[n].amount < 0)) {
+                if ((items[n].cash == true) && (items[n].amount < 0) && (items[n].paid == false)) {
                     var itemCash = (-1 * items[n].amount).toCash();
                     total -= items[n].amount;
                     cash.cent1 += itemCash.cent1;
@@ -1071,13 +1073,48 @@ function btnCash_Click() {
         });
 }
 
+function btnTransfer_Click() {
+    $.mobile.loading('show');
+    $('*').blur();
+    var start = m_periodStart;
+    var end = m_periodEnd;
+    
+    m_primaryAccount
+        .child('transactions')
+        .orderByChild('date')
+        .startAt(start)
+        .endAt(end)
+        .once('value')
+        .then(function(tsnap) {
+            var items = sortTransactions(tsnap.val());
+            var total = 0;
+            
+            for (var n = 0; n < items.length; n++) {
+                if ((items[n].transfer == true) && (items[n].amount < 0) && (items[n].paid == false)) {
+                    total -= items[n].amount;
+                }
+            }
+            
+            ejs.renderFile('transfer', { items: items, cash: {}, total: total }, function(template) {
+                $(template).popup({
+                    history: false,
+                    overlayTheme: 'b',
+                    afterclose: function() {
+                        $('.ui-popup-container').remove();
+                    }
+                }).popup('open');
+                $.mobile.loading('hide');
+            });
+        });
+}
+
 /********************************************************************
  * Archiving
  *******************************************************************/
 
 function archive(allButPeriod) {
     var stopDate = Date.today().subtract(allButPeriod).periodCalc(PERIOD_START, PERIOD_LENGTH);
-    m_primaryAccount.child('transactions').orderByChild("date").endAt(stopDate.toFbString()).once("value", (snap) => {
+    m_primaryAccount.child('transactions').orderByChild("date").endAt(stopDate.toFbString()).once("value", function(snap) {
         var summedValues = {};
         var vals = snap.val();
         var archivedValues = vals;

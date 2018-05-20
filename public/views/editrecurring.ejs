@@ -11,9 +11,151 @@
             <label for="period">Every</label>
             <input type="text" id="period" value="<%= period %>">
             <label for="start">From</label>
-            <input type="date" id="start" value="<%= start %>">
+            <% if (HTMLInputElement.supportsType('date') == true) { %>
+                <input type="date" id="start" value="<%= start %>">
+            <% } else {
+                var dt = Date.parseFb(start); 
+                %>
+                <input type="hidden" id="start" value="<%= start %>">
+                <select id="start-month">
+                    <% for (var mn = 0; mn < 12; mn ++) { %>
+                        <option value="<%= mn + 1 %>" 
+                            <% if (mn == dt.getUTCMonth()) {
+                                %>selected<%
+                            }%>><%= Date.MONTHS[mn] %></option>
+                    <% } %>
+                </select>
+                <select id="start-day">
+                    <% for (var dy = 1; dy <= dt.daysInMonth(); dy ++) {
+                        %>
+                        <option value="<%= dy %>" 
+                            <% if (dy == dt.getUTCDate()) {
+                                console.log(start, dy, dt, dt.getDate());
+                                %>selected<%
+                            }%>><%= dy %></option>
+                    <% 
+                    } %>
+                </select>
+                <select id="start-year">
+                    <% for (var yr = 2016; yr <= 2100; yr ++) { %>
+                        <option value="<%= yr %>" 
+                            <% if (yr == dt.getUTCFullYear()) {
+                                %>selected<%
+                            }%>><%= yr %></option>
+                    <% } %>
+                </select>
+                <script>
+                    function monthStartVal() {
+                        if ($('#start-month').val() > 9) {
+                            return $('#start-month').val().toString();
+                        }
+                        return '0' + $('#start-month').val().toString();
+                    }
+                    
+                    function dayStartVal() {
+                        if ($('#start-day').val() > 9) {
+                            return $('#start-day').val().toString();
+                        }
+                        return '0' + $('#start-day').val().toString();
+                    }
+                    
+                    function repopulateStartDays() {
+                        var date = Date.parseFb($('#start-year').val() + '-' + monthStartVal() + '-01');
+                        console.log($('#start-year').val(), $('#start-month').val(), date, date.daysInMonth());
+                        $('#start-day').empty();
+                        $('#start-day').append($('<option selected>1</option>'));
+                        for (var dy = 2; dy <= date.daysInMonth(); dy++) {
+                            $('#start-day').append($('<option>' + dy + '</option>'));
+                        }
+                    }
+
+                    console.log('Setting up the start fields');
+                    $('#start-month').change(function() {
+                        repopulateStartDays();
+                        $('#start').val($('#start-year').val() + '-' + monthStartVal() + '-' +  dayStartVal());
+                    });
+                    $('#start-year').change(function() {
+                        repopulateStartDays();
+                        $('#start').val($('#start-year').val() + '-' + monthStartVal() + '-' +  dayStartVal());
+                    });
+                    $('#start-day').change(function() {
+                        $('#start').val($('#date-year').val() + '-' + monthStartVal() + '-' +  dayStartVal());
+                    });
+                </script>
+            <% } %>
             <label for="end">Until</label>
-            <input type="date" id="end" value="<%= end %>">
+            <% if (HTMLInputElement.supportsType('date') == true) { %>
+                <input type="date" id="end" value="<%= end %>">
+            <% } else {
+                var dtEnd = Date.parseFb(end); 
+                %>
+                <input type="hidden" id="end" value="<%= end %>">
+                <select id="end-month">
+                    <% for (var mn = 0; mn < 12; mn ++) { %>
+                        <option value="<%= mn + 1 %>" 
+                            <% if (mn == dtEnd.getUTCMonth()) {
+                                %>selected<%
+                            }%>><%= Date.MONTHS[mn] %></option>
+                    <% } %>
+                </select>
+                <select id="end-day">
+                    <% for (var dy = 1; dy <= dtEnd.daysInMonth(); dy ++) {
+                        %>
+                        <option value="<%= dy %>" 
+                            <% if (dy == dtEnd.getUTCDate()) {
+                                console.log(end, dy, dtEnd, dtEnd.getDate());
+                                %>selected<%
+                            }%>><%= dy %></option>
+                    <% 
+                    } %>
+                </select>
+                <select id="end-year">
+                    <% for (var yr = 2016; yr <= 2100; yr ++) { %>
+                        <option value="<%= yr %>" 
+                            <% if (yr == dtEnd.getUTCFullYear()) {
+                                %>selected<%
+                            }%>><%= yr %></option>
+                    <% } %>
+                </select>
+                <script>
+                    function monthEndVal() {
+                        if ($('#end-month').val() > 9) {
+                            return $('#end-month').val().toString();
+                        }
+                        return '0' + $('#end-month').val().toString();
+                    }
+                    
+                    function dayEndVal() {
+                        if ($('#end-day').val() > 9) {
+                            return $('#end-day').val().toString();
+                        }
+                        return '0' + $('#end-day').val().toString();
+                    }
+                    
+                    function repopulateEndDays() {
+                        var date = Date.parseFb($('#end-year').val() + '-' + monthEndVal() + '-01');
+                        console.log($('#end-year').val(), $('#end-month').val(), date, date.daysInMonth());
+                        $('#end-day').empty();
+                        $('#end-day').append($('<option selected>1</option>'));
+                        for (var dy = 2; dy <= date.daysInMonth(); dy++) {
+                            $('#end-day').append($('<option>' + dy + '</option>'));
+                        }
+                    }
+
+                    console.log('Setting up the end fields');
+                    $('#end-month').change(function() {
+                        repopulateEndDays();
+                        $('#end').val($('#end-year').val() + '-' + monthEndVal() + '-' +  dayEndVal());
+                    });
+                    $('#end-year').change(function() {
+                        repopulateEndDays();
+                        $('#end').val($('#end-year').val() + '-' + monthEndVal() + '-' +  dayEndVal());
+                    });
+                    $('#end-day').change(function() {
+                        $('#end').val($('#date-year').val() + '-' + monthEndVal() + '-' +  dayEndVal());
+                    });
+                </script>
+            <% } %>
             <label for="category">Category</label>
             <select id="category">
                 <%
@@ -40,8 +182,14 @@
                 <input type="checkbox" id="cash" <% if (cash == true) { %>checked<% } %>>
                 Cash
             </label>
+            <label for="transfer">
+                <input type="checkbox" id="transfer" <% if (typeof transfer !== "undefined" && transfer === true) { %>checked<% } %>>
+                Transfer to Savings
+            </label>
             <label for="amount">Amount</label>
             <input type="number" id="amount" value="<%= Math.abs(amount) %>">
+            <label for="note">Notes</label>
+            <textarea id="note"><%= typeof note === "undefined" ? "" : note %></textarea>
             <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
             <% if (typeof id !== "undefined") { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete Recurring</button><% } %>
         </div>
