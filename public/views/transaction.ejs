@@ -1,15 +1,15 @@
 <% 
 if (items.length > 0) {
     var cat = items[0].category;
-    var style = 0;
+    var rowStyle = 0;
     for (var n = 0; n < items.length; n++ ) { 
         var hasNote = 'note' in items[n];
         if (cat != items[n].category) {
-            style = (style + 1) % 2;
+            rowStyle = (rowStyle + 1) % 2;
             cat = items[n].category;
         }
 %>
-<tr class="row_<%= style %>" id="<%= items[n].__key__ %>">
+<tr class="row_<%= rowStyle %>" id="<%= items[n].__key__ %>">
     <td class="trDate"><%= new Date(items[n].date).format('MMM d, yyyy') %></td>
     <td class="trCategory"><%= items[n].category %></td>
     <td class="trName">
@@ -32,7 +32,7 @@ if (items.length > 0) {
 <script>
     var nameHoverTimeout, namePopup;
     
-        function handleUpdate(snapshot, action) {
+    function handleUpdate(snapshot, action) {
         var id = snapshot.key;
         var val = snapshot.val();
         var perStart = Date.parseFb(m_periodStart);
@@ -54,7 +54,8 @@ if (items.length > 0) {
                         (val.checkLink ? "<span title='Check'>\u2328</span>": "") +
                         (val.recurring ? "<span title='Recurring' recurring='" + val.recurring + "'>\u21bb</span>" : "") +
                         (val.paid ? "<span title='Paid'>\u2713</span>" : "") +
-                        ('note' in val ? "<span title='" + val.note + "'>\u2709</span>" : "")
+                        ('note' in val ? "<span title='" + val.note + "'>\u2709</span>" : "") +
+                        (val.transfer ? "<span title='Transfer to Savings'>&#x2192;</span>" : "")
                     );
                     $('#' + id + ' td.trAmount').text(val.amount.toCurrency());
                     $('[recurring]').on('click', function(e) {

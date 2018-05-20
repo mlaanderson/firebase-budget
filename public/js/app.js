@@ -663,7 +663,7 @@ function saveTransaction(e) {
         'name': $('#name').val(),
         'amount': $('#amount').val() * (isDeposit ? 1 : -1),
         'cash': $('#cash').prop('checked') && (isDeposit == false),
-        'transfer': $('#transfer').prop('checked') && (isDeposit == false),
+        'transfer': $('#transfer').prop('checked'),
         'paid': $('#paid').prop('checked'), 
         'note': note
     }
@@ -767,6 +767,7 @@ function addTransaction() {
         name: '',
         amount: 0,
         cash: false,
+        transfer: false,
         id: null
     }
     
@@ -826,7 +827,7 @@ function saveRecurring(e) {
         'name': $('#name').val(),
         'amount': $('#amount').val() * (isDeposit ? 1 : -1),
         'cash': $('#cash').prop('checked') && (isDeposit == false),
-        'transfer': $('#transfer').prop('checked') && (isDeposit == false),
+        'transfer': $('#transfer').prop('checked'),
         'note': $('#note').val() || null,
         'period': $('#period').val()
     };
@@ -845,15 +846,15 @@ function saveRecurring(e) {
                 .once('value', 
                 function(snap) {
                     var trans = snap.val();
-                    var minDate = Date.max(Date.parseFb(data.start), Date.today());
+                    var minDate = Date.max(Date.parseFb(data.start), Date.today()).toFbString();
                     for (var k in trans) {
-                        if (Date.parseFb(trans[k].date).ge(minDate) == true) {
+                        if (trans[k].date >= minDate) {
                             m_primaryAccount.child('transactions').child(k).remove()
                         }
                     }
                     
                     for (var d = Date.parseFb(data.start); d.le(data.end); d = d.add(data.period)) {
-                        if (d.ge(minDate) == true) {
+                        if (d.toFbString() >= minDate) {
                             m_primaryAccount.child('transactions').push({
                                 amount: data.amount,
                                 cash: data.cash,
@@ -861,6 +862,7 @@ function saveRecurring(e) {
                                 date: d.toFbString(),
                                 name: data.name,
                                 paid: false,
+                                transfer: data.transfer || false,
                                 recurring: id
                             });
                         }
@@ -885,7 +887,8 @@ function saveRecurring(e) {
                         date: d.toFbString(),
                         name: data.name,
                         paid: false,
-                        recurring: id
+                        recurring: id,
+                        transfer: data.transfer || false
                     });
                 }
             }
