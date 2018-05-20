@@ -1,6 +1,6 @@
 <div data-role="popup" data-dismissible="true" id="popupCash" data-theme="a" class="ui-corner-all">
     <div style="padding:10px 20px;">
-        <h3>Transfer to Savings</h3>
-        <div>Total: <%= total.toCurrency() %></div>
+        <h3>Transfer <%= total >= 0 ? "in to" : "out of" %> Savings</h3>
+        <div>Total: <%= Math.abs(total).toCurrency() %></div>
     </div>
 </div>
