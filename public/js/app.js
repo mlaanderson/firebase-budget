@@ -1093,7 +1093,7 @@ function btnTransfer_Click() {
             var total = 0;
             
             for (var n = 0; n < items.length; n++) {
-                if ((items[n].transfer == true) && (items[n].amount < 0) && (items[n].paid == false)) {
+                if ((items[n].transfer == true) && (items[n].paid == false)) {
                     total -= items[n].amount;
                 }
             }
