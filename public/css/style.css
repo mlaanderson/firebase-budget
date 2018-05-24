@@ -177,6 +177,7 @@ body { background-color: #e9e9e9; }
     #main .trAmount {
         width: 25%;
     }
+
 }
 
 /* Small Mobile Devices */
@@ -210,5 +211,9 @@ body { background-color: #e9e9e9; }
     
     #main .trAmount {
         width: 25%;
+    }
+
+    #btnReport {
+        display: none;
     }
 }

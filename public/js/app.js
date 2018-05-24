@@ -331,6 +331,7 @@ function Initialize() {
     $('#btnCheck').on('click', btnCheck_Click);
     $('#periodMenu').on('change', periodMenu_Change);
     $('#btnCash').on('click', btnCash_Click);
+    $('#btnReport').on('click', btnReport_Click);
     $('#btnTransfer').on('click', btnTransfer_Click);
     $('#btnAddTransaction').on('click', addTransaction);
     $('#btnEditTransaction').on('click', editSelectedTransaction);
@@ -1076,6 +1077,49 @@ function btnCash_Click() {
         });
 }
 
+function btnReport_Click() {
+    $.mobile.loading('show');
+    $('*').blur();
+    var start = m_periodStart;
+    var end = m_periodEnd;
+    
+    m_primaryAccount
+        .child('transactions')
+        .orderByChild('date')
+        .startAt(start)
+        .endAt(end)
+        .once('value')
+        .then(function(tsnap) {
+            var items = sortTransactions(tsnap.val());
+            var categories = {};
+            var total = 0;
+            
+            for (var n = 0; n < items.length; n++) {
+                if (items[n].amount > 0) continue;
+                if (items[n].category in categories == false) {
+                    categories[items[n].category] = 0;
+                }
+                categories[items[n].category] += items[n].amount;
+            }
+
+            for (var k in categories) {
+                total += Math.abs(categories[k]);
+            }
+
+            ejs.renderFile('report', { categories: categories, total: total }, function(template) { 
+                $(template).popup({
+                    history: false,
+                    overlayTheme: 'b',
+                    afterclose: function() {
+                        $('.ui-popup-container').remove();
+                    }
+                }).popup('open');
+                $.mobile.loading('hide');
+            });
+        });
+}
+
+
 function btnTransfer_Click() {
     $.mobile.loading('show');
     $('*').blur();
@@ -1098,7 +1142,7 @@ function btnTransfer_Click() {
                 }
             }
             
-            ejs.renderFile('transfer', { items: items, cash: {}, total: total }, function(template) {
+            ejs.renderFile('transfer', { items: items, cash: {}, total: total }, function(template) { 
                 $(template).popup({
                     history: false,
                     overlayTheme: 'b',

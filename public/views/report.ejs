@@ -1,0 +1,66 @@
+<div data-role="popup" data-dismissible="true" id="popupReport" data-theme="a" class="ui-corner-all">
+    <div id="JSON_categories" style="display: none"><%= JSON.stringify(categories) %></div>
+    <div id="JSON_total" style="display: none"><%= JSON.stringify(total) %></div>
+    <div style="padding:10px 20px;">
+        <canvas width="500" height="500" id="canvasReport"></canvas>
+    </div>
+    <script>
+        (function () {
+            var total = JSON.parse($('#JSON_total').text());
+            var categories = JSON.parse($('#JSON_categories').text());
+            var angles = {}
+
+            var size = Math.min($('body').innerWidth() - 40, $('body').innerHeight() - 40, 500); 
+
+            /** @type {CanvasRenderingContext2D} */
+            var ctx = $('#canvasReport')[0].getContext('2d');
+            for (var k in categories) {
+                categories[k] = Math.abs(categories[k]);
+                angles[k] = 2.0 * Math.PI * categories[k] / total;
+            }
+
+            $('canvas').attr('width', size).attr('height', size);
+
+            ctx.scale(size / 500, size / 500);
+
+            ctx.save();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, 500, 500);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(250, 210);
+            ctx.rotate(-Math.PI / 2);
+            var n = 0;
+            var colors = ["#4472c4", "#ed7d31", "#a5a5a5", "#ffc000", "#5b9bd5", "#70ad47", "#264478", "#9e480e", "#636363", "#997300", "#255e91", "#43682b", "#698ed0", "#f1975a", "#b7b7b7"];
+
+            for (var k in categories) {
+                var cat = categories[k];
+                ctx.fillStyle = colors[n++];
+                ctx.beginPath();
+                ctx.moveTo(0,0);
+                ctx.lineTo(200,0);
+                ctx.arc(0, 0, 200, 0, angles[k]);
+                ctx.rotate(angles[k]);
+                ctx.moveTo(0,0);
+                ctx.lineTo(200,0);
+                ctx.fill();
+            }
+            
+            n = 0;
+            ctx.restore();
+            ctx.translate(5, 430);
+            for (var k in categories) {
+                ctx.fillStyle = 'black';
+                ctx.fillText(k, 15, 0, 83);
+                ctx.fillText(categories[k].toCurrency(), 15, 10, 83);
+                ctx.fillStyle = colors[n++];
+                ctx.fillRect(2.5, -12.5, 10, 10);
+                ctx.translate(98, 0);
+                if (n % 5 === 0) {
+                    ctx.translate(-490, 30);
+                }
+            }
+        })();
+    </script>
+</div>
