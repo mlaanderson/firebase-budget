@@ -315,15 +315,19 @@ function Initialize() {
     firebase.auth().onAuthStateChanged(app_AuthStateChanged);
     
     m_today = Date.today();
+
+    if (window.localStorage && window.localStorage.getItem('m_today')) {
+        m_today = Date.parseFb(window.localStorage.getItem('m_today'));
+    }
     
-    history.pushState({ today: m_today.toFbString() }, "", "");
-    $(window).on('popstate', function(evt) {
-        if ((evt.originalEvent.state) && (evt.originalEvent.state.today)) {
-            evt.preventDefault();
-            m_today = Date.parseFb(evt.originalEvent.state.today);
-            selectPeriod();
-        }
-    });
+    // history.pushState({ today: m_today.toFbString() }, "", "");
+    // $(window).on('popstate', function(evt) {
+    //     if ((evt.originalEvent.state) && (evt.originalEvent.state.today)) {
+    //         evt.preventDefault();
+    //         m_today = Date.parseFb(evt.originalEvent.state.today);
+    //         selectPeriod();
+    //     }
+    // });
     
     $('#btnLogout').on('click', btnLogout_Click);
     $('#btnPrev').on('click', btnPrev_Click);
@@ -348,6 +352,8 @@ function Initialize() {
         $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
     });
+
+
 }
 
 
@@ -572,15 +578,21 @@ function btnLogout_Click(e) {
 
 function btnPrev_Click(e) {
     e.preventDefault();
-    history.pushState({ today: m_today.toFbString()}, document.title, "");
+    // history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = m_today.subtract(PERIOD_LENGTH);
+    if (window.localStorage) {
+        window.localStorage.setItem('m_today', m_today.toFbString());
+    }
     selectPeriod();
 }
 
 function btnNext_Click(e) {
     e.preventDefault();
-    history.pushState({ today: m_today.toFbString()}, document.title, "");
+    // history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = m_today.add(PERIOD_LENGTH);
+    if (window.localStorage) {
+        window.localStorage.setItem('m_today', m_today.toFbString());
+    }    
     selectPeriod();
 }
 
@@ -588,8 +600,11 @@ function navigateTo(transId) {
     m_primaryAccount.child('transactions').child(transId).once('value', function(snap) {
         var tr = snap.val();
         if (tr !== null) {
-            history.pushState({ today: m_today.toFbString()}, document.title, "");
+            // history.pushState({ today: m_today.toFbString()}, document.title, "");
             m_today = Date.parseFb(tr.date);
+            if (window.localStorage) {
+                window.localStorage.setItem('m_today', m_today.toFbString());
+            }
             selectPeriod();
         }
     });
