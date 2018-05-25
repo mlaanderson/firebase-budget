@@ -1,3 +1,5 @@
+/** @typedef {{ date: string, category: string, name: string, amount: number, cash: boolean, transfer: boolean, note: string, period: string, id: string, check: string, checkLink: string }} transaction */
+
 var m_primaryAccount = null;
 var m_totalLock = false;
 var m_today;
@@ -320,15 +322,6 @@ function Initialize() {
         m_today = Date.parseFb(window.localStorage.getItem('m_today'));
     }
     
-    // history.pushState({ today: m_today.toFbString() }, "", "");
-    // $(window).on('popstate', function(evt) {
-    //     if ((evt.originalEvent.state) && (evt.originalEvent.state.today)) {
-    //         evt.preventDefault();
-    //         m_today = Date.parseFb(evt.originalEvent.state.today);
-    //         selectPeriod();
-    //     }
-    // });
-    
     $('#btnLogout').on('click', btnLogout_Click);
     $('#btnPrev').on('click', btnPrev_Click);
     $('#btnNext').on('click', btnNext_Click);
@@ -361,13 +354,10 @@ function app_AuthStateChanged(user) {
     if (user == null) {
         m_primaryAccount = null;
 
-        // clear the chart
-        //while (totals.length > 0) { totals.pop(); }
-        //chart.render();
         $('#main table').remove();
         
         ejs.renderFile('login', {} , function(template) {
-            $('body').append(template); //.ready(loginInit);
+            $('body').append(template);
         });
     } else {
         $('#popupLogin').remove();
@@ -578,7 +568,6 @@ function btnLogout_Click(e) {
 
 function btnPrev_Click(e) {
     e.preventDefault();
-    // history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = m_today.subtract(PERIOD_LENGTH);
     if (window.localStorage) {
         window.localStorage.setItem('m_today', m_today.toFbString());
@@ -588,7 +577,6 @@ function btnPrev_Click(e) {
 
 function btnNext_Click(e) {
     e.preventDefault();
-    // history.pushState({ today: m_today.toFbString()}, document.title, "");
     m_today = m_today.add(PERIOD_LENGTH);
     if (window.localStorage) {
         window.localStorage.setItem('m_today', m_today.toFbString());
@@ -600,7 +588,6 @@ function navigateTo(transId) {
     m_primaryAccount.child('transactions').child(transId).once('value', function(snap) {
         var tr = snap.val();
         if (tr !== null) {
-            // history.pushState({ today: m_today.toFbString()}, document.title, "");
             m_today = Date.parseFb(tr.date);
             if (window.localStorage) {
                 window.localStorage.setItem('m_today', m_today.toFbString());
@@ -673,6 +660,7 @@ function saveTransaction(e) {
         note = null;
     }
     
+    /** @type {transaction} */
     var data = {
         'date': $('#date').val(),
         'category': $('#category').val(),
