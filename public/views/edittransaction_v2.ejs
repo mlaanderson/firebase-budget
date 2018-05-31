@@ -1,0 +1,137 @@
+<%
+    if (("paid" in this) == false) {
+        this.paid = false;
+    }
+    if (("check" in this) == false) {
+        this.check = "";
+    }
+    if (("checkLink" in this) == false) {
+        this.checkLink = "";
+    }
+    if (("note" in this) == false) {
+        this.note = "";
+    }
+%>
+<div data-role="popup" id="transactionEditor" data-theme="a" class="ui-corner-all">
+    <div style="padding:10px 20px">
+        <h3>Edit Transaction</h3>
+        <div class="ui-field-contain">
+            <label for="date">Date</label>
+            <% if (HTMLInputElement.supportsType('date') == true) { %>
+                <input type="date" id="date" value="<%= date %>">
+            <% } else {
+                var dt = Date.parseFb(date); 
+                %>
+                <input type="hidden" id="date" value="<%= date %>">
+                <select id="date-month">
+                    <% for (var mn = 0; mn < 12; mn ++) { %>
+                        <option value="<%= mn + 1 %>" 
+                            <% if (mn == dt.getUTCMonth()) {
+                                %>selected<%
+                            }%>><%= Date.MONTHS[mn] %></option>
+                    <% } %>
+                </select>
+                <select id="date-day">
+                    <% for (var dy = 1; dy <= dt.daysInMonth(); dy ++) {
+                        %>
+                        <option value="<%= dy %>" 
+                            <% if (dy == dt.getUTCDate()) {
+                                console.log(date, dy, dt, dt.getDate());
+                                %>selected<%
+                            }%>><%= dy %></option>
+                    <% 
+                    } %>
+                </select>
+                <select id="date-year">
+                    <% for (var yr = 2016; yr <= 2100; yr ++) { %>
+                        <option value="<%= yr %>" 
+                            <% if (yr == dt.getUTCFullYear()) {
+                                %>selected<%
+                            }%>><%= yr %></option>
+                    <% } %>
+                </select>
+                <script>
+                    function monthVal() {
+                        if ($('#date-month').val() > 9) {
+                            return $('#date-month').val().toString();
+                        }
+                        return '0' + $('#date-month').val().toString();
+                    }
+                    
+                    function dayVal() {
+                        if ($('#date-day').val() > 9) {
+                            return $('#date-day').val().toString();
+                        }
+                        return '0' + $('#date-day').val().toString();
+                    }
+                    
+                    function repopulateDays() {
+                        var date = Date.parseFb($('#date-year').val() + '-' + monthVal() + '-01');
+                        console.log($('#date-year').val(), $('#date-month').val(), date, date.daysInMonth());
+                        $('#date-day').empty();
+                        $('#date-day').append($('<option selected>1</option>'));
+                        for (var dy = 2; dy <= date.daysInMonth(); dy++) {
+                            $('#date-day').append($('<option>' + dy + '</option>'));
+                        }
+                    }
+
+                    console.log('Setting up the date fields');
+                    $('#date-month').change(function() {
+                        repopulateDays();
+                        $('#date').val($('#date-year').val() + '-' + monthVal() + '-' +  dayVal());
+                    });
+                    $('#date-year').change(function() {
+                        repopulateDays();
+                        $('#date').val($('#date-year').val() + '-' + monthVal() + '-' +  dayVal());
+                    });
+                    $('#date-day').change(function() {
+                        $('#date').val($('#date-year').val() + '-' + monthVal() + '-' +  dayVal());
+                    });
+                </script>
+            <% } %>
+            <label for="category">Category</label>
+            <select id="category">
+                <%
+                for (var n = 0; n < app.Categories.length; n++) { 
+                    if (app.Categories[n] == category) {
+                %>
+                    <option selected><%= app.Categories[n] %></option>
+                <%
+                    } else { 
+                %>
+                    <option><%= app.Categories[n] %></option>
+                <%
+                    }
+                } 
+                %>
+            </select>
+            <label for="name">Name</label>
+            <input type="text" id="name" value="<%= name %>">
+            <label for="type">
+                <input type="checkbox" id="type" <% if (Math.sign(amount) > 0) { %>checked<% } %>>
+                Deposit
+            </label>
+            <label for="cash">
+                <input type="checkbox" id="cash" <% if (cash == true) { %>checked<% } %>>
+                Cash
+            </label>
+            <label for="transfer">
+                <input type="checkbox" id="transfer" <% if (typeof transfer !== "undefined" && transfer === true) { %>checked<% } %>>
+                Transfer to Savings
+            </label>
+            <label for="check">Check#</label>
+            <input type="text" id="checkNumber" value="<%= check ? check : "" %>">
+            <input type="hidden" id="checkLink" value="<%= checkLink ? checkLink : "" %>">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" value="<%= Math.abs(amount) %>">
+            <label for="paid">
+                <input type="checkbox" id="paid" <% if (paid == true) { %>checked<% } %>>
+                Paid
+            </label>
+            <label for="note">Notes</label>
+            <textarea id="note"><%= note %></textarea>
+            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+            <% if (id) { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
+        </div>
+    </div>
+</div>

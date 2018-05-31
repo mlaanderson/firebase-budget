@@ -1,7 +1,10 @@
-import "./lib/date.ext";
-import Timespan from "./lib/timespan";
+import "../lib/date.ext";
+import Timespan from "../lib/timespan";
+import { Config } from "../app";
+import TypeMap from "./maps";
 
-interface TransactionStructure {
+export interface TransactionStructure {
+    id?: string;
     date : string;
     category : string;
     name : string;
@@ -16,22 +19,7 @@ interface TransactionStructure {
 }
 
 export class Transaction {
-    static CATEGORIES = [
-        "Income",
-        "Charity",
-        "Saving",
-        "Housing",
-        "Utilities",
-        "Food",
-        "Clothing",
-        "Transportation",
-        "Medical",
-        "Insurance",
-        "Personal",
-        "Recreation",
-        "Debt"
-    ];
-
+    id?: string;
     date : Date;
     category : string;
     name : string;
@@ -46,6 +34,7 @@ export class Transaction {
 
     constructor(value? : TransactionStructure) {
         if (value) {
+            this.id = value.id;
             this.date = Date.parseFb(value.date);
             this.category = value.category;
             this.name = value.name;
@@ -59,7 +48,7 @@ export class Transaction {
             this.recurring = value.recurring;
         } else {
             this.date = Date.today();
-            this.category = Transaction.CATEGORIES[0];
+            this.category = Config.CATEGORIES[0];
             this.name = "";
             this.amount = 0;
         }
@@ -80,6 +69,35 @@ export class Transaction {
             recurring: this.recurring
         };
         return data;
+    }
+
+    static sort(transactions: TypeMap<TransactionStructure>) : Array<TransactionStructure> {
+        // sort into categories and names
+        var result = new Array<TransactionStructure>();
+
+        for (var k in transactions) {
+            var o: TransactionStructure = transactions[k];
+            o.id = k;
+            result.push(o);
+        }
+
+        function sorter(o1 : TransactionStructure, o2: TransactionStructure) : number {
+            if (o1.category !== o2.category) {
+                return Config.CATEGORIES.indexOf(o1.category) - Config.CATEGORIES.indexOf(o2.category);
+            }
+
+            if (o1.name > o2.name) {
+                return 1;
+            }
+            if (o1.name < o2.name) {
+                return -1;
+            }
+            return 0;
+        }
+
+        result.sort(sorter);
+
+        return result;
     }
 }
 

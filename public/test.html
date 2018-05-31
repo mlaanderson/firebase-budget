@@ -1,11 +1,138 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Test</title>
+        <meta charset="utf-8">
+        <title>Anderson Budget</title>
+        <meta name="viewport" content="width=device-width">
 
-        <script src="/dist/bundle.js"></script>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-title" content="Anderson Budget"/>
+        
+        
+        <link rel="apple-touch-icon" href="/images/budget-iphone.png"/>
+        <link rel="apple-touch-icon" sizes="76x76" href="/images/budget-ipad.png"/>
+        <link rel="apple-touch-icon" sizes="120x120" href="/images/budget-iphone-retina.png"/>
+        <link rel="apple-touch-icon" sizes="152x152" href="/images/budget-ipad-retina.png"/>
+
+          <!-- STARTUP IMAGES -->
+
+        <!-- iPad retina portrait startup image -->
+        <link href="/images/splash-1536x2008.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 2)
+                     and (orientation: portrait)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPad retina landscape startup image -->
+        <link href="/images/splash-1496x2048.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 2)
+                     and (orientation: landscape)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPad non-retina portrait startup image -->
+        <link href="/images/splash-768x1004.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 1)
+                     and (orientation: portrait)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPad non-retina landscape startup image -->
+        <link href="/images/splash-748x1024.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 1)
+                     and (orientation: landscape)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 6 Plus portrait startup image -->
+        <link href="/images/splash-1242x2148.png"
+              media="(device-width: 414px) and (device-height: 736px)
+                     and (-webkit-device-pixel-ratio: 3)
+                     and (orientation: portrait)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 6 Plus landscape startup image -->
+        <link href="/images/splash-1182x2208.png"
+              media="(device-width: 414px) and (device-height: 736px)
+                     and (-webkit-device-pixel-ratio: 3)
+                     and (orientation: landscape)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 6 startup image -->
+        <link href="/images/splash-750x1294.png"
+              media="(device-width: 375px) and (device-height: 667px)
+                     and (-webkit-device-pixel-ratio: 2)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 5 startup image -->
+        <link href="/images/splash-640x1096.png"
+              media="(device-width: 320px) and (device-height: 568px)
+                     and (-webkit-device-pixel-ratio: 2)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone < 5 retina startup image -->
+        <link href="/images/splash-640x920.png"
+              media="(device-width: 320px) and (device-height: 480px)
+                     and (-webkit-device-pixel-ratio: 2)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone < 5 non-retina startup image -->
+        <link href="/images/splash-320x460.png"
+              media="(device-width: 320px) and (device-height: 480px)
+                     and (-webkit-device-pixel-ratio: 1)"
+              rel="apple-touch-startup-image">
+
+          
+        <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jquery.mobile-1.4.5.min.css">
+        <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jqm-icon-pack-fa.css">
+        <link rel="stylesheet" href="/css/style.css">
+
+        <script src="https://www.gstatic.com/firebasejs/3.1.0/firebase.js"></script>
+
+        <script src="/jquery.mobile/js/jquery-1.12.4.min.js"></script>
+        <script src="/jquery.mobile/js/jquery.mobile-1.4.5.min.js"></script>
+        <!--script src="amcharts/amcharts.js"></script>
+        <script src="amcharts/serial.js"></script-->
+        <script src="js/ejs.min.js"></script>
+        <script src="js/ejs.ext.js"></script>
+        <script src="dist/bundle.js"></script>
     </head>
     <body>
+        <div data-role="page" id="transactions">
+            <div data-role="header" data-position="fixed">
+                <h1>&nbsp;</h1>
+                <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
+                <a href="#" title="Previous Period" class="ui-btn ui-icon-arrow-l ui-btn-icon-notext ui-corner-all" id="btnPrev">Prev</a>
+                <select id="periodMenu" data-icon="calendar"></select>
+                <a href="#" title="Next Period" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnNext">Next</a>
+                </div>
+                <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
+                <a href="#" title="Edit" class="ui-btn ui-icon-edit ui-btn-icon-notext ui-corner-all" id="btnEditTransaction">Edit</a>
+                <a href="#" title="Add" class="ui-btn ui-icon-plus ui-btn-icon-notext ui-corner-all" id="btnAddTransaction">Add</a>
+                
+                </div>
+            </div><!-- /header -->
 
+            <div role="main" class="ui-content" id="main"></div>
+
+            <div data-role="footer" data-position="fixed">
+                <h4>&nbsp;</h4>
+                <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
+                    <a href="#" class="ui-btn ui-icon-power ui-btn-icon-notext ui-corner-all" id="btnLogout" title="Logout">Logout</a>
+                </div>
+                <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
+                    <a href="#" title="Config" class="ui-btn ui-icon-gear ui-btn-icon-notext ui-corner-all" id="btnConfig">Config</a>
+                    <a href="#" title="Download" class="ui-btn ui-icon-save ui-btn-icon-notext ui-corner-all" id="btnDownload">Download</a>
+                    <a href="#" title="New Recurring Transaction" class="ui-btn ui-icon-rotate-right ui-btn-icon-notext ui-corner-all" id="btnNewRecurring">New Recurring</a>
+                    <a href="#" title="Spending Graph" class="ui-btn ui-icon-bars ui-btn-icon-notext ui-corner-all" id="btnReport">Report</a-->
+                    <a href="#" title="Cash" class="ui-btn ui-icon-money ui-btn-icon-notext ui-corner-all" id="btnCash">Cash</a>
+                    <a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnTransfer">Transfer</a>
+                </div>
+                <div id="footer_info">
+                    <div id="chart_div"></div>
+                    <div class="info_div"></div>
+                </div>
+            </div>
+        </div>
     </body>
-</html> 
+</html>
