@@ -110,6 +110,7 @@ class Form {
         this.btnLogout = $('#btnLogout').on('click', this.btnLogout_Click.bind(this));
         this.btnPrev = $('#btnPrev').on('click', this.btnPrev_click.bind(this));
         this.btnNext = $('#btnNext').on('click', this.btnNext_click.bind(this));
+        this.btnToday = $("#btnToday").on('click', this.btnToday_click.bind(this));
         this.btnCash = $('#btnCash').on('click', this.btnCash_click.bind(this));
         this.btnReport = $('#btnReport').on('click', this.btnReport_click.bind(this));
         this.btnTransfer = $('#btnTransfer').on('click', this.btnTransfer_click.bind(this));
@@ -164,6 +165,14 @@ class Form {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
             let start = Date.parseFb(this.application.m_periodStart).add(app_1.Config.PERIOD_LENGTH);
+            let transactions = yield this.application.gotoPeriod(start);
+            this.periodMenu.val(start.toFbString());
+            yield this.updateTransactions(transactions);
+        });
+    }
+    btnToday_click(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let start = Date.today();
             let transactions = yield this.application.gotoPeriod(start);
             this.periodMenu.val(start.toFbString());
             yield this.updateTransactions(transactions);
@@ -520,19 +529,18 @@ class Form {
                 return;
             let sums = yield this.application.getDateTotals();
             this.chart.dataProvider = [];
-            let dates = Object.keys(sums);
-            dates.sort();
-            let start = Date.parseFb(dates[0]);
-            let end = Date.parseFb(dates[dates.length - 1]);
-            let value = sums[dates[0]];
-            for (let date = start; date.le(end); date = date.add("1 day")) {
-                if (date.toFbString() in sums) {
-                    value = sums[date.toFbString()];
-                }
-                else {
-                    sums[date.toFbString()] = value;
-                }
-            }
+            // let dates = Object.keys(sums);
+            // dates.sort();
+            // let start = Date.parseFb(dates[0]);
+            // let end = Date.parseFb(dates[dates.length - 1]);
+            // let value = sums[dates[0]];
+            // for (let date = start; date.le(end); date = date.add("1 day") as Date) {
+            //     if (date.toFbString() in sums) {
+            //         value = sums[date.toFbString()];
+            //     } else {
+            //         sums[date.toFbString()] = value;
+            //     }
+            // }
             for (var date in sums) {
                 let trDate = Date.parseFb(date);
                 this.chart.dataProvider.push({
@@ -593,6 +601,7 @@ class Form {
                         let transactions = yield this.application.gotoPeriod(nextTransaction.date);
                         this.updateTransactions(transactions);
                     }));
+                    this.window_Resize(null);
                 });
             }
         });
