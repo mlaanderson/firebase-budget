@@ -38,6 +38,15 @@ class Config {
             }
         });
     }
+    static write(root) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield root.child('config/categories').set(Config.CATEGORIES);
+            yield root.child('config/periods').set({
+                length: Config.PERIOD_LENGTH,
+                start: Config.PERIOD_START
+            });
+        });
+    }
 }
 Config.CATEGORIES = [
     "Income",
@@ -79,6 +88,7 @@ class Application {
             else {
                 this.m_form.loading();
                 yield Config.read(this.root);
+                this.m_form.onConfigLoaded();
                 let snap;
                 snap = yield this.root.child('accounts').orderByChild('name').equalTo('Primary').once('child_added');
                 if (snap.val() !== null) {
@@ -89,9 +99,9 @@ class Application {
                     this.m_primaryAccount.set({ name: 'Primary' });
                 }
                 // setup the transaction listeners
-                this.m_primaryAccount.child('transactions').on('child_changed', this.onTransactionChanged.bind(this));
-                this.m_primaryAccount.child('transactions').on('child_added', this.onTransactionAdded.bind(this));
-                this.m_primaryAccount.child('transactions').on('child_removed', this.onTransactionRemoved.bind(this));
+                this.transactions.on('child_changed', this.onTransactionChanged.bind(this));
+                this.transactions.on('child_added', this.onTransactionAdded.bind(this));
+                this.transactions.on('child_removed', this.onTransactionRemoved.bind(this));
                 // show the screens
                 let transactions = yield this.selectPeriod();
                 this.m_form.updateTransactions(transactions);
@@ -120,6 +130,8 @@ class Application {
                 // update the transaction
                 this.m_form.updateTransaction(transaction);
             }
+            this.m_form.updatePreview(transaction);
+            this.m_form.updateChart();
             if (transaction.date <= this.m_periodEnd) {
                 // update the total
                 let sum = yield this.getPeriodSum();
@@ -131,18 +143,29 @@ class Application {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.m_loading == true)
                 return;
-            console.log('ADDED', snap.ref);
+            let transaction = snap.val();
+            transaction.id = snap.key;
+            if (this.m_periodStart <= transaction.date && transaction.date <= this.m_periodEnd) {
+                // update the transaction
+                this.m_form.updateTransaction(transaction);
+            }
+            this.m_form.updatePreview(transaction);
+            this.m_form.updateChart();
+            if (transaction.date <= this.m_periodEnd) {
+                // update the total
+                let sum = yield this.getPeriodSum();
+                this.m_form.updateTotal(sum);
+            }
         });
     }
     onTransactionRemoved(snap) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.m_loading == true)
                 return;
-            console.log('REMOVED', snap.ref);
+            this.m_form.removeTransaction(snap.key);
+            this.m_form.updateTotal(yield this.getPeriodSum());
+            this.m_form.updateChart();
         });
-    }
-    get Categories() {
-        return Config.CATEGORIES.slice();
     }
     get root() {
         if (this.m_app.auth().currentUser == null) {
@@ -150,26 +173,24 @@ class Application {
         }
         return this.m_app.database().ref().child(this.m_app.auth().currentUser.uid);
     }
+    /** Used in some templates */
+    get Categories() {
+        return Config.CATEGORIES;
+    }
+    get transactions() {
+        return this.m_primaryAccount.child('transactions');
+    }
+    get recurring() {
+        return this.m_primaryAccount.child('recurring');
+    }
     signout() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.m_app.auth().signOut();
         });
     }
-    backOne() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.m_today = this.m_today.subtract(Config.PERIOD_LENGTH);
-            return yield this.selectPeriod();
-        });
-    }
-    forwardOne() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.m_today = this.m_today.add(Config.PERIOD_LENGTH);
-            return yield this.selectPeriod();
-        });
-    }
     getTransaction(key) {
         return __awaiter(this, void 0, void 0, function* () {
-            let tsnap = yield this.m_primaryAccount.child('transactions').child(key).once('value');
+            let tsnap = yield this.transactions.child(key).once('value');
             let item = tsnap.val();
             item.id = key;
             return item;
@@ -178,32 +199,107 @@ class Application {
     saveTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             let id;
+            // null out the empty strings in check, checkLink and note
+            transaction.check = transaction.check || null;
+            transaction.checkLink = transaction.checkLink || null;
+            transaction.note = transaction.note || null;
+            transaction.cash = transaction.cash || false;
+            transaction.paid = transaction.paid || false;
+            transaction.transfer = transaction.transfer || false;
+            transaction.recurring = transaction.recurring || null;
             if (transaction.id) {
                 // existing transaction, update it
                 id = transaction.id;
                 // delete the id property, it doesn't get saved
                 delete transaction.id;
-                // null out the empty strings in check, checkLink and note
-                transaction.check = transaction.check || null;
-                transaction.checkLink = transaction.checkLink || null;
-                transaction.note = transaction.note || null;
-                console.log('UPDATE:', id, transaction);
-                yield this.m_primaryAccount.child('transactions').child(id).set(transaction);
-                console.log('SAVED');
+                yield this.transactions.child(id).set(transaction);
             }
             else {
                 // new transaction, save it
-                // null out the empty strings in check, checkLink and note
-                transaction.check = transaction.check || null;
-                transaction.checkLink = transaction.checkLink || null;
-                transaction.note = transaction.note || null;
-                console.log('PUSH:', transaction);
+                let ref = yield this.transactions.push(transaction);
+                transaction.id = ref.key;
             }
+        });
+    }
+    deleteTransaction(key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.transactions.child(key).remove();
+        });
+    }
+    getRecurringTransaction(key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let tsnap = yield this.recurring.child(key).once('value');
+            let item = tsnap.val();
+            item.id = key;
+            return item;
+        });
+    }
+    saveRecurringTransaction(recurring) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let rId = recurring.id || null;
+            let date = Date.today().toFbString();
+            date = date > this.m_periodStart ? date : this.m_periodStart;
+            delete recurring.id;
+            console.log(recurring);
+            if (rId) {
+                // update the recurring node
+                yield this.recurring.child(rId).set(recurring);
+            }
+            else {
+                console.log("CREATING NEW RECURRING ENTRY");
+                let ref = yield this.recurring.push(recurring);
+                rId = ref.key;
+                console.log("PUSHED", rId);
+            }
+            // delete all matching after this date or today whichever is later
+            yield this.deleteRecurring(rId, false);
+            // re-insert new transaction nodes starting with today or start whichever is later
+            for (let day = Date.parseFb(recurring.start); day.le(recurring.end); day = day.add(recurring.period)) {
+                if (day.toFbString() < date)
+                    continue;
+                let transaction = {
+                    date: day.toFbString(),
+                    category: recurring.category,
+                    name: recurring.name,
+                    amount: recurring.amount,
+                    cash: recurring.cash || false,
+                    paid: false,
+                    transfer: recurring.transfer || false,
+                    note: recurring.note || null,
+                    recurring: rId
+                };
+                yield this.transactions.push(transaction);
+            }
+        });
+    }
+    deleteRecurring(id, deleteRecurringNode = true) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let date = Date.today().toFbString();
+            date = date > this.m_periodStart ? date : this.m_periodStart;
+            // delete the recurring 
+            if (deleteRecurringNode == true) {
+                yield this.recurring.child(id).remove();
+            }
+            // delete all matching after this date or today whichever is later
+            let transactions = yield this.getRecurringTransactions(id);
+            for (let key in transactions) {
+                let transaction = transactions[key];
+                if ((transaction.date >= date) && (transaction.paid !== true)) {
+                    yield this.deleteTransaction(key);
+                }
+            }
+        });
+    }
+    getRecurringTransactions(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let snap = yield this.transactions.orderByChild('recurring').startAt(id).endAt(id).once('value');
+            let transactions = snap.val();
+            return transactions;
         });
     }
     getSameTransactions(item) {
         return __awaiter(this, void 0, void 0, function* () {
-            let snap = yield this.m_primaryAccount.child('transactions').orderByChild('name').startAt(item.name).endAt(item.name).once('value');
+            let snap = yield this.transactions.orderByChild('name').startAt(item.name).endAt(item.name).once('value');
             let transactions = snap.val();
             let items = [];
             for (var k in transactions) {
@@ -220,13 +316,23 @@ class Application {
             return items;
         });
     }
+    gotoPeriod(start) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (typeof start == "string") {
+                start = Date.parseFb(start);
+            }
+            this.m_today = start;
+            let transactions = yield this.selectPeriod();
+            return transactions;
+        });
+    }
     selectPeriod() {
         return __awaiter(this, void 0, void 0, function* () {
             let startDate = this.m_today.periodCalc(Config.PERIOD_START, Config.PERIOD_LENGTH);
             this.m_periodStart = startDate.toFbString();
             this.m_periodEnd = startDate.add(Config.PERIOD_LENGTH).subtract("1 day").toFbString();
             let snap;
-            snap = yield this.m_primaryAccount.child('transactions').orderByChild('date').startAt(this.m_periodStart).endAt(this.m_periodEnd).once('value');
+            snap = yield this.transactions.orderByChild('date').startAt(this.m_periodStart).endAt(this.m_periodEnd).once('value');
             let items = transaction_1.default.sort(snap.val());
             this.m_loading = false;
             return items;
@@ -253,7 +359,7 @@ class Application {
             let sum = 0;
             let checks = yield this.getOutstandingChecksTotal();
             let transactions;
-            snap = yield this.m_primaryAccount.child('transactions').orderByChild('date').endAt(this.m_periodEnd).once('value');
+            snap = yield this.transactions.orderByChild('date').endAt(this.m_periodEnd).once('value');
             transactions = snap.val();
             for (var key in transactions) {
                 sum = Math.roundTo(sum + transactions[key].amount, 2);
@@ -264,11 +370,11 @@ class Application {
     getDateTotals() {
         return __awaiter(this, void 0, void 0, function* () {
             let result = {};
-            let sum = 0;
+            let sum = yield this.getOutstandingChecksTotal();
             let snap;
             let data;
             let transactions = new Array();
-            snap = yield this.m_primaryAccount.child('transactions').once('value');
+            snap = yield this.transactions.once('value');
             data = snap.val();
             for (var key in data) {
                 transactions.push(data[key]);
@@ -290,6 +396,13 @@ class Application {
     clearCheck(id) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.m_primaryAccount.child('checks').child(id).remove();
+        });
+    }
+    getData() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let snap = yield this.root.once('value');
+            let data = snap.val();
+            return data;
         });
     }
 }

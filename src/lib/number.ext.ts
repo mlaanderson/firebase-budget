@@ -26,8 +26,20 @@ class CashStruct {
     static default() : CashStruct {
         return new CashStruct();
     }
-}
 
+    add(other: CashStruct) {
+        this.hundreds += other.hundreds;
+        this.fifties += other.fifties;
+        this.twenties += other.twenties;
+        this.tens += other.tens;
+        this.fives += other.fives;
+        this.ones += other.ones;
+        this.cent25 += other.cent25;
+        this.cent10 += other.cent10;
+        this.cent5 += other.cent5;
+        this.cent1 += other.cent1;
+    }
+}
 
 interface Number {
     toCurrency: () => string;

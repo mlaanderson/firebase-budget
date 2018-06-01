@@ -1,23 +1,13 @@
-<%
-    if (("paid" in this) == false) {
-        this.paid = false;
-    }
-    if (("check" in this) == false) {
-        this.check = "";
-    }
-    if (("checkLink" in this) == false) {
-        this.checkLink = "";
-    }
-    if (("note" in this) == false) {
-        this.note = "";
-    }
-%>
-<div data-role="popup" id="transactionEditor" data-theme="a" class="ui-corner-all">
+<div data-role="popup" id="recurringEditor" data-theme="a" class="ui-corner-all">
     <div style="padding:10px 20px">
-        <h3>Edit Transaction</h3>
+        <h3>Edit Recurring Transaction</h3>
         <div class="ui-field-contain">
-            <label for="date">Date</label>
-            <input type="date" id="date" value="<%= date %>">
+            <label for="period">Every</label>
+            <input type="text" id="period" value="<%= period %>">
+            <label for="start">From</label>
+            <input type="date" id="start" value="<%= start %>">
+            <label for="end">Until</label>
+            <input type="date" id="end" value="<%= end %>">
             <label for="category">Category</label>
             <select id="category">
                 <%
@@ -48,19 +38,12 @@
                 <input type="checkbox" id="transfer" <% if (typeof transfer !== "undefined" && transfer === true) { %>checked<% } %>>
                 Transfer to Savings
             </label>
-            <label for="check">Check#</label>
-            <input type="text" id="checkNumber" value="<%= check ? check : "" %>">
-            <input type="hidden" id="checkLink" value="<%= checkLink ? checkLink : "" %>">
             <label for="amount">Amount</label>
             <input type="number" id="amount" value="<%= Math.abs(amount) %>">
-            <label for="paid">
-                <input type="checkbox" id="paid" <% if (paid == true) { %>checked<% } %>>
-                Paid
-            </label>
             <label for="note">Notes</label>
-            <textarea id="note"><%= note %></textarea>
+            <textarea id="note"><%= typeof note === "undefined" ? "" : note %></textarea>
             <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
-            <% if (typeof id !== "undefined") { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
+            <% if (typeof id !== "undefined") { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete Recurring</button><% } %>
         </div>
     </div>
 </div>

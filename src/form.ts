@@ -1,10 +1,14 @@
 /// <reference path="../node_modules/@types/jquery/index.d.ts" />
 /// <reference path="./ejs.d.ts" />
 
-import Application from "./app";
-import { TransactionStructure } from "./types/transaction";
+import Application, { Config } from "./app";
+import { TransactionStructure, Transaction } from "./types/transaction";
+import CashStruct from "./types/cash";
 import "./lib/number.ext";
 import "./lib/input.ext";
+import { RecurringTransaction } from "./types/recurringtransaction";
+import {AmChart, AmChartObject, AmChartConfig } from "./amchart/amchart";
+import TypeMap from "./types/maps";
 
 interface EventHandler<TCurrentTarget extends EventTarget, TData = null> extends JQuery.EventHandler<TCurrentTarget, TData> {
     preventDefault(): void;
@@ -32,6 +36,96 @@ export default class Form {
 
     activePopup: JQuery<HTMLElement>;
 
+    chart: AmChartObject;
+    chart_config: AmChartConfig = {
+        "type": "serial",
+        "balloonDateFormat": "MMM DD",
+        "categoryField": "date",
+        "dataDateFormat": "YYYY-MM-DD",
+        "maxSelectedSeries": 0,
+        "mouseWheelScrollEnabled": true,
+        "zoomOutOnDataUpdate": false,
+        "maxZoomFactor": 19,
+        "zoomOutButtonTabIndex": -2,
+        "sequencedAnimation": false,
+        "startEffect": "bounce",
+        "accessible": false,
+        "autoDisplay": true,
+        "hideBalloonTime": 2000,
+        "theme": "dark",
+        "categoryAxis": {
+            "position": "top",
+            "parseDates": true
+        },
+        "chartCursor": {
+            "enabled": true,
+            "animationDuration": 0.25,
+            "bulletsEnabled": false,
+            "categoryBalloonEnabled": false,
+            "categoryBalloonAlpha": 0,
+            "fullWidth": false,
+            "leaveAfterTouch": false,
+            "oneBalloonOnly": true,
+            "selectionAlpha": 1
+        },
+        "chartScrollbar": {
+            "enabled": true,
+            "dragIcon": "dragIconRoundSmall",
+            "graph": "AmGraph-1",
+            "gridAlpha": 0,
+            "maximum": 5000,
+            "minimum": -500,
+            "oppositeAxis": true,
+            "selectedBackgroundAlpha": 0,
+            "updateOnReleaseOnly": true
+        },
+        "trendLines": [],
+        "graphs": [
+            {
+                "balloonColor": "#FFFFFF",
+                "balloonText": "[[description]]",
+                "bullet": "square",
+                "bulletAxis": "ValueAxis-1",
+                "bulletBorderAlpha": 1,
+                "bulletField": "amount",
+                "bulletHitAreaSize": 2,
+                "color": "#000000",
+                "colorField": "color",
+                "columnWidth": 0,
+                "descriptionField": "description",
+                "fillAlphas": 0.18,
+                "fillColorsField": "color",
+                "id": "AmGraph-1",
+                "lineAlpha": 1,
+                "lineColorField": "color",
+                "lineThickness": 2,
+                "minDistance": 19,
+                "switchable": false,
+                "title": "graph 1",
+                "type": "step",
+                "valueAxis": "ValueAxis-1",
+                "valueField": "amount"
+            }
+        ],
+        "guides": [],
+        "valueAxes": [
+            {
+                "id": "ValueAxis-1",
+                "title": ""
+            }
+        ],
+        "allLabels": [],
+        "balloon": {
+            "animationDuration": 0,
+            "borderAlpha": 0.96,
+            "disableMouseEvents": false,
+            "fixedPosition": false,
+            "horizontalPadding": 7
+        },
+        "titles": [],
+        "dataProvider": []
+    };
+
     constructor(app : Application) {
         var self = this;
         this.btnLogout = $('#btnLogout').on('click', this.btnLogout_Click.bind(this));
@@ -53,6 +147,9 @@ export default class Form {
 
         ejs.renderFile('index', {}, (template) => {
             self.main.append($(template));
+
+            // create the strip chart
+            this.chart = AmChart.makeChart('chart_div', this.chart_config);
         });
 
         $(window).on('resize', this.window_Resize.bind(this));
@@ -65,8 +162,9 @@ export default class Form {
         this.main.css('height', ($(window).height() - this.header.height() - this.footer.height() - 4).toString() + 'px');
     }
 
-    periodMenu_Change(e: EventHandler<HTMLElement>) {
-
+    async periodMenu_Change(e: EventHandler<HTMLElement>) {
+        let transactions = await this.application.gotoPeriod(this.periodMenu.val() as string);
+        await this.updateTransactions(transactions);
     }
 
     main_MouseOut(e: EventHandler<HTMLElement>) {
@@ -78,29 +176,124 @@ export default class Form {
     
     btnLogout_Click(e: EventHandler<HTMLElement>) {
         e.preventDefault();
-        this.application.signout().then(this.clear.bind(this));
+        this.application.signout().then(() => {
+            window.location.href = window.location.href;
+        });
     }
 
-    btnPrev_click(e: EventHandler<HTMLElement>) {
+    async btnPrev_click(e: EventHandler<HTMLElement>) {
         e.preventDefault();
-        this.application.backOne().then(this.updateTransactions);
+        let start = Date.parseFb(this.application.m_periodStart).subtract(Config.PERIOD_LENGTH) as Date;
+        let transactions = await this.application.gotoPeriod(start);
+
+        this.periodMenu.val(start.toFbString());
+        await this.updateTransactions(transactions);
     }
 
-    btnNext_click(e: EventHandler<HTMLElement>) {
+    async btnNext_click(e: EventHandler<HTMLElement>) {
         e.preventDefault();
-        this.application.forwardOne().then(this.updateTransactions);
+        let start = Date.parseFb(this.application.m_periodStart).add(Config.PERIOD_LENGTH) as Date;
+        let transactions = await this.application.gotoPeriod(start);
+
+        this.periodMenu.val(start.toFbString());
+        await this.updateTransactions(transactions);
     }
 
-    btnCash_click(e: EventHandler<HTMLElement>) {}
-    btnReport_click(e: EventHandler<HTMLElement>) {}
-    btnTransfer_click(e: EventHandler<HTMLElement>) {}
-    btnAddTransaction_click(e: EventHandler<HTMLElement>) {}
-    btnEditTransaction_click(e: EventHandler<HTMLElement>) {}
-    btnNewRecurring_click(e: EventHandler<HTMLElement>) {}
-    btnDownload_click(e: EventHandler<HTMLElement>) {}
-    btnConfig_click(e: EventHandler<HTMLElement>) {}
+    async btnCash_click(e: EventHandler<HTMLElement>) {
+        let transactions = await this.application.selectPeriod();
+        let total = CashStruct.default();
+        let sum = 0;
 
-    render(path: string, data: Object) : Promise<string> {
+        for (let transaction of transactions) {
+            if (transaction.cash == true && transaction.paid == false && transaction.amount < 0) {
+                total.add((-transaction.amount).toCash());
+                sum -= transaction.amount;
+            }
+        }
+
+        this.activePopup = await this.dialog('cash', { cash: total, total: sum });
+    }
+
+    async btnReport_click(e: EventHandler<HTMLElement>) {
+        let transactions = await this.application.selectPeriod();
+        let categories: TypeMap<number> = {};
+        let total = 0;
+
+        for (let transaction of transactions) {
+            if (transaction.amount > 0) continue;
+
+            if (transaction.category in categories === false) {
+                categories[transaction.category] = 0;
+            }
+            categories[transaction.category] += transaction.amount;
+            total += transaction.amount;
+        }
+
+        total = Math.abs(total);
+
+        this.activePopup = await this.dialog('report', { categories: categories, total: total });
+    }
+
+    async btnDownload_click(e: EventHandler<HTMLElement>) {
+        let jsonData = await this.application.getData();
+        let data = JSON.stringify(jsonData);
+        let blob = new Blob([data], { type: 'application/json' });
+        let filename = 'budget-' + Date.today().toFbString() + '.json';
+
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+        } else {
+            let elem = window.document.createElement('a');
+            elem.href = window.URL.createObjectURL(blob);
+            elem.download = filename;
+            elem.style.display = "none";
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
+    }
+
+    async btnConfig_click(e: EventHandler<HTMLElement>) {
+        this.activePopup = await this.dialog('config_v2', Config, () => {
+            $('#btnSave').off().on('click', async () => {
+                Config.PERIOD_START = $('#date').val().toString();
+                Config.PERIOD_LENGTH = $('#period_length').val().toString();
+                await Config.write(this.application.root);
+            });
+        });
+    }
+
+    async btnTransfer_click(e: EventHandler<HTMLElement>) {
+        let transactions = await this.application.selectPeriod();
+        let sum = 0;
+
+        for (let transaction of transactions) {
+            if (transaction.transfer == true && transaction.paid == false) {
+                sum -= transaction.amount;
+            }
+        }
+
+        this.activePopup = await this.dialog('transfer', { total: sum });
+    }
+
+    btnAddTransaction_click(e: EventHandler<HTMLElement>) {
+        this.editTransaction();
+    }
+
+    async btnEditTransaction_click(e: EventHandler<HTMLElement>) {
+        var id : string = this.btnEditTransaction.prop('targetId');
+
+        if (id !== null && id !== '') {
+            this.editTransaction(id);
+        }
+    }
+
+    btnNewRecurring_click(e: EventHandler<HTMLElement>) {
+        this.editRecurring();
+    }
+
+    render(path: string, data?: Object) : Promise<string> {
+        data = data || {};
         return new Promise((resolve, reject) => {
             ejs.renderFile(path, data, (template) => {
                 resolve(template);
@@ -108,10 +301,33 @@ export default class Form {
         });
     }
 
+    dialog(path: string, data?: Object, afterOpen?: () => void, afterClose?: () => void) : Promise<JQuery<HTMLElement>> {
+        data = data || {};
+        afterClose = afterClose || (() => {});
+        afterOpen = afterOpen || (() => {});
+        return new Promise((resolve, reject) => {
+            this.render(path, data).then((template) => {
+                let dlgPopup = $(template).popup({
+                    history: false,
+                    overlayTheme: 'b'
+                });
+                dlgPopup.on('popupafterclose', () => {
+                    dlgPopup.empty().remove();
+                    afterClose();
+                });
+                dlgPopup.on('popupafteropen', afterOpen);
+
+                dlgPopup.popup('open');
+
+                resolve(dlgPopup);
+            });
+        });
+    }
+
     /**
      * Clears the account data from the form
      */
-    async clear() {
+    clear() {
         let self = this;
         
         $('#tblTransactions tbody').empty();
@@ -120,38 +336,33 @@ export default class Form {
         $('.ui-popup-screen').empty().remove();
         $('#email').remove();
         $('password').remove();
-        
-        this.render('login_v2', {}).then((template) => {
-            this.activePopup = $(template).popup({
-                history: false,
-                overlayTheme: 'b'
-            }); 
-            
-            this.activePopup.popup('open');
 
+        this.dialog('login_v2', undefined, () => {
             $('#btnSignIn').off('click').on('click', self.handleLogin.bind(self));
 
-            function handleEnter(e: JQuery.Event<HTMLElement, null>) {
-                if (e.keyCode == 13) {
-                    self.handleLogin();
+                function handleEnter(e: JQuery.Event<HTMLElement, null>) {
+                    if (e.keyCode == 13) {
+                        self.handleLogin();
+                    }
                 }
-            }
-    
-            $('#username').off('keypress').on('keypress', handleEnter);
-            $('#password').off('keypress').on('keypress', handleEnter);
+        
+                $('#username').off('keypress').on('keypress', handleEnter);
+                $('#password').off('keypress').on('keypress', handleEnter);
+        }).then((popup) => {
+            this.activePopup = popup;
         });
     }
 
     async handleLogin() {
-        let credentials;
 
         function login_flash(message: string) {
             $('#errors').text(message).slideUp(0).slideDown(300).delay(1500).slideUp(300);
         }
 
         try {
-            credentials = await this.application.login($('#email').val().toString(), $('#password').val().toString());
-            this.activePopup.popup('close').empty().remove();
+            await this.application.login($('#email').val().toString(), $('#password').val().toString());
+            this.activePopup.popup('close');
+
         } catch (error) {
             switch (error.code) {
                 case 'auth/user-disabled':
@@ -172,6 +383,19 @@ export default class Form {
         }
     }
 
+    onConfigLoaded() {
+        this.periodMenu.empty();
+
+        for (var start = Date.parseFb(Config.PERIOD_START); start.lt(this.application.m_today.add('5 years')); start = start.add(Config.PERIOD_LENGTH)) {
+            this.periodMenu.append(
+                $('<option>', { value: start.toFbString() }).text(
+                    start.format('M/d') + '-' + 
+                    (start.add(Config.PERIOD_LENGTH).subtract("1 day") as Date).format('M/d/yyyy')
+                )
+            );
+        }
+    }
+
     loading() {
         $.mobile.loading();
     }
@@ -183,19 +407,107 @@ export default class Form {
     getRow(e: JQuery.Event) : JQuery<HTMLElement> {
         let target = $(e.target);
 
-        return target.is('tr') ? target : target.parent('tr');
+        return target.is('tr') ? target : target.parents('tr');
+    }
+
+    fixDateFields() {
+        let fields = $('input[type=date]');
+
+        // if there are no date fields, or if date fields are supported, just return
+        if ((fields.length <= 0) || ((fields[0] as HTMLInputElement).type === 'date')) return;
+
+        fields.each((n, el) => {
+            let input = el as HTMLInputElement;
+            let id: string = input.id || "date-" + n;
+            let date = Date.parseFb($(input).val().toString());
+
+            if (input.type == 'hidden') return;
+
+            input.type = 'hidden';
+
+            let monthSelect = $('<select>', { id: id + '-month' });
+            monthSelect.append(Date.MONTHS.map((name, index) => {
+                return $('<option>', { value: index + 1, selected: (index == date.getUTCMonth()) }).text(name);
+            }));
+
+            let daySelect = $('<select>', { id: id + '-day' });
+            for (let n = 1; n <= date.daysInMonth(); n++) {
+                daySelect.append($('<option>', { value: n, selected: n == date.getUTCDate() }).text(n));
+            }
+
+            let yearSelect = $('<select>', { id: id + '-year' });
+            for (let n = 2016; n <= 2100; n++) {
+                yearSelect.append($('<option>', { value: n, selected: n == date.getUTCFullYear() }).text(n));
+            }
+
+            function updateValues() {
+                var dateString: string = yearSelect.val().toString() + '-' + monthSelect.val().toString() + '-' + daySelect.val().toString();
+                $(input).val(Date.parseFb(dateString).toFbString());
+            }
+
+            function updateDays() {
+                var dateString: string = yearSelect.val().toString() + '-' + monthSelect.val().toString() + '-' + daySelect.val().toString();
+                var newDate = Date.parseFb(dateString);
+
+                if (newDate.getUTCMonth() != (monthSelect.val() as number + 1)) {
+                    daySelect.empty();
+                    for (let n = 1; n <= newDate.daysInMonth(); n++) {
+                        daySelect.append($('<option>', { value: n, selected: n == date.getUTCDate() }).text(n));
+                    }
+                }
+            }
+            
+            yearSelect.on('change', updateValues);
+            monthSelect.on('change', () => {
+                updateDays();
+                updateValues();
+            });
+            daySelect.on('change', updateValues);
+
+            monthSelect.insertAfter(input);
+            daySelect.insertAfter(monthSelect);
+            yearSelect.insertAfter(daySelect);
+        });
+    }
+
+    async updatePreview(transaction: TransactionStructure) {
+        if ($('#info_table tbody tr[item=' + transaction.id + ']').length > 0) {
+            $('#info_table tbody tr[item=' + transaction.id + '] td.in_date').text(Date.parseFb(transaction.date).format('MMM d, yyyy'));
+            $('#info_table tbody tr[item=' + transaction.id + '] td.in_amount').text(transaction.amount.toCurrency());
+
+            var items = await this.application.getSameTransactions(transaction);
+            var total = 0;
+            for (var item of items) {
+                total += item.amount;
+            }
+
+            $('.info_div em').text(transaction.name + ' - ' + Math.abs(total).toCurrency());
+        }
+    }
+
+    async removePreview(id: string) {
+        $('#info_table tbody tr[item=' + id + ']').remove();
+
+        if ($('#info_table tbody tr').length > 0) {
+            let key = $('#info_table tbody tr').first().attr('item');
+            let transaction = await this.application.getTransaction(key);
+            let items = await this.application.getSameTransactions(transaction);
+            
+            var total = 0;
+            for (var item of items) {
+                total += item.amount;
+            }
+
+            $('.info_div em').text(transaction.name + ' - ' + Math.abs(total).toCurrency());
+        }
     }
 
     updateTransaction(transaction: TransactionStructure) {
-        console.log('UPDATING FROM:', transaction);
-
         this.render('singletransaction', { 
             item: transaction,
             hasNote: (typeof transaction.note !== "undefined")
         }).then((template) => {
             // inserting a new transaction into the table
-            console.log('Inserting new row');
-
             // make sure any originals are deleted
             $('#' + transaction.id).remove();
 
@@ -207,6 +519,10 @@ export default class Form {
         });
     }
 
+    removeTransaction(id: string) {
+        $('#' + id).remove();
+    }
+
     sortTransactions() {
         let rows = $('#tblTransactions tbody tr');
         let rowArray = rows.toArray();
@@ -215,7 +531,7 @@ export default class Form {
 
         rowArray.sort((a, b) => {
             let aName = $(a).attr('name'), bName = $(b).attr('name');
-            let aCat = this.application.Categories.indexOf($(a).attr('category')), bCat = this.application.Categories.indexOf($(b).attr('category'));
+            let aCat = Config.CATEGORIES.indexOf($(a).attr('category')), bCat = Config.CATEGORIES.indexOf($(b).attr('category'));
 
             if (aCat != bCat) return aCat - bCat;
             if (aName > bName) return 1;
@@ -239,15 +555,19 @@ export default class Form {
                 n = 1 - n;
             }
             $(row).addClass('row_' + n);
-        });
-        
+        });        
 
+        this.addTransactionHandlers();
+    }
+
+    addTransactionHandlers() {
         // update handlers
         $('#tblTransactions tbody tr')
             .off('mouseover').on('mouseover', this.transaction_OnMouseOver.bind(this))
             .off('mouseout').on('mouseout', this.transaction_OnMouseOut.bind(this))
             .off('click').on('click', this.transaction_Click.bind(this))
             .off('dblclick').on('dblclick', this.transaction_DblClick.bind(this));
+        $('.recurring').off('click').on('click', this.recurring_click.bind(this));
     }
 
     updateTotal(total: number) {
@@ -257,6 +577,7 @@ export default class Form {
     async updateTransactions(items : Array<TransactionStructure>) {
         let promises = new Array<Promise<void>>();
         $('#tblTransactions tbody').empty();
+        $('.info_div').empty();
         this.periodMenu.val(this.application.m_periodStart);
         this.periodMenu.selectmenu('refresh');
 
@@ -269,9 +590,54 @@ export default class Form {
         Promise.all(promises).then(() => {
             this.sortTransactions();
             this.doneLoading();
+            document.title = Date.parseFb(this.application.m_periodStart).format("MMM d") + ' - ' + Date.parseFb(this.application.m_periodEnd).format("MMM d");
         });
 
         this.updateTotal(await this.application.getPeriodSum());
+        await this.updateChart();
+    }
+
+    async updateChart() {
+        if ($('#footer_info').css('display') === "none") return;
+        let sums = await this.application.getDateTotals();
+        this.chart.dataProvider = [];
+
+        let dates = Object.keys(sums);
+        dates.sort();
+
+        let start = Date.parseFb(dates[0]);
+        let end = Date.parseFb(dates[dates.length - 1]);
+        let value = sums[dates[0]];
+
+        for (let date = start; date.le(end); date = date.add("1 day") as Date) {
+            if (date.toFbString() in sums) {
+                value = sums[date.toFbString()];
+            } else {
+                sums[date.toFbString()] = value;
+            }
+        }
+        
+        for (var date in sums) {
+            let trDate = Date.parseFb(date);
+            this.chart.dataProvider.push({
+                date: date,
+                amount: sums[date],
+                description: trDate.format("MMM dd") + ": " + sums[date].toCurrency(),
+                color: (sums[date] < 0 ? "#ff0000" : "#008800")
+            });
+        }
+
+        this.chart.dataProvider.sort((a, b) => {
+            if (a.date > b.date) return 1;
+            if (b.date > a.date) return -1;
+            return 0;
+        });
+
+        let chLeft = Date.parseFb(this.application.m_periodStart).subtract('2 weeks') as Date;
+        let chRight = Date.parseFb(this.application.m_periodEnd).add('3 months') as Date;
+
+        this.chart.validateData();
+        this.chart.zoomToDates(chLeft, chRight);
     }
 
     transaction_OnMouseOver(e: JQuery.Event) {
@@ -291,7 +657,7 @@ export default class Form {
     }
 
     async transaction_Click(e: JQuery.Event) {
-        e.preventDefault();
+        e.preventDefault(); 
         var id : string = this.getRow(e).attr('id');
         
         // get the transaction previews
@@ -304,61 +670,134 @@ export default class Form {
             var items = await this.application.getSameTransactions(item);
             this.render('info_v2', { title: item.name, items: items }).then((template) => {
                 $('.info_div').empty().append($(template));
-
-                // TODO: add the ability to jump to a transaction
+                $('#info_table tbody tr').on('mouseover', (e: JQuery.Event) => {
+                    $('#info_table tbody tr').css('background-color', '');
+                    this.getRow(e).css('background-color', '#eef');
+                }).on('mouseout', () => {
+                    $('#info_table tbody tr').css('background-color', '');
+                }).on('click', async (e: JQuery.Event) => {
+                    // Jump
+                    let nextId = this.getRow(e).attr('item');
+                    let nextTransaction = await this.application.getTransaction(nextId);
+                    let transactions = await this.application.gotoPeriod(nextTransaction.date);
+                    this.updateTransactions(transactions);
+                });
             });
         }
     }
 
-    async editTransaction(id: string) {
-        let transaction = await this.application.getTransaction(id);
-        console.log(transaction);
-        this.render('edittransaction_v2', transaction).then((template) => {
-            this.activePopup = $(template).popup({
-                history: false,
-                overlayTheme: 'b'               
+    async recurring_click(e: JQuery.Event) {
+        var target = $(e.target);
+        var row = this.getRow(e);
+
+        this.editRecurring(target.attr('recurring'));
+    }
+
+    async editTransaction(id?: string) {
+        let transaction: TransactionStructure;
+        
+        if (id) {
+            transaction = await this.application.getTransaction(id);
+        } else {
+            transaction = new Transaction().toJSON();
+            transaction.date = this.application.m_periodStart;
+        }
+
+        this.activePopup = await this.dialog('edittransaction_v2', transaction, async () => {
+            this.fixDateFields();
+            $('#btnSave').on('click', async () => {
+                // collect the updated data
+                let isDeposit = $("#type").prop('checked') as boolean;
+
+                transaction.date = $('#date').val().toString();
+                transaction.category = $('#category').val().toString();
+                transaction.name = $('#name').val().toString();
+                transaction.amount = ($('#amount').val() as number) * (isDeposit ? 1 : -1);
+                transaction.cash = ($('#cash').prop('checked') as boolean) && (isDeposit == false);
+                transaction.transfer = $('#transfer').prop('checked') as boolean;
+                transaction.paid = $('#paid').prop('checked') as boolean;
+                transaction.note = $('#note').val().toString();
+                transaction.check = $('#checkNumber').val().toString();
+                transaction.checkLink = $('#checkLink').val().toString();                    
+
+                // save the transaction
+                await this.application.saveTransaction(transaction);
+
+                // close the dialog
+                this.activePopup.popup('close');
             });
-            this.activePopup.on('popupafteropen', async () => {
-                $('#btnSave').on('click', async () => {
-                    // collect the updated data
-                    let isDeposit = $("#type").prop('checked') as boolean;
+            $('#btnDelete').on('click', () => {
+                // delete the transaction
+                this.application.deleteTransaction(transaction.id);
 
-                    transaction.date = $('#date').val().toString();
-                    transaction.category = $('#category').val().toString();
-                    transaction.name = $('#name').val().toString();
-                    transaction.amount = ($('#amount').val() as number) * (isDeposit ? 1 : -1);
-                    transaction.cash = ($('#cash').prop('checked') as boolean) && (isDeposit == false);
-                    transaction.transfer = $('#transfer').prop('checked') as boolean;
-                    transaction.paid = $('#paid').prop('checked') as boolean;
-                    transaction.note = $('#note').val().toString();
-                    transaction.check = $('#checkNumber').val().toString();
-                    transaction.checkLink = $('#checkLink').val().toString();                    
-
-                    // save the transaction
-                    await this.application.saveTransaction(transaction);
-
-                    // close the dialog
-                    this.activePopup.popup('close');
-                });
-                $('#btnDelete').on('click', () => {
-                    // delete the transaction
-
-                    // close the dialog
-                    this.activePopup.popup('close');
-                });
-                $('#transactionEditor input').on('keypress', (e) => {
-                    if (e.charCode == 13) {
-                        e.preventDefault();
-                        $('#btnSave').click();
-                    }
-                });
+                // close the dialog
+                this.activePopup.popup('close');
             });
-            this.activePopup.on('popupafterclose', () => {
-                $('.ui-popup-container').remove();
+            $('#transactionEditor input').on('keypress', (e) => {
+                if (e.charCode == 13) {
+                    e.preventDefault();
+                    $('#btnSave').click();
+                }
             });
-            this.activePopup.popup('open');
         });
     }
 
-    
+    async editRecurring(recurringId?: string) {
+
+        let recurring: RecurringTransaction;
+        
+        if (recurringId) {
+            recurring = await this.application.getRecurringTransaction(recurringId);
+        } else {
+            let startDate = Date.max(Date.parseFb(this.application.m_periodStart), Date.today());
+            recurring = {
+                start: startDate.toFbString(),
+                end: startDate.add("1 year").toFbString(),
+                period: "1 month",
+                category: Config.CATEGORIES[0],
+                name: "",
+                amount: 0,
+                cash: false,
+                transfer: false,
+                note: null
+            };
+        }
+        
+        this.activePopup = await this.dialog('editrecurring_v2', recurring, async () => {
+            this.fixDateFields();
+            $('#btnSave').on('click', async () => {
+                // collect the updated data
+                let isDeposit = $("#type").prop('checked') as boolean;
+
+                recurring.period = $('#period').val().toString();
+                recurring.start = $('#start').val().toString();
+                recurring.end = $('#end').val().toString();
+                recurring.category = $('#category').val().toString();
+                recurring.name = $('#name').val().toString();
+                recurring.amount = ($('#amount').val() as number) * (isDeposit ? 1 : -1);
+                recurring.cash = ($('#cash').prop('checked') as boolean) && (isDeposit == false);
+                recurring.transfer = $('#transfer').prop('checked') as boolean;
+                recurring.note = $('#note').val().toString();
+
+                // save the transaction
+                await this.application.saveRecurringTransaction(recurring);
+
+                // close the dialog
+                this.activePopup.popup('close');
+            });
+            $('#btnDelete').on('click', () => {
+                // delete the recurring transaction
+                this.application.deleteRecurring(recurring.id);
+
+                // close the dialog
+                this.activePopup.popup('close');
+            });
+            $('#transactionEditor input').on('keypress', (e) => {
+                if (e.charCode == 13) {
+                    e.preventDefault();
+                    $('#btnSave').click();
+                }
+            });
+        });
+    }
 }

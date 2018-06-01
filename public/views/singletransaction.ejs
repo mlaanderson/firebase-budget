@@ -5,7 +5,7 @@
         <%= item.name %>
         <% if (item.cash == true) { %><span title="Cash">$</span><%}%>
         <% if (item.checkLink) { %><span title="Check">&#x2328;</span><%}%>
-        <% if (item.recurring) { %><span id="<%= item.id %>_recurring" recurring="<%= item.recurring %>" title="Recurring">&#x21bb;</span><%}%>
+        <% if (item.recurring) { %><span class="recurring" id="<%= item.id %>_recurring" recurring="<%= item.recurring %>" title="Recurring">&#x21bb;</span><%}%>
         <% if (item.paid) { %><span title="Paid">&#x2713;</span><%}%>
         <% if (typeof item.note != "undefined") { %><span title="<%= item.note.replace(/"/g, '&quot;') %>">&#x2709;</span><% } %>
         <% if (item.transfer) { %><span title="Transfer to Savings">&#x2192;</span><%}%>

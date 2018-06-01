@@ -6,6 +6,7 @@
 
 table {
     border-collapse: collapse;
+    user-select: none;
 }
 
 td {
@@ -79,6 +80,7 @@ body { background-color: #e9e9e9; }
     .info_div {
         width: 300px;
         padding-left: 5px;
+        user-select: none;
     }
     
     .info_div table {
@@ -87,7 +89,7 @@ body { background-color: #e9e9e9; }
     }
     
     .info_div td {
-        background-color: #ccc;
+        /* background-color: #ccc; */
         border: 1px solid black;
     }
     
@@ -132,7 +134,7 @@ body { background-color: #e9e9e9; }
     }
     
     .info_div td {
-        background-color: #ccc;
+        /* background-color: #ccc; */
         border: 1px solid black;
     }
     

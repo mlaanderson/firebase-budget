@@ -1,4 +1,5 @@
 import Transaction, { TransactionStructure } from "./types/transaction";
+import RecurringTransaction from "./types/recurringtransaction";
 import Check from "./types/check";
 import Timespan from "./lib/timespan";
 import Form from "./form";
@@ -50,6 +51,14 @@ export class Config {
             }
         }
     }
+
+    static async write(root: firebase.database.Reference) {
+        await root.child('config/categories').set(Config.CATEGORIES);
+        await root.child('config/periods').set({
+            length: Config.PERIOD_LENGTH,
+            start: Config.PERIOD_START
+        });
+    }
 }
 
 export default class Application {
@@ -82,6 +91,7 @@ export default class Application {
         } else { 
             this.m_form.loading();
             await Config.read(this.root);
+            this.m_form.onConfigLoaded();
             let snap : firebase.database.DataSnapshot;
 
             snap = await this.root.child('accounts').orderByChild('name').equalTo('Primary').once('child_added');
@@ -93,9 +103,9 @@ export default class Application {
             }
 
             // setup the transaction listeners
-            this.m_primaryAccount.child('transactions').on('child_changed', this.onTransactionChanged.bind(this));
-            this.m_primaryAccount.child('transactions').on('child_added', this.onTransactionAdded.bind(this));
-            this.m_primaryAccount.child('transactions').on('child_removed', this.onTransactionRemoved.bind(this));
+            this.transactions.on('child_changed', this.onTransactionChanged.bind(this));
+            this.transactions.on('child_added', this.onTransactionAdded.bind(this));
+            this.transactions.on('child_removed', this.onTransactionRemoved.bind(this));
 
             // show the screens
             let transactions = await this.selectPeriod();
@@ -123,6 +133,10 @@ export default class Application {
             // update the transaction
             this.m_form.updateTransaction(transaction);
         }
+
+        this.m_form.updatePreview(transaction);
+        this.m_form.updateChart();
+
         if (transaction.date <= this.m_periodEnd) {
             // update the total
             let sum = await this.getPeriodSum();
@@ -132,16 +146,31 @@ export default class Application {
 
     async onTransactionAdded(snap: firebase.database.DataSnapshot) {
         if (this.m_loading == true) return;
-        console.log('ADDED', snap.ref);
+        
+        let transaction = snap.val() as TransactionStructure;
+        transaction.id = snap.key;
+
+        if (this.m_periodStart <= transaction.date && transaction.date <= this.m_periodEnd) {
+            // update the transaction
+            this.m_form.updateTransaction(transaction);
+        }
+
+        this.m_form.updatePreview(transaction);
+        this.m_form.updateChart();
+
+        if (transaction.date <= this.m_periodEnd) {
+            // update the total
+            let sum = await this.getPeriodSum();
+            this.m_form.updateTotal(sum);
+        }
     }
 
     async onTransactionRemoved(snap: firebase.database.DataSnapshot) {
         if (this.m_loading == true) return;
-        console.log('REMOVED', snap.ref);
-    }
 
-    get Categories() {
-        return Config.CATEGORIES.slice();
+        this.m_form.removeTransaction(snap.key);
+        this.m_form.updateTotal(await this.getPeriodSum());
+        this.m_form.updateChart();
     }
 
     get root() {
@@ -151,23 +180,27 @@ export default class Application {
         return this.m_app.database().ref().child(this.m_app.auth().currentUser.uid);
     }
 
+    /** Used in some templates */
+    get Categories() {
+        return Config.CATEGORIES;
+    }
+
+    get transactions() {
+        return this.m_primaryAccount.child('transactions');
+    }
+
+    get recurring() {
+        return this.m_primaryAccount.child('recurring');
+    }
+
     async signout() {
         await this.m_app.auth().signOut();
     }
 
-    async backOne() : Promise<TransactionStructure[]> {
-        this.m_today = this.m_today.subtract(Config.PERIOD_LENGTH) as Date;
-        return await this.selectPeriod();
-    }
-
-    async forwardOne() : Promise<TransactionStructure[]> {
-        this.m_today = this.m_today.add(Config.PERIOD_LENGTH) as Date;
-        return await this.selectPeriod();
-    }
-
     async getTransaction(key: string) : Promise<TransactionStructure> {
-        let tsnap = await this.m_primaryAccount.child('transactions').child(key).once('value');
+        let tsnap = await this.transactions.child(key).once('value');
         let item = tsnap.val() as TransactionStructure;
+
         item.id = key;
 
         return item;
@@ -176,6 +209,15 @@ export default class Application {
     async saveTransaction(transaction: TransactionStructure) {
         let id: string;
 
+        // null out the empty strings in check, checkLink and note
+        transaction.check = transaction.check || null;
+        transaction.checkLink = transaction.checkLink || null;
+        transaction.note = transaction.note || null;
+        transaction.cash = transaction.cash || false;
+        transaction.paid = transaction.paid || false;
+        transaction.transfer = transaction.transfer || false;
+        transaction.recurring = transaction.recurring || null;
+
         if (transaction.id) {
             // existing transaction, update it
             id = transaction.id;
@@ -183,28 +225,100 @@ export default class Application {
             // delete the id property, it doesn't get saved
             delete transaction.id;
 
-            // null out the empty strings in check, checkLink and note
-            transaction.check = transaction.check || null;
-            transaction.checkLink = transaction.checkLink || null;
-            transaction.note = transaction.note || null;
-
-            console.log('UPDATE:', id, transaction);
-            await this.m_primaryAccount.child('transactions').child(id).set(transaction);
-            console.log('SAVED');
+            await this.transactions.child(id).set(transaction);
         } else {
             // new transaction, save it
-            // null out the empty strings in check, checkLink and note
-            transaction.check = transaction.check || null;
-            transaction.checkLink = transaction.checkLink || null;
-            transaction.note = transaction.note || null;
-
-            console.log('PUSH:', transaction);
+            let ref: firebase.database.ThenableReference = await this.transactions.push(transaction);
+            transaction.id = ref.key;
         }
+    }
+
+    async deleteTransaction(key: string) {
+        await this.transactions.child(key).remove();
+    }
+
+    async getRecurringTransaction(key: string) : Promise<RecurringTransaction> {
+        let tsnap = await this.recurring.child(key).once('value');
+        let item = tsnap.val() as RecurringTransaction;
+        item.id = key;
+
+        return item;
+    }
+
+    async saveRecurringTransaction(recurring: RecurringTransaction) {
+        let rId: string = recurring.id || null;
+        let date = Date.today().toFbString();
+
+        date = date > this.m_periodStart ? date : this.m_periodStart;
+
+        delete recurring.id;
+
+        console.log(recurring);
+
+        if (rId) {
+            // update the recurring node
+            await this.recurring.child(rId).set(recurring);
+        } else {
+            console.log("CREATING NEW RECURRING ENTRY");
+            let ref = await this.recurring.push(recurring);
+            rId = ref.key;
+            console.log("PUSHED", rId);
+        }
+
+        // delete all matching after this date or today whichever is later
+        await this.deleteRecurring(rId, false);
+
+        // re-insert new transaction nodes starting with today or start whichever is later
+        for (let day = Date.parseFb(recurring.start); day.le(recurring.end); day = day.add(recurring.period)) {
+            if (day.toFbString() < date) continue;
+
+            let transaction = {
+                date: day.toFbString(),
+                category: recurring.category,
+                name: recurring.name,
+                amount: recurring.amount,
+                cash: recurring.cash || false,
+                paid: false,
+                transfer: recurring.transfer || false,
+                note: recurring.note || null,
+                recurring: rId
+            };
+
+            await this.transactions.push(transaction);
+        }
+    }
+
+    async deleteRecurring(id: string, deleteRecurringNode: boolean = true) {
+        let date = Date.today().toFbString();
+
+        date = date > this.m_periodStart ? date : this.m_periodStart;
+
+        // delete the recurring 
+        if (deleteRecurringNode == true) {
+            await this.recurring.child(id).remove();
+        }
+
+        // delete all matching after this date or today whichever is later
+        let transactions = await this.getRecurringTransactions(id);
+
+        for (let key in transactions) {
+            let transaction = transactions[key];
+
+            if ((transaction.date >= date) && (transaction.paid !== true)) {
+                await this.deleteTransaction(key);
+            }
+        }
+    }
+
+    async getRecurringTransactions(id: string): Promise<TypeMap<TransactionStructure>> {
+        let snap = await this.transactions.orderByChild('recurring').startAt(id).endAt(id).once('value');
+        let transactions = snap.val() as TypeMap<TransactionStructure>;
+        return transactions;
     }
 
     async getSameTransactions(item: TransactionStructure) : Promise<TransactionStructure[]> {
 
-        let snap = await this.m_primaryAccount.child('transactions').orderByChild('name').startAt(item.name).endAt(item.name).once('value');
+        let snap = await this.transactions.orderByChild('name').startAt(item.name).endAt(item.name).once('value');
         let transactions = snap.val() as TypeMap<TransactionStructure>;
         let items: Array<TransactionStructure> = [];
         
@@ -224,6 +338,15 @@ export default class Application {
         return items;
     }
 
+    async gotoPeriod(start: string | Date): Promise<TransactionStructure[]> {
+        if (typeof start == "string") {
+            start = Date.parseFb(start);
+        }
+        this.m_today = start as Date;
+        let transactions = await this.selectPeriod();
+        return transactions;
+    }
+
     async selectPeriod() : Promise<TransactionStructure[]> {
         let startDate = this.m_today.periodCalc(Config.PERIOD_START, Config.PERIOD_LENGTH);
 
@@ -232,7 +355,7 @@ export default class Application {
 
         let snap : firebase.database.DataSnapshot;
 
-        snap = await this.m_primaryAccount.child('transactions').orderByChild('date').startAt(this.m_periodStart).endAt(this.m_periodEnd).once('value');
+        snap = await this.transactions.orderByChild('date').startAt(this.m_periodStart).endAt(this.m_periodEnd).once('value');
         
         let items = Transaction.sort(snap.val() as TypeMap<TransactionStructure>);
         this.m_loading = false;
@@ -262,7 +385,7 @@ export default class Application {
         let checks = await this.getOutstandingChecksTotal();
         let transactions: TypeMap<TransactionStructure>;
 
-        snap = await this.m_primaryAccount.child('transactions').orderByChild('date').endAt(this.m_periodEnd).once('value');
+        snap = await this.transactions.orderByChild('date').endAt(this.m_periodEnd).once('value');
         transactions = snap.val() as TypeMap<TransactionStructure>;
         for (var key in transactions) {
             sum = Math.roundTo(sum +  transactions[key].amount, 2);
@@ -273,12 +396,12 @@ export default class Application {
 
     async getDateTotals() : Promise<{[key:string]:number}> {
         let result : {[key:string]:number} = {};
-        let sum = 0;
+        let sum = await this.getOutstandingChecksTotal();
         let snap : firebase.database.DataSnapshot;
         let data : TypeMap<TransactionStructure>;
         let transactions = new Array<TransactionStructure>();
 
-        snap = await this.m_primaryAccount.child('transactions').once('value');
+        snap = await this.transactions.once('value');
         data = snap.val();
 
         for (var key in data) {
@@ -302,6 +425,12 @@ export default class Application {
 
     async clearCheck(id: string) {
         await this.m_primaryAccount.child('checks').child(id).remove();
+    }
+
+    async getData(): Promise<Object> {
+        let snap = await this.root.once('value');
+        let data: Object = snap.val() as Object;
+        return data;
     }
 }
 
