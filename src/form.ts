@@ -37,6 +37,8 @@ export default class Form {
 
     activePopup: JQuery<HTMLElement>;
 
+    initializing: boolean = true;
+
     chart: AmChartObject;
     chart_config: AmChartConfig = {
         "type": "serial",
@@ -600,6 +602,10 @@ export default class Form {
         Promise.all(promises).then(() => {
             this.sortTransactions();
             this.doneLoading();
+            if (this.initializing === true) {
+                this.window_Resize(null);
+                this.initializing = false;
+            }
             document.title = Date.parseFb(this.application.m_periodStart).format("MMM d") + ' - ' + Date.parseFb(this.application.m_periodEnd).format("MMM d");
         });
 

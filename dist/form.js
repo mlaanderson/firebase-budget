@@ -18,6 +18,7 @@ require("./lib/input.ext");
 const amchart_1 = require("./amchart/amchart");
 class Form {
     constructor(app) {
+        this.initializing = true;
         this.chart_config = {
             "type": "serial",
             "balloonDateFormat": "MMM DD",
@@ -517,6 +518,10 @@ class Form {
             Promise.all(promises).then(() => {
                 this.sortTransactions();
                 this.doneLoading();
+                if (this.initializing === true) {
+                    this.window_Resize(null);
+                    this.initializing = false;
+                }
                 document.title = Date.parseFb(this.application.m_periodStart).format("MMM d") + ' - ' + Date.parseFb(this.application.m_periodEnd).format("MMM d");
             });
             this.updateTotal(yield this.application.getPeriodSum());
