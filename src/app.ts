@@ -129,19 +129,12 @@ export default class Application {
         let transaction = snap.val() as TransactionStructure;
         transaction.id = snap.key;
 
-        if (this.m_periodStart <= transaction.date && transaction.date <= this.m_periodEnd) {
-            // update the transaction
-            this.m_form.updateTransaction(transaction);
-        }
-
+        this.m_form.updateTransaction(transaction);
         this.m_form.updatePreview(transaction);
         this.m_form.updateChart();
 
-        if (transaction.date <= this.m_periodEnd) {
-            // update the total
-            let sum = await this.getPeriodSum();
-            this.m_form.updateTotal(sum);
-        }
+        let sum = await this.getPeriodSum();
+        this.m_form.updateTotal(sum);
     }
 
     async onTransactionAdded(snap: firebase.database.DataSnapshot) {

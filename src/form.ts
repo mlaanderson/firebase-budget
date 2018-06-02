@@ -536,20 +536,23 @@ export default class Form {
     }
 
     updateTransaction(transaction: TransactionStructure) {
-        this.render('singletransaction', { 
-            item: transaction,
-            hasNote: (typeof transaction.note !== "undefined")
-        }).then((template) => {
-            // inserting a new transaction into the table
-            // make sure any originals are deleted
-            $('#' + transaction.id).remove();
+        // make sure any originals are deleted
+        $('#' + transaction.id).remove();
 
-            // add the transaction
-            $('#tblTransactions tbody').append($(template));
+        if (this.application.m_periodStart <= transaction.date && transaction.date <= this.application.m_periodEnd) {
+            this.render('singletransaction', { 
+                item: transaction,
+                hasNote: (typeof transaction.note !== "undefined")
+            }).then((template) => {
+                // inserting a new transaction into the table
 
-            // resort the table
-            this.sortTransactions();
-        });
+                // add the transaction
+                $('#tblTransactions tbody').append($(template));
+
+                // resort the table
+                this.sortTransactions();
+            });
+        }
     }
 
     removeTransaction(id: string) {
@@ -756,8 +759,8 @@ export default class Form {
                 transaction.paid = $('#paid').prop('checked') as boolean;
                 transaction.note = $('#note').val().toString();
                 transaction.check = $('#checkNumber').val().toString();
-                transaction.checkLink = $('#checkLink').val().toString();                    
-
+                transaction.checkLink = $('#checkLink').val().toString();           
+                
                 // save the transaction
                 await this.application.saveTransaction(transaction);
 

@@ -389,12 +389,35 @@ class Form {
             for (let n = 2016; n <= 2100; n++) {
                 yearSelect.append($('<option>', { value: n, selected: n == date.getUTCFullYear() }).text(n));
             }
+            function monthVal() {
+                let val = parseInt(monthSelect.val());
+                if (val >= 10)
+                    return val.toString();
+                return '0' + val.toString();
+            }
+            function dayVal() {
+                let val = parseInt(daySelect.val());
+                if (val >= 10)
+                    return val.toString();
+                return '0' + val.toString();
+            }
+            function yearVal() {
+                let val = parseInt(yearSelect.val());
+                if (val >= 1000)
+                    return val.toString();
+                if (val >= 100)
+                    return '0' + val.toString();
+                if (val >= 10)
+                    return '00' + val.toString();
+                return '000' + val.toString();
+            }
             function updateValues() {
-                var dateString = yearSelect.val().toString() + '-' + monthSelect.val().toString() + '-' + daySelect.val().toString();
+                var dateString = yearVal() + '-' + monthVal() + '-' + dayVal();
+                console.log(dateString);
                 $(input).val(Date.parseFb(dateString).toFbString());
             }
             function updateDays() {
-                var dateString = yearSelect.val().toString() + '-' + monthSelect.val().toString() + '-' + daySelect.val().toString();
+                var dateString = yearVal() + '-' + monthVal() + '-' + dayVal();
                 var newDate = Date.parseFb(dateString);
                 if (newDate.getUTCMonth() != (monthSelect.val() + 1)) {
                     daySelect.empty();
@@ -444,18 +467,20 @@ class Form {
         });
     }
     updateTransaction(transaction) {
-        this.render('singletransaction', {
-            item: transaction,
-            hasNote: (typeof transaction.note !== "undefined")
-        }).then((template) => {
-            // inserting a new transaction into the table
-            // make sure any originals are deleted
-            $('#' + transaction.id).remove();
-            // add the transaction
-            $('#tblTransactions tbody').append($(template));
-            // resort the table
-            this.sortTransactions();
-        });
+        // make sure any originals are deleted
+        $('#' + transaction.id).remove();
+        if (this.application.m_periodStart <= transaction.date && transaction.date <= this.application.m_periodEnd) {
+            this.render('singletransaction', {
+                item: transaction,
+                hasNote: (typeof transaction.note !== "undefined")
+            }).then((template) => {
+                // inserting a new transaction into the table
+                // add the transaction
+                $('#tblTransactions tbody').append($(template));
+                // resort the table
+                this.sortTransactions();
+            });
+        }
     }
     removeTransaction(id) {
         $('#' + id).remove();

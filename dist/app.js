@@ -126,17 +126,11 @@ class Application {
                 return;
             let transaction = snap.val();
             transaction.id = snap.key;
-            if (this.m_periodStart <= transaction.date && transaction.date <= this.m_periodEnd) {
-                // update the transaction
-                this.m_form.updateTransaction(transaction);
-            }
+            this.m_form.updateTransaction(transaction);
             this.m_form.updatePreview(transaction);
             this.m_form.updateChart();
-            if (transaction.date <= this.m_periodEnd) {
-                // update the total
-                let sum = yield this.getPeriodSum();
-                this.m_form.updateTotal(sum);
-            }
+            let sum = yield this.getPeriodSum();
+            this.m_form.updateTotal(sum);
         });
     }
     onTransactionAdded(snap) {
