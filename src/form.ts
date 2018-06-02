@@ -452,13 +452,34 @@ export default class Form {
                 yearSelect.append($('<option>', { value: n, selected: n == date.getUTCFullYear() }).text(n));
             }
 
+            function monthVal() : string {
+                let val =  parseInt(monthSelect.val() as string);
+                if (val >= 10) return val.toString();
+                return '0' + val.toString();
+            }
+
+            function dayVal() : string {
+                let val =  parseInt(daySelect.val() as string);
+                if (val >= 10) return val.toString();
+                return '0' + val.toString();
+            }
+
+            function yearVal() : string {
+                let val =  parseInt(yearSelect.val() as string);
+                if (val >= 1000) return val.toString();
+                if (val >= 100) return '0' + val.toString();
+                if (val >= 10) return '00' + val.toString();
+                return '000' + val.toString();
+            }
+
             function updateValues() {
-                var dateString: string = yearSelect.val().toString() + '-' + monthSelect.val().toString() + '-' + daySelect.val().toString();
+                var dateString: string = yearVal() + '-' + monthVal() + '-' + dayVal();
+                console.log(dateString);
                 $(input).val(Date.parseFb(dateString).toFbString());
             }
 
             function updateDays() {
-                var dateString: string = yearSelect.val().toString() + '-' + monthSelect.val().toString() + '-' + daySelect.val().toString();
+                var dateString: string = yearVal() + '-' + monthVal() + '-' + dayVal();
                 var newDate = Date.parseFb(dateString);
 
                 if (newDate.getUTCMonth() != (monthSelect.val() as number + 1)) {
