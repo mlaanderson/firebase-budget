@@ -4,16 +4,19 @@
 
 import { Records, Record, RecordMap, firebase } from "./records";
 
-enum TransactonEvents {
-    AddedInPeriod = 'addedinperiod',
-    AddedBeforePeriod = 'addedbeforeperiod',
-    AddedAfterPeriod = 'addedafterperiod',
-    ChangedInPeriod = 'changedinperiod',
-    ChangedBeforePeriod = 'changedbeforeperiod',
-    ChangedAfterPeriod = 'changedafterperiod',
-    RemovedInPeriod = 'removedinperiod',
-    RemovedBeforePeriod = 'removedbeforeperiod',
-    RemovedAfterPeriod = 'removedafterperiod'
+class TransactonEvents {
+    static Added = 'added';
+    static AddedInPeriod = 'addedinperiod';
+    static AddedBeforePeriod = 'addedbeforeperiod';
+    static AddedAfterPeriod = 'addedafterperiod';
+    static Changed = 'changed';
+    static ChangedInPeriod = 'changedinperiod';
+    static ChangedBeforePeriod = 'changedbeforeperiod';
+    static ChangedAfterPeriod = 'changedafterperiod';
+    static Removed = 'removed';
+    static RemovedInPeriod = 'removedinperiod';
+    static RemovedBeforePeriod = 'removedbeforeperiod';
+    static RemovedAfterPeriod = 'removedafterperiod';
 }
 
 interface Transaction extends Record {
@@ -65,10 +68,31 @@ export default class Transactions extends Records<Transaction> {
         return transaction;
     }
 
+    on(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
+        handler: (transaction: Transaction, controller: Transactions) => void, context?: any) : Transactions 
+    {
+        super.on(event, handler, context);
+        return this;
+    }
+    
+    onff(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
+        handler: (transaction: Transaction, controller: Transactions) => void) : Transactions 
+    {
+        super.off(event, handler);
+        return this;
+    }
+
+    once(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
+        handler: (transaction: Transaction, controller: Transactions) => void, context?: any) : Transactions 
+    {
+        super.once(event, handler, context);
+        return this;
+    }
+
     async onChildAdded(snap: firebase.database.DataSnapshot, prevChild?: string) {
         if (!this.periodStart || !this.periodEnd) return;
 
-        let transaction = snap.val() as Transaction;
+        let transaction = this.sanitizeAfterRead(snap.val() as Transaction);    
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
             this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
@@ -77,12 +101,37 @@ export default class Transactions extends Records<Transaction> {
         } else {
             this.emitAsync(TransactonEvents.AddedAfterPeriod, transaction, this);
         }
+        this.emitAsync(TransactonEvents.Added, transaction, this);
     }
 
     async onChildChanged(snap: firebase.database.DataSnapshot, prevChild?: string) {
         if (!this.periodStart || !this.periodEnd) return;
 
-        let transaction = snap.val() as Transaction;
+        let transaction = this.sanitizeAfterRead(snap.val() as Transaction);
+
+        if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+            this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
+        } else if (transaction.date < this.periodStart) {
+            this.emitAsync(TransactonEvents.ChangedBeforePeriod, transaction, this);
+        } else {
+            this.emitAsync(TransactonEvents.ChangedAfterPeriod, transaction, this);
+        }
+        this.emitAsync(TransactonEvents.Changed, transaction, this);
+    }
+
+    async onChildRemoved(snap: firebase.database.DataSnapshot, prevChild?: string) {
+        if (!this.periodStart || !this.periodEnd) return;
+
+        let transaction = this.sanitizeAfterRead(snap.val() as Transaction);
+
+        if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+            this.emitAsync(TransactonEvents.RemovedInPeriod, transaction, this);
+        } else if (transaction.date < this.periodStart) {
+            this.emitAsync(TransactonEvents.RemovedBeforePeriod, transaction, this);
+        } else {
+            this.emitAsync(TransactonEvents.RemovedAfterPeriod, transaction, this);
+        }
+        this.emitAsync(TransactonEvents.Removed, transaction, this);
     }
 
     async loadPeriod(start: string, end: string) : Promise<TransactionMap> {
