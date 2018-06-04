@@ -29,5 +29,19 @@ class Configuration {
     get length() {
         return this.data.periods.length;
     }
+    calculatePeriod(date) {
+        if (typeof date === "string") {
+            date = Date.parseFb(date);
+        }
+        let start = date.periodCalc(this.start, this.length);
+        let end = start.add(this.length).subtract('1 day');
+        return {
+            start: start.toFbString(),
+            end: end.toFbString()
+        };
+    }
+    toJSON() {
+        return this.data || {};
+    }
 }
 exports.default = Configuration;

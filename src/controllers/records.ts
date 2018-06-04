@@ -4,14 +4,7 @@
 
 import * as firebase from "firebase";
 import Events from "./events";
-
-interface Record {
-    id?: string;
-}
-
-interface RecordMap<T> {
-    [key: string]: T;
-}
+import { Record, RecordMap } from "../models/record";
 
 class Records<T extends Record> extends Events {
     protected ref: firebase.database.Reference;
@@ -20,21 +13,44 @@ class Records<T extends Record> extends Events {
         super();
         this.ref = reference;
 
-        this.ref.on('child_added', this.onChildAdded.bind(this));
-        this.ref.on('child_changed', this.onChildChanged.bind(this));
-        this.ref.on('child_removed', this.onChildRemoved.bind(this));
+        this.ref.on('child_added', this.childAddedHandler.bind(this));
+        this.ref.on('child_changed', this.childChangedHandler.bind(this));
+        this.ref.on('child_removed', this.childRemovedHandler.bind(this));
     }
 
-    protected async onChildAdded(snap: firebase.database.DataSnapshot, prevChild?: string) { 
-        this.emitAsync('child_added', snap, prevChild); 
+    private async childAddedHandler(snap: firebase.database.DataSnapshot, prevChild?: string) { 
+        let record = this.sanitizeAfterRead(snap.val() as T);
+        record.id = snap.key;
+        this.onChildAdded(record);
     }
 
-    protected async onChildChanged(snap: firebase.database.DataSnapshot, prevChild?: string) { 
-        this.emitAsync('child_changed', snap, prevChild); 
+    private async childChangedHandler(snap: firebase.database.DataSnapshot, prevChild?: string) { 
+        let record = this.sanitizeAfterRead(snap.val() as T);
+        record.id = snap.key;
+        this.onChildChanged(record);
     }
 
-    protected async onChildRemoved(snap: firebase.database.DataSnapshot, prevChild?: string) { 
-        this.emitAsync('child_removed', snap, prevChild); 
+    private async childRemovedHandler(snap: firebase.database.DataSnapshot, prevChild?: string) { 
+        let record = this.sanitizeAfterRead(snap.val() as T);
+        record.id = snap.key;
+        this.onChildRemoved(record);
+    }
+
+    /** This is only fired if THIS client saves the record */
+    protected async onChildSaved(current: T, original: T) {
+        this.emitAsync('child_saved', this.sanitizeAfterRead(current), this.sanitizeAfterRead(original), this);
+    }
+
+    protected async onChildAdded(record: T) {
+        this.emitAsync('child_added', record, this);
+    }
+
+    protected async onChildChanged(record: T) {
+        this.emitAsync('child_changed', record, this);
+    }
+
+    protected async onChildRemoved(record: T) {
+        this.emitAsync('child_removed', record, this);
     }
 
     protected sanitizeAfterRead(record: T) : T { return record; }
@@ -55,10 +71,10 @@ class Records<T extends Record> extends Events {
     async loadRecordsByChild(child: string, startAt?: string | number | boolean, endAt?: string | number | boolean) : Promise<RecordMap<T>> {
         let cRef = this.ref.orderByChild(child);
         if (startAt) {
-            cRef.startAt(startAt);
+            cRef = cRef.startAt(startAt);
         }
         if (endAt) {
-            cRef.endAt(endAt);
+            cRef = cRef.endAt(endAt);
         }
 
         let snap = await cRef.once('value');
@@ -81,8 +97,16 @@ class Records<T extends Record> extends Events {
         record = this.sanitizeBeforeWrite(record);
 
         if (id) {
+            // fetch the existing record
+            let original = await this.load(id);
+
             // update this record
             await this.ref.child(id).set(record);
+
+            // emit a 'child_saved' event
+            record.id = id;
+            this.onChildSaved(record, original);
+
             return id;
         } else {
             // push the record
@@ -95,6 +119,9 @@ class Records<T extends Record> extends Events {
         let snap = await this.ref.child(key).once('value');
         let record = snap.val() as T;
 
+        if (record === null) return null;
+
+        record.id = key;
         record = this.sanitizeAfterRead(record);
 
         return record;
@@ -111,4 +138,4 @@ class Records<T extends Record> extends Events {
     
 }
 
-export { Records, Record, RecordMap, firebase };
+export { Records, firebase };

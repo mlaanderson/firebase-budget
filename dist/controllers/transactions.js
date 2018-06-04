@@ -26,11 +26,16 @@ TransactonEvents.Removed = 'removed';
 TransactonEvents.RemovedInPeriod = 'removedinperiod';
 TransactonEvents.RemovedBeforePeriod = 'removedbeforeperiod';
 TransactonEvents.RemovedAfterPeriod = 'removedafterperiod';
+TransactonEvents.Save = 'saved';
+TransactonEvents.SavedInPeriod = 'savedinperiod';
+TransactonEvents.SavedBeforePeriod = 'savedbeforeperiod';
+TransactonEvents.SavedAfterPeriod = 'savedafterperiod';
 class Transactions extends records_1.Records {
-    constructor(reference) {
+    constructor(reference, config) {
         super(reference);
         this.records = {};
         this.periodTotal = 0;
+        this.config = config;
     }
     sanitizeAfterRead(transaction) {
         transaction.cash = transaction.cash || false;
@@ -52,28 +57,16 @@ class Transactions extends records_1.Records {
         transaction.transfer = transaction.transfer ? transaction.transfer : null;
         return transaction;
     }
-    on(event, handler, context) {
-        super.on(event, handler, context);
-        return this;
-    }
-    off(event, handler) {
-        super.off(event, handler);
-        return this;
-    }
-    once(event, handler, context) {
-        super.once(event, handler, context);
-        return this;
-    }
-    onChildAdded(snap, prevChild) {
+    onChildAdded(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.periodStart || !this.periodEnd)
                 return;
-            let transaction = this.sanitizeAfterRead(snap.val());
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 // add the transaction to the local cache
                 this.records[transaction.id] = transaction;
+                this.populateTransactionList();
                 // add this transaction to the total
-                this.periodTotal += transaction.amount;
+                // this.periodTotal += transaction.amount;
                 this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
             }
             else if (transaction.date < this.periodStart) {
@@ -87,14 +80,14 @@ class Transactions extends records_1.Records {
             this.emitAsync(TransactonEvents.Added, transaction, this);
         });
     }
-    onChildChanged(snap, prevChild) {
+    onChildChanged(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.periodStart || !this.periodEnd)
                 return;
-            let transaction = this.sanitizeAfterRead(snap.val());
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 // update the transaction in the local cache
                 this.records[transaction.id] = transaction;
+                this.populateTransactionList();
                 // add this transaction to the total
                 this.periodTotal += transaction.amount;
                 this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
@@ -103,6 +96,7 @@ class Transactions extends records_1.Records {
                 // remove the transaction from the local cache
                 if (transaction.id in this.records) {
                     delete this.records[transaction.id];
+                    this.populateTransactionList();
                 }
                 if (transaction.date < this.periodStart) {
                     // add this transaction to the total
@@ -116,14 +110,14 @@ class Transactions extends records_1.Records {
             this.emitAsync(TransactonEvents.Changed, transaction, this);
         });
     }
-    onChildRemoved(snap, prevChild) {
+    onChildRemoved(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.periodStart || !this.periodEnd)
                 return;
-            let transaction = this.sanitizeAfterRead(snap.val());
             // remove the transaction from the local cache
             if (transaction.id in this.records) {
                 delete this.records[transaction.id];
+                this.populateTransactionList();
             }
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 // subtract this transaction from the total
@@ -141,13 +135,65 @@ class Transactions extends records_1.Records {
             this.emitAsync(TransactonEvents.Removed, transaction, this);
         });
     }
+    onChildSaved(current, original) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.periodStart || !this.periodEnd)
+                return;
+            if (this.periodStart <= current.date && current.date <= this.periodEnd) {
+                this.records[current.id] = current;
+            }
+            else {
+                delete this.records[current.id];
+            }
+        });
+    }
+    transactionSorter(a, b) {
+        let cat1 = this.config.categories.indexOf(a.category);
+        let cat2 = this.config.categories.indexOf(b.category);
+        if (cat1 != cat2)
+            return cat1 - cat2;
+        if (a.name < b.name)
+            return -1;
+        if (a.name > b.name)
+            return 1;
+        return 0;
+    }
+    populateTransactionList() {
+        let list = new Array();
+        for (let k in this.records) {
+            list.push(this.records[k]);
+        }
+        this.transactionList = list.sort(this.transactionSorter.bind(this));
+    }
+    get Records() {
+        return this.records || {};
+    }
+    get List() {
+        return this.transactionList;
+    }
+    get Total() {
+        return this.periodTotal;
+    }
+    get Start() {
+        return this.periodStart;
+    }
+    get End() {
+        return this.periodEnd;
+    }
     loadPeriod(start, end) {
         return __awaiter(this, void 0, void 0, function* () {
             this.periodStart = start;
             this.periodEnd = end;
             this.records = yield this.loadRecordsByChild('date', start, end);
+            this.populateTransactionList();
             yield this.getTotal();
             return this.records;
+        });
+    }
+    getRecurring(recurringId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // gets the existing transactions linked with the recurring
+            return yield this.loadRecordsByChild('recurring', recurringId, recurringId);
         });
     }
     getTotal() {
@@ -176,12 +222,6 @@ class Transactions extends records_1.Records {
             }
             return yield _super("save").call(this, record);
         });
-    }
-    get Records() {
-        return this.records || {};
-    }
-    get Total() {
-        return this.periodTotal;
     }
 }
 exports.default = Transactions;

@@ -2,7 +2,10 @@
  * Handles transaction data interface
  */
 
-import { Records, Record, RecordMap, firebase } from "./records";
+import { RecordMap } from "../models/record";
+import Transaction from "../models/transaction";
+import { Records, firebase } from "./records";
+import Config from "./config";
 
 class TransactonEvents {
     static Added = 'added';
@@ -17,35 +20,26 @@ class TransactonEvents {
     static RemovedInPeriod = 'removedinperiod';
     static RemovedBeforePeriod = 'removedbeforeperiod';
     static RemovedAfterPeriod = 'removedafterperiod';
+    static Save = 'saved';
+    static SavedInPeriod = 'savedinperiod';
+    static SavedBeforePeriod = 'savedbeforeperiod';
+    static SavedAfterPeriod = 'savedafterperiod';
 }
-
-interface Transaction extends Record {
-    amount : number;
-    cash? : boolean;
-    category : string;
-    check? : string;
-    checkLink? : string;
-    date : string;
-    name : string;
-    note? : string;
-    paid?: boolean;
-    recurring? : string;
-    transfer? : boolean;
-}
-
-interface TransactionMap extends RecordMap<Transaction> {}
 
 export default class Transactions extends Records<Transaction> {
-    records: TransactionMap = {};
-    periodStart: string;
-    periodEnd: string;
-    periodTotal: number = 0;
+    private records: RecordMap<Transaction> = {};
+    private transactionList: Array<Transaction>;
+    private periodStart: string;
+    private periodEnd: string;
+    private periodTotal: number = 0;
+    private config: Config;
 
-    constructor(reference: firebase.database.Reference) {
+    constructor(reference: firebase.database.Reference, config: Config) {
         super(reference); 
+        this.config = config;
     }
 
-    sanitizeAfterRead(transaction: Transaction) : Transaction {
+    protected sanitizeAfterRead(transaction: Transaction) : Transaction {
         transaction.cash = transaction.cash || false;
         transaction.check = transaction.check || null;
         transaction.checkLink = transaction.checkLink || null;
@@ -57,7 +51,7 @@ export default class Transactions extends Records<Transaction> {
         return transaction;
     }
 
-    sanitizeBeforeWrite(transaction: Transaction) : Transaction {
+    protected sanitizeBeforeWrite(transaction: Transaction) : Transaction {
         transaction.cash = transaction.cash? transaction.cash : null;
         transaction.check = transaction.check === undefined || transaction.check === "" ? null : transaction.check;
         transaction.checkLink = transaction.checkLink === undefined || transaction.checkLink === "" ? null : transaction.checkLink;
@@ -69,38 +63,16 @@ export default class Transactions extends Records<Transaction> {
         return transaction;
     }
 
-    on(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
-        handler: (transaction: Transaction, controller: Transactions) => void, context?: any) : Transactions 
-    {
-        super.on(event, handler, context);
-        return this;
-    }
-    
-    off(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
-        handler: (transaction: Transaction, controller: Transactions) => void) : Transactions 
-    {
-        super.off(event, handler);
-        return this;
-    }
-
-    once(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
-        handler: (transaction: Transaction, controller: Transactions) => void, context?: any) : Transactions 
-    {
-        super.once(event, handler, context);
-        return this;
-    }
-
-    async onChildAdded(snap: firebase.database.DataSnapshot, prevChild?: string) {
+    protected async onChildAdded(transaction: Transaction) {
         if (!this.periodStart || !this.periodEnd) return;
-
-        let transaction = this.sanitizeAfterRead(snap.val() as Transaction);    
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
             // add the transaction to the local cache
             this.records[transaction.id] = transaction;
+            this.populateTransactionList();
             
             // add this transaction to the total
-            this.periodTotal += transaction.amount;
+            // this.periodTotal += transaction.amount;
 
             this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
         } else if (transaction.date < this.periodStart) {
@@ -114,14 +86,13 @@ export default class Transactions extends Records<Transaction> {
         this.emitAsync(TransactonEvents.Added, transaction, this);
     }
 
-    async onChildChanged(snap: firebase.database.DataSnapshot, prevChild?: string) {
+    protected async onChildChanged(transaction: Transaction) {
         if (!this.periodStart || !this.periodEnd) return;
-
-        let transaction = this.sanitizeAfterRead(snap.val() as Transaction);
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
             // update the transaction in the local cache
             this.records[transaction.id] = transaction;
+            this.populateTransactionList();
 
             // add this transaction to the total
             this.periodTotal += transaction.amount;
@@ -131,6 +102,7 @@ export default class Transactions extends Records<Transaction> {
             // remove the transaction from the local cache
             if (transaction.id in this.records) {
                 delete this.records[transaction.id];
+                this.populateTransactionList();
             }            
             
             if (transaction.date < this.periodStart) {
@@ -145,13 +117,13 @@ export default class Transactions extends Records<Transaction> {
         this.emitAsync(TransactonEvents.Changed, transaction, this);
     }
 
-    async onChildRemoved(snap: firebase.database.DataSnapshot, prevChild?: string) {
+    protected async onChildRemoved(transaction: Transaction) {
         if (!this.periodStart || !this.periodEnd) return;
 
-        let transaction = this.sanitizeAfterRead(snap.val() as Transaction);
         // remove the transaction from the local cache
         if (transaction.id in this.records) {
             delete this.records[transaction.id];
+            this.populateTransactionList();
         }   
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
@@ -170,17 +142,75 @@ export default class Transactions extends Records<Transaction> {
         this.emitAsync(TransactonEvents.Removed, transaction, this);
     }
 
-    async loadPeriod(start: string, end: string) : Promise<TransactionMap> {
+    protected async onChildSaved(current: Transaction, original: Transaction) {
+        if (!this.periodStart || !this.periodEnd) return;
+
+        if (this.periodStart <= current.date && current.date <= this.periodEnd) {
+            this.records[current.id] = current;
+        } else {
+            delete this.records[current.id];
+        }
+    }
+
+    private transactionSorter(a: Transaction, b: Transaction) {
+        let cat1 = this.config.categories.indexOf(a.category);
+        let cat2 = this.config.categories.indexOf(b.category);
+
+        if (cat1 != cat2) return cat1 - cat2;
+
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+    }
+
+    private populateTransactionList() {
+        let list = new Array<Transaction>();
+
+        
+        for (let k in this.records) {
+            list.push(this.records[k]);
+        }
+
+        this.transactionList = list.sort(this.transactionSorter.bind(this));
+    }
+
+    public get Records() : RecordMap<Transaction> {
+        return this.records || {};
+    }
+
+    public get List() : Iterable<Transaction> {
+        return this.transactionList;
+    }
+
+    public get Total() : number {
+        return this.periodTotal;
+    }
+
+    public get Start() : string {
+        return this.periodStart;
+    }
+
+    public get End() : string {
+        return this.periodEnd;
+    }
+
+    public async loadPeriod(start: string, end: string) : Promise<RecordMap<Transaction>> {
         this.periodStart = start;
         this.periodEnd = end;
 
         this.records = await this.loadRecordsByChild('date', start, end);
+        this.populateTransactionList();
         await this.getTotal();
 
         return this.records;
     }
 
-    async getTotal() : Promise<number> {
+    public async getRecurring(recurringId: string) : Promise<RecordMap<Transaction>> {
+        // gets the existing transactions linked with the recurring
+        return await this.loadRecordsByChild('recurring', recurringId, recurringId);
+    }
+
+    public async getTotal() : Promise<number> {
         if (!this.periodStart || !this.periodEnd) return Number.NaN;
 
         let records = await this.loadRecordsByChild('date', null, this.periodEnd);
@@ -193,7 +223,7 @@ export default class Transactions extends Records<Transaction> {
         return this.periodTotal;
     }
 
-    async save(record: Transaction) {
+    public async save(record: Transaction) {
         if (this.periodEnd && record.id) {
             // find the current transaction to see if we need to update the total
             let oldrecord = await this.load(record.id);
@@ -204,13 +234,5 @@ export default class Transactions extends Records<Transaction> {
             }
         }
         return await super.save(record);
-    }
-
-    get Records() : TransactionMap {
-        return this.records || {};
-    }
-
-    get Total() : number {
-        return this.periodTotal;
     }
 }

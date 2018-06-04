@@ -40,4 +40,22 @@ export default class Configuration {
     get length() : string {
         return this.data.periods.length;
     }
+
+    calculatePeriod(date: string | Date) : { start: string, end: string } {
+        if (typeof date === "string") {
+            date = Date.parseFb(date);
+        }
+
+        let start = date.periodCalc(this.start, this.length);
+        let end = start.add(this.length).subtract('1 day') as Date;
+
+        return {
+            start: start.toFbString(),
+            end: end.toFbString()
+        };
+    }
+
+    toJSON() {
+        return this.data || {};
+    }
 }

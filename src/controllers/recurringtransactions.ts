@@ -2,19 +2,10 @@
  * Handles recurring transaction data interface
  */
 
-import { Records, Record, RecordMap, firebase } from "./records";
+import RecurringTransaction from "../models/recurringtransaction";
+import { Records, firebase } from "./records";
 
-interface RecurringTransaction extends Record {
-    amount : number;
-    cash? : boolean;
-    category : string;
-    end : string;
-    name : string;
-    note? : string;
-    period : string;
-    start : string;
-    transfer? : boolean;
-}
+
 
 export default class RecurringTransactions extends Records<RecurringTransaction> {
     constructor(reference: firebase.database.Reference) {

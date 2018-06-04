@@ -18,23 +18,50 @@ class Records extends events_1.default {
     constructor(reference) {
         super();
         this.ref = reference;
-        this.ref.on('child_added', this.onChildAdded.bind(this));
-        this.ref.on('child_changed', this.onChildChanged.bind(this));
-        this.ref.on('child_removed', this.onChildRemoved.bind(this));
+        this.ref.on('child_added', this.childAddedHandler.bind(this));
+        this.ref.on('child_changed', this.childChangedHandler.bind(this));
+        this.ref.on('child_removed', this.childRemovedHandler.bind(this));
     }
-    onChildAdded(snap, prevChild) {
+    childAddedHandler(snap, prevChild) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.emitAsync('child_added', snap, prevChild);
+            let record = this.sanitizeAfterRead(snap.val());
+            record.id = snap.key;
+            this.onChildAdded(record);
         });
     }
-    onChildChanged(snap, prevChild) {
+    childChangedHandler(snap, prevChild) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.emitAsync('child_changed', snap, prevChild);
+            let record = this.sanitizeAfterRead(snap.val());
+            record.id = snap.key;
+            this.onChildChanged(record);
         });
     }
-    onChildRemoved(snap, prevChild) {
+    childRemovedHandler(snap, prevChild) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.emitAsync('child_removed', snap, prevChild);
+            let record = this.sanitizeAfterRead(snap.val());
+            record.id = snap.key;
+            this.onChildRemoved(record);
+        });
+    }
+    /** This is only fired if THIS client saves the record */
+    onChildSaved(current, original) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.emitAsync('child_saved', this.sanitizeAfterRead(current), this.sanitizeAfterRead(original), this);
+        });
+    }
+    onChildAdded(record) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.emitAsync('child_added', record, this);
+        });
+    }
+    onChildChanged(record) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.emitAsync('child_changed', record, this);
+        });
+    }
+    onChildRemoved(record) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.emitAsync('child_removed', record, this);
         });
     }
     sanitizeAfterRead(record) { return record; }
@@ -54,10 +81,10 @@ class Records extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             let cRef = this.ref.orderByChild(child);
             if (startAt) {
-                cRef.startAt(startAt);
+                cRef = cRef.startAt(startAt);
             }
             if (endAt) {
-                cRef.endAt(endAt);
+                cRef = cRef.endAt(endAt);
             }
             let snap = yield cRef.once('value');
             let data = snap.val();
@@ -76,8 +103,13 @@ class Records extends events_1.default {
             // cleanse any undefined properties
             record = this.sanitizeBeforeWrite(record);
             if (id) {
+                // fetch the existing record
+                let original = yield this.load(id);
                 // update this record
                 yield this.ref.child(id).set(record);
+                // emit a 'child_saved' event
+                record.id = id;
+                this.onChildSaved(record, original);
                 return id;
             }
             else {
@@ -91,6 +123,9 @@ class Records extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             let snap = yield this.ref.child(key).once('value');
             let record = snap.val();
+            if (record === null)
+                return null;
+            record.id = key;
             record = this.sanitizeAfterRead(record);
             return record;
         });
