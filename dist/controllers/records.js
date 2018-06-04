@@ -39,7 +39,7 @@ class Records extends events_1.default {
     }
     sanitizeAfterRead(record) { return record; }
     sanitizeBeforeWrite(record) { return record; }
-    loadAll() {
+    loadRecords() {
         return __awaiter(this, void 0, void 0, function* () {
             let snap = yield this.ref.once('value');
             let result = snap.val();
@@ -50,9 +50,12 @@ class Records extends events_1.default {
             return result;
         });
     }
-    loadFilterChild(child, startAt, endAt) {
+    loadRecordsByChild(child, startAt, endAt) {
         return __awaiter(this, void 0, void 0, function* () {
-            let cRef = this.ref.orderByChild(child).startAt(startAt);
+            let cRef = this.ref.orderByChild(child);
+            if (startAt) {
+                cRef.startAt(startAt);
+            }
             if (endAt) {
                 cRef.endAt(endAt);
             }
@@ -78,9 +81,27 @@ class Records extends events_1.default {
                 return id;
             }
             else {
+                // push the record
                 let rec = yield this.ref.push(record);
                 return rec.key;
             }
+        });
+    }
+    load(key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let snap = yield this.ref.child(key).once('value');
+            let record = snap.val();
+            record = this.sanitizeAfterRead(record);
+            return record;
+        });
+    }
+    remove(record) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (typeof record !== "string") {
+                record = record.id;
+            }
+            yield this.ref.child(record).remove();
+            return record;
         });
     }
 }

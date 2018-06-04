@@ -20,25 +20,26 @@ class TransactonEvents {
 }
 
 interface Transaction extends Record {
-    date : string;
-    category : string;
-    name : string;
     amount : number;
     cash? : boolean;
-    paid?: boolean;
-    transfer? : boolean;
-    note? : string;
+    category : string;
     check? : string;
     checkLink? : string;
+    date : string;
+    name : string;
+    note? : string;
+    paid?: boolean;
     recurring? : string;
+    transfer? : boolean;
 }
 
 interface TransactionMap extends RecordMap<Transaction> {}
 
 export default class Transactions extends Records<Transaction> {
-    records: TransactionMap;
+    records: TransactionMap = {};
     periodStart: string;
     periodEnd: string;
+    periodTotal: number = 0;
 
     constructor(reference: firebase.database.Reference) {
         super(reference); 
@@ -75,7 +76,7 @@ export default class Transactions extends Records<Transaction> {
         return this;
     }
     
-    onff(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
+    off(event: 'added' | 'addedinperiod' | 'addedbeforeperiod' | 'addedafterperiod' | 'changed' | 'changedinperiod' | 'changedbeforeperiod' | 'changedafterperiod' | 'removed' | 'removedinperiod' | 'removedbeforeperiod' | 'removedafterperiod', 
         handler: (transaction: Transaction, controller: Transactions) => void) : Transactions 
     {
         super.off(event, handler);
@@ -95,8 +96,17 @@ export default class Transactions extends Records<Transaction> {
         let transaction = this.sanitizeAfterRead(snap.val() as Transaction);    
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+            // add the transaction to the local cache
+            this.records[transaction.id] = transaction;
+            
+            // add this transaction to the total
+            this.periodTotal += transaction.amount;
+
             this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
         } else if (transaction.date < this.periodStart) {
+            // add this transaction to the total
+            this.periodTotal += transaction.amount;
+
             this.emitAsync(TransactonEvents.AddedBeforePeriod, transaction, this);
         } else {
             this.emitAsync(TransactonEvents.AddedAfterPeriod, transaction, this);
@@ -110,11 +120,27 @@ export default class Transactions extends Records<Transaction> {
         let transaction = this.sanitizeAfterRead(snap.val() as Transaction);
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+            // update the transaction in the local cache
+            this.records[transaction.id] = transaction;
+
+            // add this transaction to the total
+            this.periodTotal += transaction.amount;
+
             this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
-        } else if (transaction.date < this.periodStart) {
-            this.emitAsync(TransactonEvents.ChangedBeforePeriod, transaction, this);
-        } else {
-            this.emitAsync(TransactonEvents.ChangedAfterPeriod, transaction, this);
+        } else { 
+            // remove the transaction from the local cache
+            if (transaction.id in this.records) {
+                delete this.records[transaction.id];
+            }            
+            
+            if (transaction.date < this.periodStart) {
+                // add this transaction to the total
+                this.periodTotal += transaction.amount;
+
+                this.emitAsync(TransactonEvents.ChangedBeforePeriod, transaction, this);
+            } else {
+                this.emitAsync(TransactonEvents.ChangedAfterPeriod, transaction, this);
+            }
         }
         this.emitAsync(TransactonEvents.Changed, transaction, this);
     }
@@ -123,10 +149,20 @@ export default class Transactions extends Records<Transaction> {
         if (!this.periodStart || !this.periodEnd) return;
 
         let transaction = this.sanitizeAfterRead(snap.val() as Transaction);
+        // remove the transaction from the local cache
+        if (transaction.id in this.records) {
+            delete this.records[transaction.id];
+        }   
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+            // subtract this transaction from the total
+            this.periodTotal -= transaction.amount;
+
             this.emitAsync(TransactonEvents.RemovedInPeriod, transaction, this);
         } else if (transaction.date < this.periodStart) {
+            // subtract this transaction from the total
+            this.periodTotal -= transaction.amount;
+
             this.emitAsync(TransactonEvents.RemovedBeforePeriod, transaction, this);
         } else {
             this.emitAsync(TransactonEvents.RemovedAfterPeriod, transaction, this);
@@ -138,6 +174,43 @@ export default class Transactions extends Records<Transaction> {
         this.periodStart = start;
         this.periodEnd = end;
 
-        return await this.loadFilterChild('date', start, end);
+        this.records = await this.loadRecordsByChild('date', start, end);
+        await this.getTotal();
+
+        return this.records;
+    }
+
+    async getTotal() : Promise<number> {
+        if (!this.periodStart || !this.periodEnd) return Number.NaN;
+
+        let records = await this.loadRecordsByChild('date', null, this.periodEnd);
+        this.periodTotal = 0;
+
+        for (let key in records) {
+            this.periodTotal += records[key].amount;
+        }
+
+        return this.periodTotal;
+    }
+
+    async save(record: Transaction) {
+        if (this.periodEnd && record.id) {
+            // find the current transaction to see if we need to update the total
+            let oldrecord = await this.load(record.id);
+            if (oldrecord && oldrecord.date <= this.periodEnd) {
+                // the old value is included in the total, subtract it
+                // the new value will be added in at the change handler
+                this.periodTotal -= oldrecord.amount;
+            }
+        }
+        return await super.save(record);
+    }
+
+    get Records() : TransactionMap {
+        return this.records || {};
+    }
+
+    get Total() : number {
+        return this.periodTotal;
     }
 }

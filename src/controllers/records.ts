@@ -40,7 +40,7 @@ class Records<T extends Record> extends Events {
     protected sanitizeAfterRead(record: T) : T { return record; }
     protected sanitizeBeforeWrite(record: T) : T { return record; }
 
-    async loadAll() : Promise<RecordMap<T>> {
+    async loadRecords() : Promise<RecordMap<T>> {
         let snap = await this.ref.once('value');
         let result = snap.val() as RecordMap<T>;
 
@@ -52,8 +52,11 @@ class Records<T extends Record> extends Events {
         return result;
     }
 
-    async loadFilterChild(child: string, startAt: string | number | boolean, endAt?: string | number | boolean) : Promise<RecordMap<T>> {
-        let cRef = this.ref.orderByChild(child).startAt(startAt);
+    async loadRecordsByChild(child: string, startAt?: string | number | boolean, endAt?: string | number | boolean) : Promise<RecordMap<T>> {
+        let cRef = this.ref.orderByChild(child);
+        if (startAt) {
+            cRef.startAt(startAt);
+        }
         if (endAt) {
             cRef.endAt(endAt);
         }
@@ -82,10 +85,30 @@ class Records<T extends Record> extends Events {
             await this.ref.child(id).set(record);
             return id;
         } else {
+            // push the record
             let rec = await this.ref.push(record);
-            return rec.key;
+            return rec.key as string;
         }
     }
+
+    async load(key: string) : Promise<T> {
+        let snap = await this.ref.child(key).once('value');
+        let record = snap.val() as T;
+
+        record = this.sanitizeAfterRead(record);
+
+        return record;
+    }
+
+    async remove(record: T | string) : Promise<string> {
+        if (typeof record !== "string") {
+            record = record.id;
+        }
+
+        await this.ref.child(record).remove();
+        return record;
+    }
+    
 }
 
 export { Records, Record, RecordMap, firebase };
