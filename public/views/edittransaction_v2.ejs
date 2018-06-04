@@ -41,7 +41,7 @@
                 Deposit
             </label>
             <label for="cash">
-                <input type="checkbox" id="cash" <% if (cash == true) { %>checked<% } %>>
+                <input type="checkbox" id="cash" <% if (typeof cash != "undefined" && cash == true) { %>checked<% } %>>
                 Cash
             </label>
             <label for="transfer">
