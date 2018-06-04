@@ -1,4 +1,4 @@
-export default class CashStruct {
+export class Cash {
     constructor() {
         this.hundreds =  0;
         this.fifties =  0;
@@ -23,11 +23,11 @@ export default class CashStruct {
     cent5: number;
     cent1: number;
 
-    static default() : CashStruct {
-        return new CashStruct();
+    static default() : Cash {
+        return new Cash();
     }
 
-    add(other: CashStruct) {
+    add(other: Cash) {
         this.hundreds += other.hundreds;
         this.fifties += other.fifties;
         this.twenties += other.twenties;

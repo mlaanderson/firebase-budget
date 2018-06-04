@@ -1,4 +1,4 @@
-class CashStruct {
+class Cash {
     constructor() {
         this.hundreds =  0;
         this.fifties =  0;
@@ -23,11 +23,11 @@ class CashStruct {
     cent5: number;
     cent1: number;
 
-    static default() : CashStruct {
-        return new CashStruct();
+    static default() : Cash {
+        return new Cash();
     }
 
-    add(other: CashStruct) {
+    add(other: Cash) {
         this.hundreds += other.hundreds;
         this.fifties += other.fifties;
         this.twenties += other.twenties;
@@ -43,7 +43,7 @@ class CashStruct {
 
 interface Number {
     toCurrency: () => string;
-    toCash : () => CashStruct;
+    toCash : () => Cash;
 }
 
 function toCurrency(this: number) : string {
@@ -85,8 +85,8 @@ try {
     }
 }
 
-Number.prototype.toCash = function() : CashStruct {
-    var result = CashStruct.default();
+Number.prototype.toCash = function() : Cash {
+    var result = Cash.default();
 
     var val = Math.roundTo(this as number, 2);
     
