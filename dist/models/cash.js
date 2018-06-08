@@ -29,4 +29,4 @@ class Cash {
         this.cent1 += other.cent1;
     }
 }
-exports.Cash = Cash;
+exports.default = Cash;

@@ -1,4 +1,4 @@
-import "../ejs";
+import "ejs";
 
 export default class Renderer {
     render(filename: string, data?: Object) : Promise<string> {

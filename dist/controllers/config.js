@@ -41,14 +41,28 @@ class Configuration {
             return this.data;
         });
     }
+    write() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.ref.child('config').set(this.data);
+        });
+    }
     get categories() {
         return this.data.categories;
+    }
+    set categories(value) {
+        this.data.categories = value;
     }
     get start() {
         return this.data.periods.start;
     }
+    set start(value) {
+        this.data.periods.start = value;
+    }
     get length() {
         return this.data.periods.length;
+    }
+    set length(value) {
+        this.data.periods.length = value;
     }
     calculatePeriod(date) {
         if (typeof date === "string") {
@@ -62,7 +76,7 @@ class Configuration {
         };
     }
     toJSON() {
-        return this.data || {};
+        return this.data;
     }
 }
 exports.default = Configuration;

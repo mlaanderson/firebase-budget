@@ -96,7 +96,7 @@ class Records extends events_1.default {
             return data;
         });
     }
-    save(record) {
+    save(record, ...data) {
         return __awaiter(this, void 0, void 0, function* () {
             let id = record.id;
             delete record.id;
@@ -130,7 +130,7 @@ class Records extends events_1.default {
             return record;
         });
     }
-    remove(record) {
+    remove(record, ...data) {
         return __awaiter(this, void 0, void 0, function* () {
             if (typeof record !== "string") {
                 record = record.id;

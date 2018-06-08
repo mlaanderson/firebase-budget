@@ -17,6 +17,9 @@ class TransactionList extends renderer_1.default {
     constructor(element, config) {
         super();
         this.SaveTransaction = () => { };
+        this.SaveRecurring = () => { };
+        this.LoadTransaction = () => __awaiter(this, void 0, void 0, function* () { return null; });
+        this.LoadRecurring = () => __awaiter(this, void 0, void 0, function* () { return null; });
         this.m_config = config;
         $(() => {
             this.m_element = $(element);
@@ -44,11 +47,22 @@ class TransactionList extends renderer_1.default {
         this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
         this.m_element.children('tr').on('click', this.onClick.bind(this));
         this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
+        this.m_element.find('span.recurring').on('click', this.onRecurringClick.bind(this));
     }
-
     editTransaction(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`TODO: start editor for ${id}`);
+            let transaction = yield this.LoadTransaction(id);
+            if (transaction != null) {
+                console.log(`TODO: start editor for ${id}`);
+            }
+        });
+    }
+    editRecurring(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let transaction = yield this.LoadRecurring(id);
+            if (transaction != null) {
+                console.log(`TODO: start recurring editor for ${id}`);
+            }
         });
     }
     get totalElement() {
@@ -71,6 +85,10 @@ class TransactionList extends renderer_1.default {
     }
     onClick(e) {
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
+    }
+    onRecurringClick(e) {
+        let id = $(e.target).attr('recurring');
+        this.editRecurring(id);
     }
     // methods
     display(transactions, total) {

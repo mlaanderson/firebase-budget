@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-require("./ejs");
+require("ejs");
 const $ = require("jquery");
 require("jquerymobile");
 const firebase = require("firebase");
