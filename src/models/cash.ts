@@ -1,4 +1,4 @@
-export class Cash {
+export default class Cash {
     constructor() {
         this.hundreds =  0;
         this.fifties =  0;

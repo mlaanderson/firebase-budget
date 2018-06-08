@@ -89,7 +89,7 @@ class Records<T extends Record> extends Events {
         return data;
     }
 
-    async save(record: T) {
+    async save(record: T, ...data: any[]) : Promise<string> {
         let id = record.id;
         delete record.id;
 
@@ -127,7 +127,7 @@ class Records<T extends Record> extends Events {
         return record;
     }
 
-    async remove(record: T | string) : Promise<string> {
+    async remove(record: T | string, ...data: any[]) : Promise<string> {
         if (typeof record !== "string") {
             record = record.id;
         }

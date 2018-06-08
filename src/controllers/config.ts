@@ -15,7 +15,25 @@ interface ConfigurationData {
 
 export default class Configuration {
     private ref : firebase.database.Reference;
-    private data : ConfigurationData;
+    private data : ConfigurationData = {
+        categories: [ "Income",
+        "Charity",
+        "Saving",
+        "Housing",
+        "Utilities",
+        "Food",
+        "Clothing",
+        "Transportation",
+        "Medical",
+        "Insurance",
+        "Personal",
+        "Recreation",
+        "Debt"],
+        periods: {
+            length: "2 weeks",
+            start: "2016-06-24"
+        }
+    };
 
     // passed reference should be the current user root
     constructor(reference: firebase.database.Reference) {
@@ -24,21 +42,39 @@ export default class Configuration {
 
     async read() : Promise<ConfigurationData> {
         let snap = await this.ref.child('config').once('value');
-        this.data = snap.val() as ConfigurationData;
 
+        if (snap.val()) {
+            this.data = snap.val() as ConfigurationData;
+        }
         return this.data;
+    }
+
+    async write() : Promise<void> {
+        await this.ref.child('config').set(this.data);
     }
 
     get categories() : string[] {
         return this.data.categories;
     }
 
+    set categories(value: string[]) {
+        this.data.categories = value;
+    }
+
     get start() : string {
         return this.data.periods.start;
     }
 
+    set start(value: string) {
+        this.data.periods.start = value;
+    }
+
     get length() : string {
         return this.data.periods.length;
+    }
+
+    set length(value: string) {
+        this.data.periods.length = value;
     }
 
     calculatePeriod(date: string | Date) : { start: string, end: string } {
@@ -55,7 +91,7 @@ export default class Configuration {
         };
     }
 
-    toJSON() {
-        return this.data || {};
+    toJSON() : ConfigurationData {
+        return this.data;
     }
 }

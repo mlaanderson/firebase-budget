@@ -1,4 +1,4 @@
-class CashStruct {
+class Cash {
     constructor() {
         this.hundreds = 0;
         this.fifties = 0;
@@ -12,7 +12,7 @@ class CashStruct {
         this.cent1 = 0;
     }
     static default() {
-        return new CashStruct();
+        return new Cash();
     }
     add(other) {
         this.hundreds += other.hundreds;
@@ -62,7 +62,7 @@ catch (e) {
     }
 }
 Number.prototype.toCash = function () {
-    var result = CashStruct.default();
+    var result = Cash.default();
     var val = Math.roundTo(this, 2);
     while (val >= 100) {
         val = Math.roundTo(val - 100, 2);

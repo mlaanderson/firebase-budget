@@ -11,12 +11,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class Configuration {
     // passed reference should be the current user root
     constructor(reference) {
+        this.data = {
+            categories: ["Income",
+                "Charity",
+                "Saving",
+                "Housing",
+                "Utilities",
+                "Food",
+                "Clothing",
+                "Transportation",
+                "Medical",
+                "Insurance",
+                "Personal",
+                "Recreation",
+                "Debt"],
+            periods: {
+                length: "2 weeks",
+                start: "2016-06-24"
+            }
+        };
         this.ref = reference;
     }
     read() {
         return __awaiter(this, void 0, void 0, function* () {
             let snap = yield this.ref.child('config').once('value');
-            this.data = snap.val();
+            if (snap.val()) {
+                this.data = snap.val();
+            }
             return this.data;
         });
     }
