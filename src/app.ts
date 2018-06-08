@@ -1,9 +1,12 @@
+/*/// <reference path="../node_modules/@firebase/app/dist/index.d.ts" />*/
 import Transaction, { TransactionStructure } from "./types/transaction";
 import RecurringTransaction from "./types/recurringtransaction";
 import Check from "./types/check";
 import Timespan from "./lib/timespan";
 import Form from "./form";
-import * as firebase from "firebase";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 import TypeMap from "./types/maps";
 import "./lib/math.ext";
 import "./lib/date.ext";

@@ -21,5 +21,8 @@
     "@types/firebase": "^3.2.1",
     "@types/jquery": "^3.3.2",
     "@types/jquerymobile": "^1.4.30"
+  },
+  "devDependencies": {
+    "webpack": "^4.12.0"
   }
 }

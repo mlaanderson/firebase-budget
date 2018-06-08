@@ -12,18 +12,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const records_1 = require("./records");
-var TransactonEvents;
-(function (TransactonEvents) {
-    TransactonEvents["AddedInPeriod"] = "addedinperiod";
-    TransactonEvents["AddedBeforePeriod"] = "addedbeforeperiod";
-    TransactonEvents["AddedAfterPeriod"] = "addedafterperiod";
-    TransactonEvents["ChangedInPeriod"] = "changedinperiod";
-    TransactonEvents["ChangedBeforePeriod"] = "changedbeforeperiod";
-    TransactonEvents["ChangedAfterPeriod"] = "changedafterperiod";
-    TransactonEvents["RemovedInPeriod"] = "removedinperiod";
-    TransactonEvents["RemovedBeforePeriod"] = "removedbeforeperiod";
-    TransactonEvents["RemovedAfterPeriod"] = "removedafterperiod";
-})(TransactonEvents || (TransactonEvents = {}));
+class TransactonEvents {
+}
+TransactonEvents.Added = 'added';
+TransactonEvents.AddedInPeriod = 'addedinperiod';
+TransactonEvents.AddedBeforePeriod = 'addedbeforeperiod';
+TransactonEvents.AddedAfterPeriod = 'addedafterperiod';
+TransactonEvents.Changed = 'changed';
+TransactonEvents.ChangedInPeriod = 'changedinperiod';
+TransactonEvents.ChangedBeforePeriod = 'changedbeforeperiod';
+TransactonEvents.ChangedAfterPeriod = 'changedafterperiod';
+TransactonEvents.Removed = 'removed';
+TransactonEvents.RemovedInPeriod = 'removedinperiod';
+TransactonEvents.RemovedBeforePeriod = 'removedbeforeperiod';
+TransactonEvents.RemovedAfterPeriod = 'removedafterperiod';
 class Transactions extends records_1.Records {
     constructor(reference) {
         super(reference);
@@ -48,11 +50,23 @@ class Transactions extends records_1.Records {
         transaction.transfer = transaction.transfer ? transaction.transfer : null;
         return transaction;
     }
+    on(event, handler, context) {
+        super.on(event, handler, context);
+        return this;
+    }
+    onff(event, handler) {
+        super.off(event, handler);
+        return this;
+    }
+    once(event, handler, context) {
+        super.once(event, handler, context);
+        return this;
+    }
     onChildAdded(snap, prevChild) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.periodStart || !this.periodEnd)
                 return;
-            let transaction = snap.val();
+            let transaction = this.sanitizeAfterRead(snap.val());
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
             }
@@ -62,13 +76,41 @@ class Transactions extends records_1.Records {
             else {
                 this.emitAsync(TransactonEvents.AddedAfterPeriod, transaction, this);
             }
+            this.emitAsync(TransactonEvents.Added, transaction, this);
         });
     }
     onChildChanged(snap, prevChild) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.periodStart || !this.periodEnd)
                 return;
-            let transaction = snap.val();
+            let transaction = this.sanitizeAfterRead(snap.val());
+            if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+                this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
+            }
+            else if (transaction.date < this.periodStart) {
+                this.emitAsync(TransactonEvents.ChangedBeforePeriod, transaction, this);
+            }
+            else {
+                this.emitAsync(TransactonEvents.ChangedAfterPeriod, transaction, this);
+            }
+            this.emitAsync(TransactonEvents.Changed, transaction, this);
+        });
+    }
+    onChildRemoved(snap, prevChild) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.periodStart || !this.periodEnd)
+                return;
+            let transaction = this.sanitizeAfterRead(snap.val());
+            if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+                this.emitAsync(TransactonEvents.RemovedInPeriod, transaction, this);
+            }
+            else if (transaction.date < this.periodStart) {
+                this.emitAsync(TransactonEvents.RemovedBeforePeriod, transaction, this);
+            }
+            else {
+                this.emitAsync(TransactonEvents.RemovedAfterPeriod, transaction, this);
+            }
+            this.emitAsync(TransactonEvents.Removed, transaction, this);
         });
     }
     loadPeriod(start, end) {

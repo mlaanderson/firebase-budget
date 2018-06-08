@@ -8,9 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/*/// <reference path="../node_modules/@firebase/app/dist/index.d.ts" />*/
 const transaction_1 = require("./types/transaction");
 const form_1 = require("./form");
-const firebase = require("firebase");
+// import * as firebase from "firebase";
+// import firebase = require("firebase");
+const firebase = require("firebase/app");
+require("firebase/auth");
+require("firebase/database");
 require("./lib/math.ext");
 require("./lib/date.ext");
 class Config {
