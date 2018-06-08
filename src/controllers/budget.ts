@@ -1,4 +1,6 @@
-import * as firebase from "firebase";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 import Events from "./events";
 import Config from "./config";
 import Transaction from "../models/transaction";

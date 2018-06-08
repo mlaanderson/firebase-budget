@@ -1,9 +1,11 @@
 /// <reference path="../node_modules/@types/jquery/index.d.ts" />
 /// <reference path="./ejs.d.ts" />
 
-import * as firebase from "firebase";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 
-// import Budget from "./controllers/budget";
+import Budget from "./controllers/budget";
 
 import Button from "./components/button";
 import Select from "./components/select";
@@ -71,3 +73,9 @@ class BudgetForm extends Renderer {
     }
 
 }
+
+Object.defineProperty(window, 'Viewer', {
+    get: () => {
+        return BudgetForm;
+    }
+})

@@ -10,7 +10,6 @@ module.exports = {
         path: path.resolve(__dirname, 'public', 'dist')
     },
     plugins: [
-        new webpack.IgnorePlugin(/^firebase/), // let firebase load from google
         new UglifyJsPlugin()
     ]
 }

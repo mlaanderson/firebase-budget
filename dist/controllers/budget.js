@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("firebase/auth");
+require("firebase/database");
 const events_1 = require("./events");
 const config_1 = require("./config");
 const transactions_1 = require("./transactions");
