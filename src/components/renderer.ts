@@ -1,4 +1,4 @@
-import "ejs";
+/// <reference path="../ejs.d.ts" />
 
 export default class Renderer {
     render(filename: string, data?: Object) : Promise<string> {

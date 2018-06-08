@@ -1,6 +1,6 @@
 "use strict";
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
-const $ = require("jquery");
 class Button {
     constructor(button) {
         $(() => {

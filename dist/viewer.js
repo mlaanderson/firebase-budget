@@ -1,9 +1,9 @@
 "use strict";
+/// <reference path="../node_modules/@types/jquery/index.d.ts" />
+/// <reference path="./ejs.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
-require("ejs");
-const $ = require("jquery");
-require("jquerymobile");
 const firebase = require("firebase");
+// import Budget from "./controllers/budget";
 const button_1 = require("./components/button");
 const select_1 = require("./components/select");
 const renderer_1 = require("./components/renderer");

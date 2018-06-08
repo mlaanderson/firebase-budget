@@ -1,4 +1,4 @@
-import * as $ from "jquery";
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 
 
 export default class Select {

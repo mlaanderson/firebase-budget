@@ -1,10 +1,9 @@
-import "ejs";
-import * as $ from "jquery";
-import "jquerymobile";
+/// <reference path="../node_modules/@types/jquery/index.d.ts" />
+/// <reference path="./ejs.d.ts" />
 
 import * as firebase from "firebase";
 
-import Budget from "./controllers/budget";
+// import Budget from "./controllers/budget";
 
 import Button from "./components/button";
 import Select from "./components/select";

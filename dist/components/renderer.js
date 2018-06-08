@@ -1,6 +1,6 @@
 "use strict";
+/// <reference path="../ejs.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
-require("ejs");
 class Renderer {
     render(filename, data) {
         return new Promise((resolve, reject) => {
