@@ -18,7 +18,6 @@ import Previewer from "./components/previewer";
 import Spinner from "./components/spinner";
 import { RecordMap } from "./models/record";
 import Transaction from "./models/transaction";
-import { CONSTANTS } from "@firebase/util";
 
 class BudgetForm extends Renderer {
     private btnToday : Button;
