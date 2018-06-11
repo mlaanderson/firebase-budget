@@ -175,4 +175,8 @@ export default class HistoryChart implements TransactionViewer {
             this.m_chart.zoomToDates(chLeft, chRight);
         });
     }
+
+    clear() {
+        console.log("TODO: clear the chart");
+    }
 }

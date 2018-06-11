@@ -67,6 +67,9 @@ class HistoryChart {
             this.m_chart.zoomToDates(chLeft, chRight);
         });
     }
+    clear() {
+        console.log("TODO: clear the chart");
+    }
 }
 HistoryChart.chart_config = {
     "type": "serial",

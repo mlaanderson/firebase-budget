@@ -1,4 +1,5 @@
 /// <reference path="../node_modules/@types/jquery/index.d.ts" />
+/// <reference path="../node_modules/@types/jquerymobile/index.d.ts" />
 /// <reference path="./ejs.d.ts" />
 
 import * as firebase from "firebase/app";
@@ -18,6 +19,10 @@ import Previewer from "./components/previewer";
 import Spinner from "./components/spinner";
 import { RecordMap } from "./models/record";
 import Transaction from "./models/transaction";
+
+interface JQuery {
+    panel(command?: string): JQuery;
+}
 
 class BudgetForm extends Renderer {
     private btnToday : Button;
@@ -85,6 +90,8 @@ class BudgetForm extends Renderer {
         this.periodMenu.val(this.periodStart);
         this.periodMenu.refresh();
 
+        document.title = `${period.format("MMM d")} - ${end.format("MMM d")}`;
+
         this.budget.gotoDate(this.periodStart);
     }
 
@@ -110,9 +117,19 @@ class BudgetForm extends Renderer {
         this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
     }
 
-    btnEditTransaction_onClick(e: JQueryEventObject) : void {}
+    btnEditTransaction_onClick(e: JQueryEventObject) : void {
+        this.transactionList.editSelected();
+    }
+
     btnAddTransaction_onClick(e: JQueryEventObject) : void {}
-    btnLogout_onClick(e: JQueryEventObject) : void {}
+
+    btnLogout_onClick(e: JQueryEventObject) : void {
+        e.preventDefault();
+        
+        console.log('logging out');
+        this.logout();
+    }
+
     btnConfig_onClick(e: JQueryEventObject) : void {}
     btnDownload_onClick(e: JQueryEventObject) : void {}
     btnNewRecurring_onClick(e: JQueryEventObject) : void {}
@@ -169,6 +186,8 @@ class BudgetForm extends Renderer {
         $(() => {
             if (user === null) {
                 this.budget = null
+                Spinner.show();
+                if (this.transactionList) { this.transactionList.clear(); }
             } else {
                 Spinner.show();
                 this.budget = new Budget(firebase.database().ref(user.uid));

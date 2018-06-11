@@ -71,4 +71,8 @@ export default class Previewer extends Renderer implements TransactionViewer {
         rows.sort(previewSorter);
         this.m_element.find('tbody').empty().append(rows);
     }
+
+    clear() {
+        this.m_element.empty();
+    }
 }

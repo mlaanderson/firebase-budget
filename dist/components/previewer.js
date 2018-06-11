@@ -59,5 +59,8 @@ class Previewer extends renderer_1.default {
         rows.sort(previewSorter);
         this.m_element.find('tbody').empty().append(rows);
     }
+    clear() {
+        this.m_element.empty();
+    }
 }
 exports.default = Previewer;

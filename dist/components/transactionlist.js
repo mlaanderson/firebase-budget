@@ -106,6 +106,11 @@ class TransactionList extends renderer_1.default {
             this.totalElement.text(total.toCurrency());
         });
     }
+    editSelected() {
+        if (this.m_active_id) {
+            this.editTransaction(this.m_active_id);
+        }
+    }
     display(transactions, total) {
         let list = [];
         for (let id in transactions) {
@@ -186,6 +191,9 @@ class TransactionList extends renderer_1.default {
                 this.window_onResize();
             });
         });
+    }
+    clear() {
+        this.m_element.empty();
     }
 }
 exports.default = TransactionList;

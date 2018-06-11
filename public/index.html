@@ -98,6 +98,19 @@
     </head>
     <body>
         <div data-role="page" id="transactions">
+            <div data-role="panel" id="menu_panel">
+                <a href="#" title="Search..." class="ui-btn ui-icon-search ui-btn-icon-left ui-mini" id="btnSearch">Search...</a>
+                <hr/>
+                <a href="#" title="Download" class="ui-btn ui-icon-save ui-corner-all ui-btn-icon-left ui-mini" id="btnDownload">Download</a>
+                <a href="#" title="Spending Graph" class="ui-btn ui-icon-bars ui-corner-all ui-btn-icon-left ui-mini" id="btnReport">Report</a>
+                <a href="#" title="Cash" class="ui-btn ui-icon-money ui-corner-all ui-btn-icon-left ui-mini" id="btnCash">Cash</a>
+                <a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-corner-all ui-btn-icon-left ui-mini" id="btnTransfer">Transfers</a>
+                <hr/>
+                <a href="#" title="Settings" class="ui-btn ui-icon-gear ui-btn-icon-left ui-mini" id="btnConfig">Settings</a>
+                <hr/>
+                <a hfre="#" title="Logout" class="ui-btn ui-icon-power ui-btn-icon-left ui-corner-all ui-mini" id="btnLogout">Logout</a>
+            </div>
+
             <div data-role="header" data-position="fixed">
                 <h1>&nbsp;</h1>
                 <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
@@ -140,15 +153,10 @@
             <div data-role="footer" data-position="fixed">
                 <h4>&nbsp;</h4>
                 <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
-                    <a href="#" class="ui-btn ui-icon-power ui-btn-icon-notext ui-corner-all" id="btnLogout" title="Logout">Logout</a>
+                    <a href="#menu_panel" class="ui-btn ui-icon-bars ui-btn-icon-notext ui-corner-all" id="btnMenu" title="Menu">Menu</a>
                 </div>
                 <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
-                    <a href="#" title="Config" class="ui-btn ui-icon-gear ui-btn-icon-notext ui-corner-all" id="btnConfig">Config</a>
-                    <a href="#" title="Download" class="ui-btn ui-icon-save ui-btn-icon-notext ui-corner-all" id="btnDownload">Download</a>
                     <a href="#" title="New Recurring Transaction" class="ui-btn ui-icon-rotate-right ui-btn-icon-notext ui-corner-all" id="btnNewRecurring">New Recurring</a>
-                    <a href="#" title="Spending Graph" class="ui-btn ui-icon-bars ui-btn-icon-notext ui-corner-all" id="btnReport">Report</a>
-                    <a href="#" title="Cash" class="ui-btn ui-icon-money ui-btn-icon-notext ui-corner-all" id="btnCash">Cash</a>
-                    <a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnTransfer">Transfer</a>
                 </div>
                 <div id="footer_info">
                     <div id="chart_div"></div>

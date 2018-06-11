@@ -124,6 +124,12 @@ export default class TransactionList extends Renderer implements TransactionView
         });
     }
 
+    editSelected() {
+        if (this.m_active_id) {
+            this.editTransaction(this.m_active_id);
+        }
+    }
+
     display(transactions: RecordMap<Transaction>, total?: number) {
         let list: Array<Transaction> = [];
         for (let id in transactions) {
@@ -223,5 +229,9 @@ export default class TransactionList extends Renderer implements TransactionView
                 this.window_onResize();
             });
         });
+    }
+
+    clear() {
+        this.m_element.empty();
     }
 }

@@ -2,6 +2,7 @@
     content-box: border-box;
     position: relative;
     /*transition: all 0.2s ease;*/
+    font-family: -apple-system, SF Pro Display, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
 }
 
 table {
@@ -23,6 +24,7 @@ td {
 
 th, td {
     text-align: left;
+    padding: 0.2em !important;
 }
 
 th.trAmount, th.trTotal, td.trAmount, td.trTotal {

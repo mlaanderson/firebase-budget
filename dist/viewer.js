@@ -1,5 +1,6 @@
 "use strict";
 /// <reference path="../node_modules/@types/jquery/index.d.ts" />
+/// <reference path="../node_modules/@types/jquerymobile/index.d.ts" />
 /// <reference path="./ejs.d.ts" />
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -59,6 +60,7 @@ class BudgetForm extends renderer_1.default {
         this.periodEnd = end.toFbString();
         this.periodMenu.val(this.periodStart);
         this.periodMenu.refresh();
+        document.title = `${period.format("MMM d")} - ${end.format("MMM d")}`;
         this.budget.gotoDate(this.periodStart);
     }
     // UI Events
@@ -79,9 +81,16 @@ class BudgetForm extends renderer_1.default {
         e.preventDefault();
         this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
     }
-    btnEditTransaction_onClick(e) { }
+    btnEditTransaction_onClick(e) {
+        this.transactionList.editSelected();
+    }
     btnAddTransaction_onClick(e) { }
-    btnLogout_onClick(e) { }
+    btnLogout_onClick(e) {
+        e.preventDefault();
+        $('#menu_panel').panel('close');
+        console.log('logging out');
+        this.logout();
+    }
     btnConfig_onClick(e) { }
     btnDownload_onClick(e) { }
     btnNewRecurring_onClick(e) { }
@@ -134,6 +143,10 @@ class BudgetForm extends renderer_1.default {
         $(() => {
             if (user === null) {
                 this.budget = null;
+                spinner_1.default.show();
+                if (this.transactionList) {
+                    this.transactionList.clear();
+                }
             }
             else {
                 spinner_1.default.show();
