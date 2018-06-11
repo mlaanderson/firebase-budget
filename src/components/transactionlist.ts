@@ -1,5 +1,5 @@
-import * as $ from "jquery";
-import "../ejs";
+/// <reference path="../ejs.d.ts" />
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 
 import { RecordMap } from "../models/record";
 import Transaction from "../models/transaction";
@@ -9,6 +9,7 @@ import Renderer from "./renderer";
 import TransactionViewer from "./transactionviewer"
 import Config from "../controllers/config";
 import Spinner from "./spinner";
+import TransactionEditor from "./transactioneditor";
 
 const TEMPLATE = "singletransaction";
 
@@ -17,10 +18,10 @@ export default class TransactionList extends Renderer implements TransactionView
     private m_config: Config;
     private m_active_id: string;
     
-    SaveTransaction : (transaction: Transaction) => void = () => {};
-    SaveRecurring: (transaction: RecurringTransaction) => void = () => {};
-    LoadTransaction : (id: string) => Promise<Transaction> = async () => { return null; }
-    LoadRecurring : (id: string) => Promise<RecurringTransaction> = async () => { return null; }
+    SaveTransaction : (transaction: Transaction) => void = (transaction) => { console.log("SAVETRANSACTION", transaction); };
+    SaveRecurring: (transaction: RecurringTransaction) => void = (transaction) => { console.log("SAVERECURRING", transaction); };
+    LoadTransaction : (id: string) => Promise<Transaction> = async (id) => { console.log("LOADTRANSACTION:", id); return null; }
+    LoadRecurring : (id: string) => Promise<RecurringTransaction> = async (id) => { console.log("LOADRECURRING:", id); return null; }
 
     constructor(element: string | HTMLElement | JQuery<HTMLElement>, config: Config) {
         super();
@@ -28,8 +29,14 @@ export default class TransactionList extends Renderer implements TransactionView
         this.m_config = config;
 
         $(() => {
-            this.m_element = $(element);
+            this.m_element = $(element).children('tbody');
+            $(window).on('resize', this.window_onResize);
         });
+    }
+
+    private window_onResize() {
+        $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+        $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
     }
 
     private sorter(a: { category: string, name: string }, b: { category: string, name: string }) : number {
@@ -62,7 +69,8 @@ export default class TransactionList extends Renderer implements TransactionView
         let transaction = await this.LoadTransaction(id);
 
         if (transaction != null) {
-            console.log(`TODO: start editor for ${id}`);
+            let editor = new TransactionEditor(transaction, this.SaveTransaction, () => {}, this.m_config.categories);
+            editor.open();
         }
     }
 
@@ -93,20 +101,29 @@ export default class TransactionList extends Renderer implements TransactionView
     }
 
     onDoubleClick(e: JQuery.Event) {
+        e.preventDefault();
         let id = this.getRow(e).attr('id');
         this.editTransaction(id);
     }
 
     onClick(e: JQuery.Event) {
+        e.preventDefault();
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
     }
 
     onRecurringClick(e: JQuery.Event) {
+        e.preventDefault();
         let id = $(e.target).attr('recurring');
         this.editRecurring(id);
     }
 
     // methods
+    setTotal(total: number) {
+        $(() => {
+            this.totalElement.text(total.toCurrency());
+        });
+    }
+
     display(transactions: RecordMap<Transaction>, total?: number) {
         let list: Array<Transaction> = [];
         for (let id in transactions) {
@@ -128,10 +145,10 @@ export default class TransactionList extends Renderer implements TransactionView
             Spinner.show();
 
             if (total) {
-                this.totalElement.text(total.toCurrency());
+                this.setTotal(total);
             }
 
-            transactions.sort(this.sorter.bind(this));
+            // transactions.sort(this.sorter.bind(this));
 
             let promises = new Array<Promise<void>>();
 
@@ -139,15 +156,33 @@ export default class TransactionList extends Renderer implements TransactionView
 
             for (let transaction of transactions) {
                 promises.push(this.render(TEMPLATE, { item: transaction }).then((template) => {
-                    this.m_element.append($(template));
+                    let row = $(template).data("transaction", transaction);
+                    this.m_element.append(row);
                 }));
             }
 
             Promise.all(promises).then(() => {
                 // setup the alternate row classes
+                let n = 0;
+                let category = (this.m_element.children('tr').first().data('transaction') as Transaction).category
+                let rows = this.m_element.children('tr').toArray();
+
+                for (let el of rows) {
+                    if (($(el).data('transaction') as Transaction).category != category) {
+                        n = 1 - n;
+                        category = ($(el).data('transaction') as Transaction).category;
+                    }
+                    $(el).addClass("row_" + n);
+                };
 
                 // add the listeners
+                this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
+                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
+                this.m_element.children('tr').on('click', this.onClick.bind(this));
+                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
+                this.m_element.find('.recurring').on('click', this.onRecurringClick.bind(this));
 
+                this.window_onResize();
                 // hide the spinner
                 Spinner.hide();
             });
@@ -157,8 +192,10 @@ export default class TransactionList extends Renderer implements TransactionView
     update(transaction: Transaction, total?: number) {
         $(() => {
             if (total) {
-                this.totalElement.text(total.toCurrency());
+                this.setTotal(total);
             }
+
+            this.m_element.children('#' + transaction.id).remove();
 
             // add this to the end of the list
             this.render(TEMPLATE, { item: transaction }).then((template) => {
@@ -177,7 +214,13 @@ export default class TransactionList extends Renderer implements TransactionView
                 this.m_element.append(rows);
 
                 // re-add the listeners
+                this.m_element.children('tr').off().on('mouseover', this.onMouseOver.bind(this));
+                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
+                this.m_element.children('tr').on('click', this.onClick.bind(this));
+                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
+                this.m_element.find('.recurring').off().on('click', this.onRecurringClick.bind(this));
 
+                this.window_onResize();
             });
         });
     }

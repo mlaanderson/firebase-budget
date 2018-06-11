@@ -38,13 +38,14 @@ export default class Budget extends Events {
         });
 
         this.config.read().then(() => {
+
             this.root.child('accounts').orderByChild('name').startAt('Primary').endAt('Primary').once('child_added').then((snap) => {
                 this.account = snap.ref;
                 this.transactions = new Transactions(this.account.child('transactions'), this.config);
                 this.recurring = new RecurringTransactions(this.account.child('recurring'));
 
                 // start at the current period
-                this.gotoDate(Date.today());
+                // this.gotoDate(Date.today());
 
                 // assign listeners
                 this.recurring.on('child_saved', this.recurring_OnSave.bind(this));
@@ -58,6 +59,8 @@ export default class Budget extends Events {
                 this.transactions.on('removed', this.transaction_OnRemoved.bind(this));
                 this.transactions.on('removedinperiod', this.transaction_OnRemovedInPeriod.bind(this));
                 this.transactions.on('removedbeforeperiod', this.transaction_OnRemovedBeforePeriod.bind(this));
+
+                this.emitAsync("config_read");
             });
         });
 

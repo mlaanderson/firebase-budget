@@ -10,11 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 class TransactionEditor extends dialog_1.default {
-    constructor(transaction, saveTransaction, deleteTransaction) {
-        super('editransaction_v2', transaction);
+    constructor(transaction, saveTransaction, deleteTransaction, categories) {
+        super('edittransaction_v2', { transaction: transaction, categories: categories });
         this.transaction = transaction;
         this.saveTransaction = saveTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));
         this.deleteTransaction = deleteTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));
+        this.categories = categories;
     }
     afterOpen() {
         // wire up the close button
@@ -29,7 +30,6 @@ class TransactionEditor extends dialog_1.default {
             this.transaction.paid = $('#paid').prop('checked');
             this.transaction.note = $('#note').val().toString();
             this.transaction.check = $('#checkNumber').val().toString();
-            this.transaction.checkLink = $('#checkLink').val().toString();
             yield this.saveTransaction(this.transaction);
             this.close();
         }));

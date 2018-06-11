@@ -1,7 +1,7 @@
 "use strict";
+/// <reference path="../ejs.d.ts" />
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
-const $ = require("jquery");
-require("../ejs");
 const renderer_1 = require("./renderer");
 class Dialog extends renderer_1.default {
     constructor(filename, data) {
@@ -95,7 +95,22 @@ class Dialog extends renderer_1.default {
     }
     afterOpen() { }
     close() {
-        this.m_dialog.popup('close');
+        $(() => {
+            if (!this.m_dialog) {
+                setTimeout(() => this.close(), 100);
+                return;
+            }
+            this.m_dialog.popup('close');
+        });
+    }
+    open() {
+        $(() => {
+            if (!this.m_dialog) {
+                setTimeout(() => this.open(), 100);
+                return;
+            }
+            this.m_dialog.popup('open');
+        });
     }
 }
 exports.default = Dialog;

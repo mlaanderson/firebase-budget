@@ -4,9 +4,10 @@
 export default class Select {
     protected element : JQuery<HTMLElement>;
 
-    constructor(button: string | HTMLElement | JQuery<HTMLElement>) {
+    constructor(select: string | HTMLElement | JQuery<HTMLElement>) {
         $(() => {
-            this.element = $(button);
+            this.element = $(select);
+            this.element.selectmenu();
         });
     }
 
@@ -49,4 +50,25 @@ export default class Select {
         }
     }
 
+    append(elementOrValue: JQuery<HTMLElement> | HTMLElement | string, text?: string, selected?: boolean) {
+        let option: JQuery<HTMLElement>;
+        if (typeof elementOrValue === "string") {
+            // construct the element with the passed value
+            option = $('<option>', { value: elementOrValue, selected: !!selected }).text(text || elementOrValue);
+        } else {
+            // use the passed in element
+            option = $(elementOrValue);
+            if (text) option.text(text);
+            if (selected) option.attr('selected', "true");
+        }
+        this.element.append(option);
+    }
+
+    empty() {
+        this.element.empty();
+    }
+
+    refresh() {
+        this.element.selectmenu('refresh');
+    }
 }

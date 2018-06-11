@@ -113,7 +113,29 @@
                 </div>
             </div><!-- /header -->
 
-            <div role="main" class="ui-content" id="main"></div>
+            <div role="main" class="ui-content" id="main">
+                <div id="transaction_table">
+                    <table data-role="table" class="ui-responsive table-stroke" style="width: 100%" id="tblTransactions">
+                        <thead>
+                            <tr>
+                                <th class="trDate" data-priority="1">Date</th>
+                                <th class="trCategory" data-priority="2">Category</th>
+                                <th class="trName" data-priority="3">Name</th>
+                                <th class="trAmount" data-priority="4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                            <th class="trTotal" id="total_calc" colspan="4"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    </div>
+                    <div class="info_div">
+                </div>
+            </div>
 
             <div data-role="footer" data-position="fixed">
                 <h4>&nbsp;</h4>

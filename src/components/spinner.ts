@@ -1,5 +1,5 @@
-import * as $ from "jquery";
-import "jquerymobile";
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
+/// <reference path="../../node_modules/@types/jquerymobile/index.d.ts" />
 
 export default class Spinner {
     constructor() {

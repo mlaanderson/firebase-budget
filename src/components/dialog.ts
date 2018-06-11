@@ -1,5 +1,5 @@
-import * as $ from "jquery";
-import "../ejs";
+/// <reference path="../ejs.d.ts" />
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 
 import Renderer from "./renderer";
 
@@ -110,6 +110,22 @@ export default class Dialog extends Renderer {
     protected afterOpen() : void {}
 
     close() {
-        this.m_dialog.popup('close');
+        $(() => {
+            if (!this.m_dialog) {
+                setTimeout(() => this.close(), 100);
+                return;
+            }
+            this.m_dialog.popup('close');
+        });
+    }
+
+    open() {
+        $(() => {
+            if (!this.m_dialog) {
+                setTimeout(() => this.open(), 100);
+                return;
+            }
+            this.m_dialog.popup('open');
+        });
     }
 }

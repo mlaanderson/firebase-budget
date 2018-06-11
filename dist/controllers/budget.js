@@ -30,7 +30,7 @@ class Budget extends events_1.default {
                 this.transactions = new transactions_1.default(this.account.child('transactions'), this.config);
                 this.recurring = new recurringtransactions_1.default(this.account.child('recurring'));
                 // start at the current period
-                this.gotoDate(Date.today());
+                // this.gotoDate(Date.today());
                 // assign listeners
                 this.recurring.on('child_saved', this.recurring_OnSave.bind(this));
                 this.transactions.on('added', this.transaction_OnAdded.bind(this));
@@ -40,6 +40,7 @@ class Budget extends events_1.default {
                 this.transactions.on('removed', this.transaction_OnRemoved.bind(this));
                 this.transactions.on('removedinperiod', this.transaction_OnRemovedInPeriod.bind(this));
                 this.transactions.on('removedbeforeperiod', this.transaction_OnRemovedBeforePeriod.bind(this));
+                this.emitAsync("config_read");
             });
         });
         this.readyPromise = new Promise((resolve, reject) => {

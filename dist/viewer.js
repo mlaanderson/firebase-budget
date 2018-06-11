@@ -1,16 +1,35 @@
 "use strict";
 /// <reference path="../node_modules/@types/jquery/index.d.ts" />
 /// <reference path="./ejs.d.ts" />
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const firebase = require("firebase/app");
 require("firebase/auth");
 require("firebase/database");
+require("./lib/date.ext");
+require("./lib/number.ext");
+const budget_1 = require("./controllers/budget");
 const button_1 = require("./components/button");
 const select_1 = require("./components/select");
 const renderer_1 = require("./components/renderer");
+const transactionlist_1 = require("./components/transactionlist");
+const spinner_1 = require("./components/spinner");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
+        this.app = firebase.initializeApp({
+            apiKey: "AIzaSyDhs0mPVlovk6JHnEdv6HeU2jy3M8VRoSk",
+            authDomain: "budget-dacac.firebaseapp.com",
+            databaseURL: "https://budget-dacac.firebaseio.com",
+            storageBucket: "budget-dacac.appspot.com"
+        });
         $(() => {
             this.btnToday = new button_1.default('#btnToday').on('click', this.btnToday_onClick.bind(this));
             this.btnPrev = new button_1.default('#btnPrev').on('click', this.btnPrev_onClick.bind(this));
@@ -28,10 +47,38 @@ class BudgetForm extends renderer_1.default {
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
     }
-    btnToday_onClick(e) { }
-    btnPrev_onClick(e) { }
-    periodMenu_onChange(e) { }
-    btnNext_onClick(e) { }
+    gotoPeriod(period) {
+        if (typeof period == "string") {
+            period = Date.parseFb(period);
+        }
+        else {
+            period = period;
+        }
+        let end = period.add(this.budget.Config.length).subtract("1 day");
+        this.periodStart = period.toFbString();
+        this.periodEnd = end.toFbString();
+        this.periodMenu.val(this.periodStart);
+        this.periodMenu.refresh();
+        this.budget.gotoDate(this.periodStart);
+    }
+    // UI Events
+    btnToday_onClick(e) {
+        e.preventDefault();
+        let { start, end } = this.budget.Config.calculatePeriod(Date.today());
+        this.gotoPeriod(start);
+    }
+    btnPrev_onClick(e) {
+        e.preventDefault();
+        this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+    }
+    periodMenu_onChange(e) {
+        e.preventDefault();
+        this.gotoPeriod(this.periodMenu.val().toString());
+    }
+    btnNext_onClick(e) {
+        e.preventDefault();
+        this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+    }
     btnEditTransaction_onClick(e) { }
     btnAddTransaction_onClick(e) { }
     btnLogout_onClick(e) { }
@@ -41,11 +88,75 @@ class BudgetForm extends renderer_1.default {
     btnReport_onClick(e) { }
     btnCash_onClick(e) { }
     btnTransfer_onClick(e) { }
+    // Configuration
+    config_onRead() {
+        this.periodMenu.empty();
+        this.transactionList = new transactionlist_1.default('#tblTransactions', this.budget.Config);
+        this.transactionList.LoadTransaction = (key) => { return this.budget.Transactions.load(key); };
+        this.transactionList.SaveTransaction = (transaction) => { return this.budget.Transactions.save(transaction); };
+        for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
+            let label = date.format("MMM d") + " - " + date.add(this.budget.Config.length).subtract("1 day").format("MMM d, yyyy");
+            this.periodMenu.append(date.toFbString(), label);
+        }
+        if (this.periodStart) {
+            let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
+            this.periodStart = start;
+            this.periodEnd = end;
+        }
+        else {
+            let { start, end } = this.budget.Config.calculatePeriod(Date.today());
+            this.periodStart = start;
+            this.periodEnd = end;
+        }
+        this.gotoPeriod(this.periodStart);
+    }
+    // Data Events
+    budget_onTransactionChanged(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
+                this.transactionList.update(transaction);
+            }
+            if (this.periodEnd >= transaction.date) {
+                let total = yield this.budget.Transactions.getTotal();
+                this.transactionList.setTotal(total);
+            }
+        });
+    }
+    budget_onPeriodLoaded(transactions) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let total = yield this.budget.Transactions.getTotal();
+            this.transactionList.displayList(this.budget.Transactions.List, total);
+            spinner_1.default.hide();
+        });
+    }
+    // Authorization
     firebase_onAuthStateChanged(user) {
+        $(() => {
+            if (user === null) {
+                this.budget = null;
+            }
+            else {
+                spinner_1.default.show();
+                this.budget = new budget_1.default(firebase.database().ref(user.uid));
+                this.budget.on('config_read', this.config_onRead.bind(this));
+                this.budget.on('loadperiod', this.budget_onPeriodLoaded.bind(this));
+                this.budget.on('transactionchanged', this.budget_onTransactionChanged.bind(this));
+            }
+        });
+    }
+    login(username, password) {
+        $(() => {
+            firebase.auth().signInWithEmailAndPassword(username, password);
+        });
+    }
+    logout() {
+        this.periodStart = null;
+        $(() => { firebase.auth().signOut(); });
     }
 }
-Object.defineProperty(window, 'Viewer', {
+let m_viewer = new BudgetForm();
+Object.defineProperty(window, 'viewer', {
     get: () => {
-        return BudgetForm;
+        return m_viewer;
     }
 });

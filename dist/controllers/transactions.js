@@ -34,14 +34,12 @@ class Transactions extends records_1.Records {
     constructor(reference, config) {
         super(reference);
         this.records = {};
-        this.periodTotal = 0;
         this.config = config;
     }
     sanitizeAfterRead(transaction) {
         transaction.cash = transaction.cash || false;
         transaction.check = transaction.check || null;
-        transaction.checkLink = transaction.checkLink || null;
-        transaction.note = transaction.note || null;
+        transaction.note = transaction.note || undefined;
         transaction.paid = transaction.paid || false;
         transaction.recurring = transaction.recurring || null;
         transaction.transfer = transaction.transfer || false;
@@ -50,7 +48,6 @@ class Transactions extends records_1.Records {
     sanitizeBeforeWrite(transaction) {
         transaction.cash = transaction.cash ? transaction.cash : null;
         transaction.check = transaction.check === undefined || transaction.check === "" ? null : transaction.check;
-        transaction.checkLink = transaction.checkLink === undefined || transaction.checkLink === "" ? null : transaction.checkLink;
         transaction.note = transaction.note === undefined || transaction.note === "" ? null : transaction.note;
         transaction.paid = transaction.paid ? transaction.paid : null;
         transaction.recurring = transaction.recurring === undefined || transaction.recurring === "" ? null : transaction.recurring;
@@ -65,13 +62,9 @@ class Transactions extends records_1.Records {
                 // add the transaction to the local cache
                 this.records[transaction.id] = transaction;
                 this.populateTransactionList();
-                // add this transaction to the total
-                // this.periodTotal += transaction.amount;
                 this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
             }
             else if (transaction.date < this.periodStart) {
-                // add this transaction to the total
-                this.periodTotal += transaction.amount;
                 this.emitAsync(TransactonEvents.AddedBeforePeriod, transaction, this);
             }
             else {
@@ -88,8 +81,6 @@ class Transactions extends records_1.Records {
                 // update the transaction in the local cache
                 this.records[transaction.id] = transaction;
                 this.populateTransactionList();
-                // add this transaction to the total
-                this.periodTotal += transaction.amount;
                 this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
             }
             else {
@@ -100,7 +91,6 @@ class Transactions extends records_1.Records {
                 }
                 if (transaction.date < this.periodStart) {
                     // add this transaction to the total
-                    this.periodTotal += transaction.amount;
                     this.emitAsync(TransactonEvents.ChangedBeforePeriod, transaction, this);
                 }
                 else {
@@ -120,13 +110,9 @@ class Transactions extends records_1.Records {
                 this.populateTransactionList();
             }
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
-                // subtract this transaction from the total
-                this.periodTotal -= transaction.amount;
                 this.emitAsync(TransactonEvents.RemovedInPeriod, transaction, this);
             }
             else if (transaction.date < this.periodStart) {
-                // subtract this transaction from the total
-                this.periodTotal -= transaction.amount;
                 this.emitAsync(TransactonEvents.RemovedBeforePeriod, transaction, this);
             }
             else {
@@ -171,9 +157,6 @@ class Transactions extends records_1.Records {
     get List() {
         return this.transactionList;
     }
-    get Total() {
-        return this.periodTotal;
-    }
     get Start() {
         return this.periodStart;
     }
@@ -201,26 +184,11 @@ class Transactions extends records_1.Records {
             if (!this.periodStart || !this.periodEnd)
                 return Number.NaN;
             let records = yield this.loadRecordsByChild('date', null, this.periodEnd);
-            this.periodTotal = 0;
+            let periodTotal = 0;
             for (let key in records) {
-                this.periodTotal += records[key].amount;
+                periodTotal += records[key].amount;
             }
-            return this.periodTotal;
-        });
-    }
-    save(record) {
-        const _super = name => super[name];
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.periodEnd && record.id) {
-                // find the current transaction to see if we need to update the total
-                let oldrecord = yield this.load(record.id);
-                if (oldrecord && oldrecord.date <= this.periodEnd) {
-                    // the old value is included in the total, subtract it
-                    // the new value will be added in at the change handler
-                    this.periodTotal -= oldrecord.amount;
-                }
-            }
-            return yield _super("save").call(this, record);
+            return periodTotal;
         });
     }
 }

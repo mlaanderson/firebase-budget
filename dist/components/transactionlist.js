@@ -1,4 +1,6 @@
 "use strict";
+/// <reference path="../ejs.d.ts" />
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -8,22 +10,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const $ = require("jquery");
-require("../ejs");
 const renderer_1 = require("./renderer");
 const spinner_1 = require("./spinner");
+const transactioneditor_1 = require("./transactioneditor");
 const TEMPLATE = "singletransaction";
 class TransactionList extends renderer_1.default {
     constructor(element, config) {
         super();
-        this.SaveTransaction = () => { };
-        this.SaveRecurring = () => { };
-        this.LoadTransaction = () => __awaiter(this, void 0, void 0, function* () { return null; });
-        this.LoadRecurring = () => __awaiter(this, void 0, void 0, function* () { return null; });
+        this.SaveTransaction = (transaction) => { console.log("SAVETRANSACTION", transaction); };
+        this.SaveRecurring = (transaction) => { console.log("SAVERECURRING", transaction); };
+        this.LoadTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADTRANSACTION:", id); return null; });
+        this.LoadRecurring = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADRECURRING:", id); return null; });
         this.m_config = config;
         $(() => {
-            this.m_element = $(element);
+            this.m_element = $(element).children('tbody');
+            $(window).on('resize', this.window_onResize);
         });
+    }
+    window_onResize() {
+        $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+        $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
     }
     sorter(a, b) {
         let idxA = this.m_config.categories.indexOf(a.category);
@@ -53,7 +59,8 @@ class TransactionList extends renderer_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             let transaction = yield this.LoadTransaction(id);
             if (transaction != null) {
-                console.log(`TODO: start editor for ${id}`);
+                let editor = new transactioneditor_1.default(transaction, this.SaveTransaction, () => { }, this.m_config.categories);
+                editor.open();
             }
         });
     }
@@ -80,17 +87,25 @@ class TransactionList extends renderer_1.default {
         this.rows.css('background-color', '');
     }
     onDoubleClick(e) {
+        e.preventDefault();
         let id = this.getRow(e).attr('id');
         this.editTransaction(id);
     }
     onClick(e) {
+        e.preventDefault();
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
     }
     onRecurringClick(e) {
+        e.preventDefault();
         let id = $(e.target).attr('recurring');
         this.editRecurring(id);
     }
     // methods
+    setTotal(total) {
+        $(() => {
+            this.totalElement.text(total.toCurrency());
+        });
+    }
     display(transactions, total) {
         let list = [];
         for (let id in transactions) {
@@ -109,19 +124,37 @@ class TransactionList extends renderer_1.default {
             }
             spinner_1.default.show();
             if (total) {
-                this.totalElement.text(total.toCurrency());
+                this.setTotal(total);
             }
-            transactions.sort(this.sorter.bind(this));
+            // transactions.sort(this.sorter.bind(this));
             let promises = new Array();
             this.m_element.empty();
             for (let transaction of transactions) {
                 promises.push(this.render(TEMPLATE, { item: transaction }).then((template) => {
-                    this.m_element.append($(template));
+                    let row = $(template).data("transaction", transaction);
+                    this.m_element.append(row);
                 }));
             }
             Promise.all(promises).then(() => {
                 // setup the alternate row classes
+                let n = 0;
+                let category = this.m_element.children('tr').first().data('transaction').category;
+                let rows = this.m_element.children('tr').toArray();
+                for (let el of rows) {
+                    if ($(el).data('transaction').category != category) {
+                        n = 1 - n;
+                        category = $(el).data('transaction').category;
+                    }
+                    $(el).addClass("row_" + n);
+                }
+                ;
                 // add the listeners
+                this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
+                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
+                this.m_element.children('tr').on('click', this.onClick.bind(this));
+                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
+                this.m_element.find('.recurring').on('click', this.onRecurringClick.bind(this));
+                this.window_onResize();
                 // hide the spinner
                 spinner_1.default.hide();
             });
@@ -130,8 +163,9 @@ class TransactionList extends renderer_1.default {
     update(transaction, total) {
         $(() => {
             if (total) {
-                this.totalElement.text(total.toCurrency());
+                this.setTotal(total);
             }
+            this.m_element.children('#' + transaction.id).remove();
             // add this to the end of the list
             this.render(TEMPLATE, { item: transaction }).then((template) => {
                 this.m_element.append($(template));
@@ -144,6 +178,12 @@ class TransactionList extends renderer_1.default {
                 // add the rows again
                 this.m_element.append(rows);
                 // re-add the listeners
+                this.m_element.children('tr').off().on('mouseover', this.onMouseOver.bind(this));
+                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
+                this.m_element.children('tr').on('click', this.onClick.bind(this));
+                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
+                this.m_element.find('.recurring').off().on('click', this.onRecurringClick.bind(this));
+                this.window_onResize();
             });
         });
     }

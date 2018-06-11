@@ -6,12 +6,14 @@ export default class TransactionEditor extends Dialog {
     private transaction: Transaction;
     private saveTransaction: (transaction: Transaction) => void;
     private deleteTransaction: (id: string) => void;
+    private categories: Array<string>
 
-    constructor(transaction: Transaction, saveTransaction: (transaction: Transaction) => void, deleteTransaction: (id: string) => void) {
-        super('editransaction_v2', transaction);
+    constructor(transaction: Transaction, saveTransaction: (transaction: Transaction) => void, deleteTransaction: (id: string) => void, categories: Array<string>) {
+        super('edittransaction_v2', { transaction: transaction, categories: categories });
         this.transaction = transaction;
         this.saveTransaction = saveTransaction || (async () => {});
         this.deleteTransaction = deleteTransaction || (async () => {});
+        this.categories = categories;
     }
 
     protected afterOpen() {
@@ -28,7 +30,6 @@ export default class TransactionEditor extends Dialog {
             this.transaction.paid = $('#paid').prop('checked') as boolean;
             this.transaction.note = $('#note').val().toString();
             this.transaction.check = $('#checkNumber').val().toString();
-            this.transaction.checkLink = $('#checkLink').val().toString(); 
 
             await this.saveTransaction(this.transaction);
             this.close();

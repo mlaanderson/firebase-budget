@@ -5,7 +5,6 @@ export default interface Transaction extends Record {
     cash? : boolean;
     category : string;
     check? : string;
-    checkLink? : string;
     date : string;
     name : string;
     note? : string;

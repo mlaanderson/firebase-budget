@@ -2,9 +2,10 @@
 /// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
 class Select {
-    constructor(button) {
+    constructor(select) {
         $(() => {
-            this.element = $(button);
+            this.element = $(select);
+            this.element.selectmenu();
         });
     }
     on(events, handler) {
@@ -41,6 +42,28 @@ class Select {
         else {
             return this.element ? this.element.val().toString() : null;
         }
+    }
+    append(elementOrValue, text, selected) {
+        let option;
+        if (typeof elementOrValue === "string") {
+            // construct the element with the passed value
+            option = $('<option>', { value: elementOrValue, selected: !!selected }).text(text || elementOrValue);
+        }
+        else {
+            // use the passed in element
+            option = $(elementOrValue);
+            if (text)
+                option.text(text);
+            if (selected)
+                option.attr('selected', "true");
+        }
+        this.element.append(option);
+    }
+    empty() {
+        this.element.empty();
+    }
+    refresh() {
+        this.element.selectmenu('refresh');
     }
 }
 exports.default = Select;
