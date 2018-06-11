@@ -11,8 +11,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /*/// <reference path="../node_modules/@firebase/app/dist/index.d.ts" />*/
 const transaction_1 = require("./types/transaction");
 const form_1 = require("./form");
-// import * as firebase from "firebase";
-// import firebase = require("firebase");
 const firebase = require("firebase/app");
 require("firebase/auth");
 require("firebase/database");
@@ -95,6 +93,8 @@ class Application {
                 yield Config.read(this.root);
                 this.m_form.onConfigLoaded();
                 let snap;
+                snap = yield this.root.child('name').once('value');
+                console.log(`Running on ${snap.val()}`);
                 snap = yield this.root.child('accounts').orderByChild('name').equalTo('Primary').once('child_added');
                 if (snap.val() !== null) {
                     this.m_primaryAccount = snap.ref;
@@ -222,7 +222,9 @@ class Application {
     }
     deleteTransaction(key) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.m_form.loading();
             yield this.transactions.child(key).remove();
+            this.m_form.doneLoading();
         });
     }
     getRecurringTransaction(key) {
@@ -239,7 +241,8 @@ class Application {
             let date = Date.today().toFbString();
             date = date > this.m_periodStart ? date : this.m_periodStart;
             delete recurring.id;
-            console.log(recurring);
+            this.m_form.loading();
+            this.m_form.pauseGraph();
             if (rId) {
                 // update the recurring node
                 yield this.recurring.child(rId).set(recurring);
@@ -252,7 +255,9 @@ class Application {
             }
             // delete all matching after this date or today whichever is later
             yield this.deleteRecurring(rId, false);
+            this.m_form.loading();
             // re-insert new transaction nodes starting with today or start whichever is later
+            let promises = Array();
             for (let day = Date.parseFb(recurring.start); day.le(recurring.end); day = day.add(recurring.period)) {
                 if (day.toFbString() < date)
                     continue;
@@ -267,26 +272,34 @@ class Application {
                     note: recurring.note || null,
                     recurring: rId
                 };
-                yield this.transactions.push(transaction);
+                promises.push(this.transactions.push(transaction));
             }
+            yield Promise.all(promises);
+            this.m_form.resumeGraph();
         });
     }
     deleteRecurring(id, deleteRecurringNode = true) {
         return __awaiter(this, void 0, void 0, function* () {
             let date = Date.today().toFbString();
             date = date > this.m_periodStart ? date : this.m_periodStart;
+            this.m_form.pauseGraph();
+            this.m_form.loading();
             // delete the recurring 
             if (deleteRecurringNode == true) {
                 yield this.recurring.child(id).remove();
             }
             // delete all matching after this date or today whichever is later
             let transactions = yield this.getRecurringTransactions(id);
+            let promises = new Array();
             for (let key in transactions) {
                 let transaction = transactions[key];
                 if ((transaction.date >= date) && (transaction.paid !== true)) {
-                    yield this.deleteTransaction(key);
+                    promises.push(this.deleteTransaction(key));
                 }
             }
+            yield Promise.all(promises);
+            this.m_form.resumeGraph();
+            this.m_form.doneLoading();
         });
     }
     getRecurringTransactions(id) {

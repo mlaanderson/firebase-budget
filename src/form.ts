@@ -38,6 +38,7 @@ export default class Form {
     activePopup: JQuery<HTMLElement>;
 
     initializing: boolean = true;
+    graphIsPaused: boolean = false;
 
     chart: AmChartObject;
     chart_config: AmChartConfig = {
@@ -130,35 +131,37 @@ export default class Form {
     };
 
     constructor(app : Application) {
-        var self = this;
-        this.btnLogout = $('#btnLogout').on('click', this.btnLogout_Click.bind(this));
-        this.btnPrev = $('#btnPrev').on('click', this.btnPrev_click.bind(this));
-        this.btnNext = $('#btnNext').on('click', this.btnNext_click.bind(this));
-        this.btnToday = $("#btnToday").on('click', this.btnToday_click.bind(this));
-        this.btnCash = $('#btnCash').on('click', this.btnCash_click.bind(this));
-        this.btnReport = $('#btnReport').on('click', this.btnReport_click.bind(this));
-        this.btnTransfer = $('#btnTransfer').on('click', this.btnTransfer_click.bind(this));
-        this.btnAddTransaction = $('#btnAddTransaction').on('click', this.btnAddTransaction_click.bind(this));
-        this.btnEditTransaction = $('#btnEditTransaction').on('click', this.btnEditTransaction_click.bind(this));
-        this.btnNewRecurring = $('#btnNewRecurring').on('click', this.btnNewRecurring_click.bind(this));
-        this.btnDownload = $('#btnDownload').on('click', this.btnDownload_click.bind(this));
-        this.btnConfig = $('#btnConfig').on('click', this.btnConfig_click.bind(this));
+        $(() => {
+            var self = this;
+            this.btnLogout = $('#btnLogout').on('click', this.btnLogout_Click.bind(this));
+            this.btnPrev = $('#btnPrev').on('click', this.btnPrev_click.bind(this));
+            this.btnNext = $('#btnNext').on('click', this.btnNext_click.bind(this));
+            this.btnToday = $("#btnToday").on('click', this.btnToday_click.bind(this));
+            this.btnCash = $('#btnCash').on('click', this.btnCash_click.bind(this));
+            this.btnReport = $('#btnReport').on('click', this.btnReport_click.bind(this));
+            this.btnTransfer = $('#btnTransfer').on('click', this.btnTransfer_click.bind(this));
+            this.btnAddTransaction = $('#btnAddTransaction').on('click', this.btnAddTransaction_click.bind(this));
+            this.btnEditTransaction = $('#btnEditTransaction').on('click', this.btnEditTransaction_click.bind(this));
+            this.btnNewRecurring = $('#btnNewRecurring').on('click', this.btnNewRecurring_click.bind(this));
+            this.btnDownload = $('#btnDownload').on('click', this.btnDownload_click.bind(this));
+            this.btnConfig = $('#btnConfig').on('click', this.btnConfig_click.bind(this));
 
-        this.periodMenu = $('#periodMenu').on('change', this.periodMenu_Change.bind(this));
-        this.main = $('#main').on('mouseout', this.main_MouseOut.bind(this));
-        this.header = $('[data-role=header]');
-        this.footer = $('[data-role=footer]');
+            this.periodMenu = $('#periodMenu').on('change', this.periodMenu_Change.bind(this));
+            this.main = $('#main').on('mouseout', this.main_MouseOut.bind(this));
+            this.header = $('[data-role=header]');
+            this.footer = $('[data-role=footer]');
 
-        ejs.renderFile('index', {}, (template) => {
-            self.main.append($(template));
+            ejs.renderFile('index', {}, (template) => {
+                self.main.append($(template));
 
-            // create the strip chart
-            this.chart = AmChart.makeChart('chart_div', this.chart_config);
+                // create the strip chart
+                this.chart = AmChart.makeChart('chart_div', this.chart_config);
+            });
+
+            $(window).on('resize', this.window_Resize.bind(this));
+
+            this.application = app;
         });
-
-        $(window).on('resize', this.window_Resize.bind(this));
-
-        this.application = app;
     }
 
     window_Resize(e: EventHandler<HTMLElement>) {
@@ -409,7 +412,7 @@ export default class Form {
     }
 
     loading() {
-        $.mobile.loading();
+        $.mobile.loading('show');
     }
 
     doneLoading() {
@@ -634,11 +637,21 @@ export default class Form {
         });
 
         this.updateTotal(await this.application.getPeriodSum());
-        await this.updateChart();
+        this.updateChart();
+    }
+
+    pauseGraph() {
+        this.graphIsPaused = true;
+    }
+
+    resumeGraph() {
+        this.graphIsPaused = false;
+        this.updateChart();
     }
 
     async updateChart() {
         if ($('#footer_info').css('display') === "none") return;
+        if (this.graphIsPaused == true) return;
         let sums = await this.application.getDateTotals();
         this.chart.dataProvider = [];
 
@@ -746,7 +759,8 @@ export default class Form {
 
         this.activePopup = await this.dialog('edittransaction_v2', transaction, async () => {
             this.fixDateFields();
-            $('#btnSave').on('click', async () => {
+            $('#btnSave').on('click', async () => { console.log('save button', transaction);
+                this.loading();
                 // collect the updated data
                 let isDeposit = $("#type").prop('checked') as boolean;
 
@@ -766,8 +780,9 @@ export default class Form {
 
                 // close the dialog
                 this.activePopup.popup('close');
+                this.doneLoading();
             });
-            $('#btnDelete').on('click', () => {
+            $('#btnDelete').on('click', () => { console.log('delete button', transaction);
                 // delete the transaction
                 this.application.deleteTransaction(transaction.id);
 
@@ -807,6 +822,7 @@ export default class Form {
         this.activePopup = await this.dialog('editrecurring_v2', recurring, async () => {
             this.fixDateFields();
             $('#btnSave').on('click', async () => {
+                this.loading();
                 // collect the updated data
                 let isDeposit = $("#type").prop('checked') as boolean;
 
@@ -825,6 +841,7 @@ export default class Form {
 
                 // close the dialog
                 this.activePopup.popup('close');
+                this.doneLoading();
             });
             $('#btnDelete').on('click', () => {
                 // delete the recurring transaction

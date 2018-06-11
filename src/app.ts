@@ -10,6 +10,7 @@ import "firebase/database";
 import TypeMap from "./types/maps";
 import "./lib/math.ext";
 import "./lib/date.ext";
+import { ThenableReference } from "@firebase/database-types";
 
 export class Config {
     static CATEGORIES : Array<string> = [
@@ -96,6 +97,9 @@ export default class Application {
             await Config.read(this.root);
             this.m_form.onConfigLoaded();
             let snap : firebase.database.DataSnapshot;
+
+            snap = await this.root.child('name').once('value');
+            console.log(`Running on ${snap.val()}`);
 
             snap = await this.root.child('accounts').orderByChild('name').equalTo('Primary').once('child_added');
             if (snap.val() !== null) {
@@ -230,7 +234,9 @@ export default class Application {
     }
 
     async deleteTransaction(key: string) {
+        this.m_form.loading();
         await this.transactions.child(key).remove();
+        this.m_form.doneLoading();
     }
 
     async getRecurringTransaction(key: string) : Promise<RecurringTransaction> {
@@ -249,7 +255,9 @@ export default class Application {
 
         delete recurring.id;
 
-        console.log(recurring);
+        this.m_form.loading();
+
+        this.m_form.pauseGraph();
 
         if (rId) {
             // update the recurring node
@@ -263,8 +271,10 @@ export default class Application {
 
         // delete all matching after this date or today whichever is later
         await this.deleteRecurring(rId, false);
+        this.m_form.loading();
 
         // re-insert new transaction nodes starting with today or start whichever is later
+        let promises = Array<ThenableReference>();
         for (let day = Date.parseFb(recurring.start); day.le(recurring.end); day = day.add(recurring.period)) {
             if (day.toFbString() < date) continue;
 
@@ -280,14 +290,19 @@ export default class Application {
                 recurring: rId
             };
 
-            await this.transactions.push(transaction);
+            promises.push(this.transactions.push(transaction));
         }
+        await Promise.all(promises);
+        this.m_form.resumeGraph();
     }
 
     async deleteRecurring(id: string, deleteRecurringNode: boolean = true) {
         let date = Date.today().toFbString();
 
         date = date > this.m_periodStart ? date : this.m_periodStart;
+
+        this.m_form.pauseGraph();
+        this.m_form.loading();
 
         // delete the recurring 
         if (deleteRecurringNode == true) {
@@ -296,14 +311,19 @@ export default class Application {
 
         // delete all matching after this date or today whichever is later
         let transactions = await this.getRecurringTransactions(id);
+        let promises = new Array<Promise<void>>();
 
         for (let key in transactions) {
             let transaction = transactions[key];
 
             if ((transaction.date >= date) && (transaction.paid !== true)) {
-                await this.deleteTransaction(key);
+                promises.push(this.deleteTransaction(key));
             }
         }
+
+        await Promise.all(promises);
+        this.m_form.resumeGraph();
+        this.m_form.doneLoading();
     }
 
     async getRecurringTransactions(id: string): Promise<TypeMap<TransactionStructure>> {
