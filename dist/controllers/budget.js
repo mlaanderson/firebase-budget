@@ -34,6 +34,7 @@ class Budget extends events_1.default {
                 // assign listeners
                 this.ready().then(() => {
                     this.recurring.on('child_saved', this.recurring_OnSave.bind(this));
+                    this.recurring.on('child_before_removed', this.recurring_OnRemove.bind(this));
                     this.transactions.on('added', this.transaction_OnAdded.bind(this));
                     this.transactions.on('addedinperiod', this.transaction_OnAddedInPeriod.bind(this));
                     this.transactions.on('addedbeforeperiod', this.transaction_OnAddedBeforePeriod.bind(this));
@@ -82,6 +83,24 @@ class Budget extends events_1.default {
     transaction_OnRemovedBeforePeriod(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             this.emit('transactionremovedbeforeperiod', transaction, this);
+        });
+    }
+    recurring_OnRemove(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let promises = new Array();
+            let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
+            let recurrings = yield this.transactions.getRecurring(id);
+            if (date < this.transactions.Start) {
+                date = this.transactions.Start;
+            }
+            // delete linked transactions after this period or today's period
+            // whichever is newer
+            for (let k in recurrings) {
+                if (recurrings[k].date >= date) {
+                    promises.push(this.transactions.remove(k));
+                }
+            }
+            yield Promise.all(promises);
         });
     }
     recurring_OnSave(transaction) {
@@ -141,6 +160,12 @@ class Budget extends events_1.default {
                 this.isReady = true;
                 this.readyResolver(true);
             }
+        });
+    }
+    getBackup() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let snapshot = yield this.root.once('value');
+            return snapshot.val();
         });
     }
 }

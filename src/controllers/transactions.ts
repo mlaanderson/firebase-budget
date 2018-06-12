@@ -6,6 +6,9 @@ import { RecordMap } from "../models/record";
 import Transaction from "../models/transaction";
 import { Records, firebase } from "./records";
 import Config from "./config";
+import Cash from "../models/cash";
+import "../lib/number.ext";
+import "../lib/math.ext";
 
 class TransactonEvents {
     static Added = 'added';
@@ -168,6 +171,37 @@ export default class Transactions extends Records<Transaction> {
 
     public get End() : string {
         return this.periodEnd;
+    }
+
+    public get Cash() : Cash {
+        let result = Cash.default();
+
+        for (let transaction of this.transactionList) {
+            if (transaction.cash === true && transaction.paid === false && transaction.amount < 0) {
+                result.add(Math.abs(transaction.amount).toCash());
+            }
+        }
+
+        return result;
+    }
+
+    public get Transfer() : number {
+        let result = 0;
+
+        for (let transaction of this.transactionList) {
+            if (transaction.transfer === true && transaction.paid === false) {
+                result -= transaction.amount;
+            }
+        }
+
+        return result;
+    }
+
+    public async getSame(transaction: Transaction) : Promise<Array<Transaction>> {
+        let sameNames = await this.loadRecordsByChild('name', transaction.name, transaction.name);
+        let sameNameList = this.convertToArray(sameNames);
+
+        return sameNameList.filter((tr) => tr.category === transaction.category);
     }
 
     public async loadPeriod(start: string, end: string) : Promise<RecordMap<Transaction>> {

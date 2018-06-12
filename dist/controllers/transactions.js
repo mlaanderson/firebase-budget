@@ -12,6 +12,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const records_1 = require("./records");
+const cash_1 = require("../models/cash");
+require("../lib/number.ext");
+require("../lib/math.ext");
 class TransactonEvents {
 }
 TransactonEvents.Added = 'added';
@@ -162,6 +165,31 @@ class Transactions extends records_1.Records {
     }
     get End() {
         return this.periodEnd;
+    }
+    get Cash() {
+        let result = cash_1.default.default();
+        for (let transaction of this.transactionList) {
+            if (transaction.cash === true && transaction.paid === false && transaction.amount < 0) {
+                result.add(Math.abs(transaction.amount).toCash());
+            }
+        }
+        return result;
+    }
+    get Transfer() {
+        let result = 0;
+        for (let transaction of this.transactionList) {
+            if (transaction.transfer === true && transaction.paid === false) {
+                result -= transaction.amount;
+            }
+        }
+        return result;
+    }
+    getSame(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let sameNames = yield this.loadRecordsByChild('name', transaction.name, transaction.name);
+            let sameNameList = this.convertToArray(sameNames);
+            return sameNameList.filter((tr) => tr.category === transaction.category);
+        });
     }
     loadPeriod(start, end) {
         return __awaiter(this, void 0, void 0, function* () {

@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
+const spinner_1 = require("./spinner");
 class LoginDialog extends dialog_1.default {
     constructor(login) {
         super('login_v2');
@@ -23,6 +24,7 @@ class LoginDialog extends dialog_1.default {
             }
             try {
                 yield this.login(this.m_dialog.find('#email').val().toString(), this.m_dialog.find('#password').val().toString());
+                spinner_1.default.show();
                 this.close();
             }
             catch (error) {

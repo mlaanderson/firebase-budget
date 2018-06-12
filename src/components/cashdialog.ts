@@ -3,6 +3,6 @@ import Cash from "../models/cash";
 
 export default class CashDialog extends Dialog {
     constructor(data: Cash) {
-        super('cash', data);
+        super('cash', {cash: data, total: data.getTotal()});
     }
 }

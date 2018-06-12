@@ -21,6 +21,11 @@ import { RecordMap } from "./models/record";
 import Transaction from "./models/transaction";
 import SearchDialog from "./components/searchdialog";
 import RecurringTransaction from "./models/recurringtransaction";
+import Panel from "./components/panel";
+import CashDialog from "./components/cashdialog";
+import TransferDialog from "./components/transferdialog";
+import ConfigDialog from "./components/configdialog";
+import LoginDialog from "./components/logindialog";
 
 interface JQuery {
     panel(command?: string): JQuery;
@@ -41,6 +46,7 @@ class BudgetForm extends Renderer {
     private btnReport : Button;
     private btnCash : Button;
     private btnTransfer : Button;
+    private pnlMenu: Panel;
 
     private transactionList: TransactionList;
     private previewer : Previewer;
@@ -75,6 +81,10 @@ class BudgetForm extends Renderer {
             this.btnReport = new Button('#btnReport').on('click', this.btnReport_onClick.bind(this));
             this.btnCash = new Button('#btnCash').on('click', this.btnCash_onClick.bind(this));
             this.btnTransfer = new Button('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
+            this.pnlMenu = new Panel('#menu_panel');
+            this.previewer = new Previewer('.info_div')
+            
+            this.previewer.GotoTransaction = this.gotoDate.bind(this);
 
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
@@ -99,15 +109,19 @@ class BudgetForm extends Renderer {
         this.budget.gotoDate(this.periodStart);
     }
 
+    private gotoDate(date: string | Date) {
+        let { start } = this.budget.Config.calculatePeriod(date);
+        this.gotoPeriod(start);
+    }
+
     // UI Events
     btnSearch_onClick(e: JQueryEventObject) : void {
-        $('#menu_panel').panel('close');
+        this.pnlMenu.close();
 
         let searchForm = new SearchDialog(this.budget.Transactions);
         searchForm.GotoPeriod = (date: string) => {
             searchForm.close();
-            let { start } = this.budget.Config.calculatePeriod(date);
-            this.gotoPeriod(start);
+            this.gotoDate(date);
         }
         searchForm.open();
     }
@@ -143,17 +157,74 @@ class BudgetForm extends Renderer {
 
     btnLogout_onClick(e: JQueryEventObject) : void {
         e.preventDefault();
-        $('#menu_panel').panel('close');
+        this.pnlMenu.close();
         console.log('logging out');
         this.logout();
     }
 
-    btnConfig_onClick(e: JQueryEventObject) : void {}
-    btnDownload_onClick(e: JQueryEventObject) : void {}
-    btnNewRecurring_onClick(e: JQueryEventObject) : void {}
-    btnReport_onClick(e: JQueryEventObject) : void {}
-    btnCash_onClick(e: JQueryEventObject) : void {}
-    btnTransfer_onClick(e: JQueryEventObject) : void {}
+    btnNewRecurring_onClick(e: JQueryEventObject) : void {
+        this.transactionList.addRecurring(this.periodStart);
+    }
+
+    btnConfig_onClick(e: JQueryEventObject) : void {
+        this.pnlMenu.close();
+        let configDialog = new ConfigDialog(this.budget.Config, () => {
+            this.budget.Config.write();
+        });
+        configDialog.open();
+    }
+
+    btnReport_onClick(e: JQueryEventObject) : void {
+        this.pnlMenu.close();
+        console.log("TODO: Implement reporting")
+    }
+
+    async btnDownload_onClick(e: JQueryEventObject) {
+        let backup = await this.budget.getBackup();
+        let stringData = JSON.stringify(backup);
+        let blob = new Blob([stringData], { type: 'application/json' });
+        let filename = 'budget-' + Date.today().toFbString() + '.json';
+
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+        } else {
+            let elem = window.document.createElement('a');
+            elem.href = window.URL.createObjectURL(blob);
+            elem.download = filename;
+            elem.style.display = 'none';
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
+        this.pnlMenu.close();
+    }
+
+    btnCash_onClick(e: JQueryEventObject) : void {
+        e.preventDefault();
+        this.pnlMenu.close();
+
+        let cashDialog = new CashDialog(this.budget.Transactions.Cash);
+        cashDialog.open();
+    }
+
+    btnTransfer_onClick(e: JQueryEventObject) : void {
+        e.preventDefault();
+        this.pnlMenu.close();
+
+        let transferDialog = new TransferDialog(this.budget.Transactions.Transfer);
+        transferDialog.open();
+    }
+
+    async transactionList_PreviewTransaction(id: string) : Promise<Array<Transaction>> {
+        let transaction = await this.budget.Transactions.load(id);
+        let previewTransactions = await this.budget.Transactions.getSame(transaction);
+
+        if (previewTransactions != null) {
+            this.previewer.displayList(previewTransactions);
+        }
+
+        return previewTransactions || [];
+    }
 
     // Configuration
     config_onRead() {
@@ -166,7 +237,7 @@ class BudgetForm extends Renderer {
         this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.Transactions.remove(key); }
 
         this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
-        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.Recurrings.save(transaction); }
+        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { console.log("saving", transaction); return this.budget.Recurrings.save(transaction); }
         this.transactionList.DeleteRecurring = (key: string) => { return this.budget.Recurrings.remove(key); }
 
 
@@ -185,6 +256,9 @@ class BudgetForm extends Renderer {
             this.periodEnd = end;
         }
 
+        this.transactionList.PreviewTransaction = (id: string) => {
+            return this.transactionList_PreviewTransaction(id);
+        }
         this.gotoPeriod(this.periodStart);
     }
     
@@ -198,6 +272,10 @@ class BudgetForm extends Renderer {
             let total = await this.budget.Transactions.getTotal();
             this.transactionList.setTotal(total);
         }
+
+        this.previewer.update(transaction);
+
+        // todo update the chart
     }
 
     async budget_onPeriodLoaded(transactions: RecordMap<Transaction>) {
@@ -244,6 +322,11 @@ class BudgetForm extends Renderer {
                 this.budget = null
                 Spinner.hide();
                 if (this.transactionList) { this.transactionList.clear(); }
+                
+                // show the login dialog
+                this.pnlMenu.close();
+                let loginDialog = new LoginDialog(this.login);
+                loginDialog.open();
             } else {
                 Spinner.show();
                 this.budget = new Budget(firebase.database().ref(user.uid));

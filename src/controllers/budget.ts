@@ -52,6 +52,7 @@ export default class Budget extends Events {
                 this.ready().then(() => {
 
                     this.recurring.on('child_saved', this.recurring_OnSave.bind(this));
+                    this.recurring.on('child_before_removed', this.recurring_OnRemove.bind(this));
 
                     this.transactions.on('added', this.transaction_OnAdded.bind(this));
                     this.transactions.on('addedinperiod', this.transaction_OnAddedInPeriod.bind(this));
@@ -102,7 +103,27 @@ export default class Budget extends Events {
         this.emit('transactionremovedbeforeperiod', transaction, this);
     }
 
-    private async recurring_OnSave(transaction: RecurringTransaction) { 
+    private async recurring_OnRemove(id: string) {
+        let promises = new Array<Promise<string>>();
+        let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
+        let recurrings = await this.transactions.getRecurring(id);
+
+        if (date < this.transactions.Start) {
+            date = this.transactions.Start;
+        }
+
+        // delete linked transactions after this period or today's period
+        // whichever is newer
+        for (let k in recurrings) {
+            if (recurrings[k].date >= date) {
+                promises.push(this.transactions.remove(k));
+            }
+        }
+
+        await Promise.all(promises);
+    }
+
+    private async recurring_OnSave(transaction: RecurringTransaction) {  
         // update the existing transactions which depend on this
         let recurrings = await this.transactions.getRecurring(transaction.id);
         let promises = new Array<Promise<string>>();
@@ -168,5 +189,10 @@ export default class Budget extends Events {
             this.isReady = true;
             this.readyResolver(true);
         }
+    }
+
+    public async getBackup() : Promise<Object> {
+        let snapshot = await this.root.once('value');
+        return snapshot.val();
     }
 }

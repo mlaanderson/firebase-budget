@@ -40,7 +40,7 @@ class Records<T extends Record> extends Events {
     }
 
     /** This is only fired if THIS client saves the record */
-    protected async onChildSaved(current: T, original: T) {
+    protected async onChildSaved(current: T, original: T) { 
         this.emitAsync('child_saved', this.sanitizeAfterRead(current), this.sanitizeAfterRead(original), this);
     }
 
@@ -50,6 +50,10 @@ class Records<T extends Record> extends Events {
 
     protected async onChildChanged(record: T) {
         this.emitAsync('child_changed', record, this);
+    }
+
+    protected async onBeforeChildRemoved(id: string) {
+        this.emitAsync('child_before_removed', id, this);
     }
 
     protected async onChildRemoved(record: T) {
@@ -124,7 +128,12 @@ class Records<T extends Record> extends Events {
         } else {
             // push the record
             let rec = await this.ref.push(record);
-            return rec.key as string;
+
+            // emit a 'child_saved' event
+            record.id = rec.key;
+            this.onChildSaved(record, null);
+
+            return record.id;
         }
     }
 
@@ -145,6 +154,7 @@ class Records<T extends Record> extends Events {
             record = record.id;
         }
 
+        this.onBeforeChildRemoved(record);
         await this.ref.child(record).remove();
         return record;
     }

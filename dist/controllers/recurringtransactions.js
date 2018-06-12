@@ -9,6 +9,8 @@ class RecurringTransactions extends records_1.Records {
         super(reference);
     }
     sanitizeAfterRead(transaction) {
+        if (transaction === null)
+            return null;
         transaction.cash = transaction.cash || false;
         transaction.note = transaction.note || null;
         transaction.transfer = transaction.transfer || false;

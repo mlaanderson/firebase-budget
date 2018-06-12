@@ -26,6 +26,18 @@ class Cash {
         this.cent5 += other.cent5;
         this.cent1 += other.cent1;
     }
+    getTotal() {
+        return Math.roundTo(this.hundreds * 100.0 +
+            this.fifties * 50.0 +
+            this.twenties * 20.0 +
+            this.tens * 10.0 +
+            this.fives * 5.0 +
+            this.ones +
+            this.cent25 * 0.25 +
+            this.cent10 * 0.1 +
+            this.cent5 * 0.05 +
+            this.cent1 * 0.01, 2);
+    }
 }
 function toCurrency() {
     var result = Math.sign(this) < 0 ? "-$" : "$";

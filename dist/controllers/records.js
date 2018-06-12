@@ -61,6 +61,11 @@ class Records extends events_1.default {
             this.emitAsync('child_changed', record, this);
         });
     }
+    onBeforeChildRemoved(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.emitAsync('child_before_removed', id, this);
+        });
+    }
     onChildRemoved(record) {
         return __awaiter(this, void 0, void 0, function* () {
             this.emitAsync('child_removed', record, this);
@@ -124,7 +129,10 @@ class Records extends events_1.default {
             else {
                 // push the record
                 let rec = yield this.ref.push(record);
-                return rec.key;
+                // emit a 'child_saved' event
+                record.id = rec.key;
+                this.onChildSaved(record, null);
+                return record.id;
             }
         });
     }
@@ -144,6 +152,7 @@ class Records extends events_1.default {
             if (typeof record !== "string") {
                 record = record.id;
             }
+            this.onBeforeChildRemoved(record);
             yield this.ref.child(record).remove();
             return record;
         });

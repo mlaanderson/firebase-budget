@@ -14,7 +14,7 @@ __total = Math.abs(__total);
     <%
     for (var n = 0; n < items.length; n++) {
     %>
-    <tr id="info_<%= items[n].id %>" item="<%= items[n].id %>">
+    <tr id="info_<%= items[n].id %>" item="<%= items[n].id %>" name="<%= items[n].name %>" category="<%= items[n].category %>">
         <td class="in_date" value="<%= items[n].date %>"><%= Date.parseFb(items[n].date).format('MMM d, yyyy') %></td>
         <td class="in_amount" value="<%= items[n].amount.toFixed(2) %>"><%= items[n].amount.toCurrency() %></td>
     </tr>

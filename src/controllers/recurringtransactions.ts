@@ -13,6 +13,8 @@ export default class RecurringTransactions extends Records<RecurringTransaction>
     }
 
     sanitizeAfterRead(transaction: RecurringTransaction) : RecurringTransaction {
+        if (transaction === null) return null;
+        
         transaction.cash = transaction.cash || false;
         transaction.note = transaction.note || null;
         transaction.transfer = transaction.transfer || false;

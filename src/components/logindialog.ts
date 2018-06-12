@@ -1,4 +1,5 @@
 import Dialog from "./dialog";
+import Spinner from "./spinner";
 
 
 export default class LoginDialog extends Dialog {
@@ -19,6 +20,7 @@ export default class LoginDialog extends Dialog {
 
             try {
                 await this.login(this.m_dialog.find('#email').val().toString(), this.m_dialog.find('#password').val().toString());
+                Spinner.show();
                 this.close();
             } catch (error) {
                 switch (error.code) {

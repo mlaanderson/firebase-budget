@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const renderer_1 = require("./renderer");
 const spinner_1 = require("./spinner");
 const transactioneditor_1 = require("./transactioneditor");
+const recurringtransactioneditor_1 = require("./recurringtransactioneditor");
 const TEMPLATE = "singletransaction";
 class TransactionList extends renderer_1.default {
     constructor(element, config) {
@@ -20,6 +21,7 @@ class TransactionList extends renderer_1.default {
         this.SaveTransaction = (transaction) => __awaiter(this, void 0, void 0, function* () { console.log("SAVETRANSACTION", transaction); return null; });
         this.LoadTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADTRANSACTION:", id); return null; });
         this.DeleteTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("DELETETRANSACTION", id); return null; });
+        this.PreviewTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("PREVIEWTRANSACTION", id); return null; });
         this.SaveRecurring = (transaction) => __awaiter(this, void 0, void 0, function* () { console.log("SAVERECURRING", transaction); return null; });
         this.LoadRecurring = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADRECURRING:", id); return null; });
         this.DeleteRecurring = (id) => __awaiter(this, void 0, void 0, function* () { console.log("DELETERECURRING", id); return null; });
@@ -70,7 +72,8 @@ class TransactionList extends renderer_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             let transaction = yield this.LoadRecurring(id);
             if (transaction != null) {
-                console.log(`TODO: start recurring editor for ${id}`);
+                let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, this.DeleteRecurring, this.m_config.categories);
+                editor.open();
             }
         });
     }
@@ -96,6 +99,7 @@ class TransactionList extends renderer_1.default {
     onClick(e) {
         e.preventDefault();
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
+        this.PreviewTransaction(this.m_active_id);
     }
     onRecurringClick(e) {
         e.preventDefault();
@@ -133,7 +137,6 @@ class TransactionList extends renderer_1.default {
             if (total) {
                 this.setTotal(total);
             }
-            // transactions.sort(this.sorter.bind(this));
             let promises = new Array();
             this.m_element.empty();
             for (let transaction of transactions) {
@@ -206,6 +209,20 @@ class TransactionList extends renderer_1.default {
         };
         // delete is not allowed since this is a new transaction
         let editor = new transactioneditor_1.default(transaction, this.SaveTransaction, () => { }, this.m_config.categories);
+        editor.open();
+    }
+    addRecurring(date) {
+        let start = date;
+        let end = Date.parseFb(start).add("1 year").toFbString();
+        let transaction = {
+            amount: 0,
+            category: this.m_config.categories[0],
+            end: end,
+            name: "",
+            period: "1 month",
+            start: start
+        };
+        let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, () => { }, this.m_config.categories);
         editor.open();
     }
 }

@@ -10,6 +10,7 @@ import TransactionViewer from "./transactionviewer"
 import Config from "../controllers/config";
 import Spinner from "./spinner";
 import TransactionEditor from "./transactioneditor";
+import RecurringTransactionEditor from "./recurringtransactioneditor";
 
 const TEMPLATE = "singletransaction";
 
@@ -21,6 +22,7 @@ export default class TransactionList extends Renderer implements TransactionView
     SaveTransaction : (transaction: Transaction) => Promise<string> = async (transaction) => { console.log("SAVETRANSACTION", transaction); return null; };
     LoadTransaction : (id: string) => Promise<Transaction> = async (id) => { console.log("LOADTRANSACTION:", id); return null; }
     DeleteTransaction : (id: string) => Promise<string> = async (id) => { console.log("DELETETRANSACTION", id); return null; }
+    PreviewTransaction : (id: string) => Promise<Array<Transaction>> = async (id) => { console.log("PREVIEWTRANSACTION", id); return null; }
 
     SaveRecurring: (transaction: RecurringTransaction) => Promise<string> = async (transaction) => { console.log("SAVERECURRING", transaction); return null; };
     LoadRecurring : (id: string) => Promise<RecurringTransaction> = async (id) => { console.log("LOADRECURRING:", id); return null; }
@@ -81,7 +83,8 @@ export default class TransactionList extends Renderer implements TransactionView
         let transaction = await this.LoadRecurring(id);
 
         if (transaction != null) {
-            console.log(`TODO: start recurring editor for ${id}`);
+            let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, this.DeleteRecurring, this.m_config.categories);
+            editor.open();
         }
     }
 
@@ -112,6 +115,7 @@ export default class TransactionList extends Renderer implements TransactionView
     onClick(e: JQuery.Event) {
         e.preventDefault();
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
+        this.PreviewTransaction(this.m_active_id);
     }
 
     onRecurringClick(e: JQuery.Event) {
@@ -156,8 +160,6 @@ export default class TransactionList extends Renderer implements TransactionView
             if (total) {
                 this.setTotal(total);
             }
-
-            // transactions.sort(this.sorter.bind(this));
 
             let promises = new Array<Promise<void>>();
 
@@ -251,4 +253,20 @@ export default class TransactionList extends Renderer implements TransactionView
         editor.open();
     }
 
+    addRecurring(date: string) {
+        let start = date;
+        let end = Date.parseFb(start).add("1 year").toFbString();
+
+        let transaction: RecurringTransaction = {
+            amount: 0,
+            category: this.m_config.categories[0],
+            end: end,
+            name: "",
+            period: "1 month",
+            start: start    
+        }
+
+        let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, () => {}, this.m_config.categories);
+        editor.open();
+    } 
 }

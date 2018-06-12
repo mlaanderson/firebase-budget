@@ -10,9 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 class RecurringTransactionEditor extends dialog_1.default {
-    constructor(transaction, saveTransaction, deleteTransaction) {
-        super('editrecurring_v2', transaction);
+    constructor(transaction, saveTransaction, deleteTransaction, categories) {
+        super('editrecurring_v2', { transaction: transaction, categories: categories });
         this.transaction = transaction;
+        this.categories = categories;
         this.saveTransaction = saveTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));
         this.deleteTransaction = deleteTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));
     }

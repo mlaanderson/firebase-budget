@@ -6,10 +6,12 @@ export default class RecurringTransactionEditor extends Dialog {
     private transaction: RecurringTransaction;
     private saveTransaction: (transaction: RecurringTransaction) => void;
     private deleteTransaction: (id: string) => void;
+    private categories: Array<string>;
 
-    constructor(transaction: RecurringTransaction, saveTransaction: (transaction: RecurringTransaction) => void, deleteTransaction: (id: string) => void) {
-        super('editrecurring_v2', transaction);
+    constructor(transaction: RecurringTransaction, saveTransaction: (transaction: RecurringTransaction) => void, deleteTransaction: (id: string) => void, categories: Array<string>) {
+        super('editrecurring_v2', { transaction: transaction, categories: categories });
         this.transaction = transaction;
+        this.categories = categories;
         this.saveTransaction = saveTransaction || (async () => {});
         this.deleteTransaction = deleteTransaction || (async () => {});
     }
