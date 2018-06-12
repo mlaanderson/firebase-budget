@@ -19,12 +19,15 @@ import Previewer from "./components/previewer";
 import Spinner from "./components/spinner";
 import { RecordMap } from "./models/record";
 import Transaction from "./models/transaction";
+import SearchDialog from "./components/searchdialog";
+import RecurringTransaction from "./models/recurringtransaction";
 
 interface JQuery {
     panel(command?: string): JQuery;
 }
 
 class BudgetForm extends Renderer {
+    private btnSearch : Button;
     private btnToday : Button;
     private btnPrev : Button;
     private periodMenu : Select;
@@ -58,6 +61,7 @@ class BudgetForm extends Renderer {
         });
 
         $(() => {
+            this.btnSearch = new Button('#btnSearch').on('click', this.btnSearch_onClick.bind(this));
             this.btnToday = new Button('#btnToday').on('click', this.btnToday_onClick.bind(this));
             this.btnPrev = new Button('#btnPrev').on('click', this.btnPrev_onClick.bind(this));
             this.periodMenu = new Select('#periodMenu').on('change', this.periodMenu_onChange.bind(this));
@@ -82,7 +86,7 @@ class BudgetForm extends Renderer {
         } else {
             period = period as Date;
         }
-        
+
         let end = period.add(this.budget.Config.length).subtract("1 day") as Date;
 
         this.periodStart = period.toFbString();
@@ -96,9 +100,21 @@ class BudgetForm extends Renderer {
     }
 
     // UI Events
+    btnSearch_onClick(e: JQueryEventObject) : void {
+        $('#menu_panel').panel('close');
+
+        let searchForm = new SearchDialog(this.budget.Transactions);
+        searchForm.GotoPeriod = (date: string) => {
+            searchForm.close();
+            let { start } = this.budget.Config.calculatePeriod(date);
+            this.gotoPeriod(start);
+        }
+        searchForm.open();
+    }
+
     btnToday_onClick(e: JQueryEventObject) : void {
         e.preventDefault();
-        let { start, end } = this.budget.Config.calculatePeriod(Date.today());
+        let { start } = this.budget.Config.calculatePeriod(Date.today());
         this.gotoPeriod(start);
     }
 
@@ -121,11 +137,13 @@ class BudgetForm extends Renderer {
         this.transactionList.editSelected();
     }
 
-    btnAddTransaction_onClick(e: JQueryEventObject) : void {}
+    btnAddTransaction_onClick(e: JQueryEventObject) : void {
+        this.transactionList.addTransaction(this.periodStart);
+    }
 
     btnLogout_onClick(e: JQueryEventObject) : void {
         e.preventDefault();
-        
+        $('#menu_panel').panel('close');
         console.log('logging out');
         this.logout();
     }
@@ -142,8 +160,14 @@ class BudgetForm extends Renderer {
         this.periodMenu.empty();
 
         this.transactionList = new TransactionList('#tblTransactions', this.budget.Config);
+        // wire up the load/save/delete functionality
         this.transactionList.LoadTransaction = (key: string) => { return this.budget.Transactions.load(key); }
         this.transactionList.SaveTransaction = (transaction: Transaction) => { return this.budget.Transactions.save(transaction); }
+        this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.Transactions.remove(key); }
+
+        this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
+        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.Recurrings.save(transaction); }
+        this.transactionList.DeleteRecurring = (key: string) => { return this.budget.Recurrings.remove(key); }
 
 
         for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
@@ -160,6 +184,7 @@ class BudgetForm extends Renderer {
             this.periodStart = start;
             this.periodEnd = end;
         }
+
         this.gotoPeriod(this.periodStart);
     }
     
@@ -181,12 +206,43 @@ class BudgetForm extends Renderer {
         Spinner.hide();
     }
 
+    async budget_onTransactionAddedInPeriod(transaction: Transaction) {
+        let total = await this.budget.Transactions.getTotal();
+        this.transactionList.update(transaction, total);
+    }
+
+    async budget_onTransactionAddedBeforePeriod(transaction: Transaction) {
+        let total = await this.budget.Transactions.getTotal();
+        this.transactionList.setTotal(total);
+    }
+
+    async budget_onTransactionAdded(transaction: Transaction) {
+        console.log("budget_onTransactionAdded");
+        //TODO: Update chart
+    }
+
+    async budget_onTransactionRemovedInPeriod(transaction: Transaction) {
+        let total = await this.budget.Transactions.getTotal();
+        this.transactionList.displayList(this.budget.Transactions.List, total);
+        Spinner.hide();
+    }
+
+    async budget_onTransactionRemovedBeforePeriod(transaction: Transaction) {
+        let total = await this.budget.Transactions.getTotal();
+        this.transactionList.update(transaction, total);
+    }
+
+    async budget_onTransactionRemoved(transaction: Transaction) {
+        console.log("budget_onTransactionRemoved");
+        //TODO: Update chart
+    }
+
     // Authorization
     firebase_onAuthStateChanged(user: firebase.User) {
         $(() => {
             if (user === null) {
                 this.budget = null
-                Spinner.show();
+                Spinner.hide();
                 if (this.transactionList) { this.transactionList.clear(); }
             } else {
                 Spinner.show();
@@ -194,6 +250,12 @@ class BudgetForm extends Renderer {
                 this.budget.on('config_read', this.config_onRead.bind(this));
                 this.budget.on('loadperiod', this.budget_onPeriodLoaded.bind(this));
                 this.budget.on('transactionchanged', this.budget_onTransactionChanged.bind(this));
+                this.budget.on('transactionaddedinperiod', this.budget_onTransactionAddedInPeriod.bind(this));
+                this.budget.on('transactionaddedbeforeperiod', this.budget_onTransactionAddedBeforePeriod.bind(this));
+                this.budget.on('transactionadded', this.budget_onTransactionAdded.bind(this));
+                this.budget.on('transactionremovedinperiod', this.budget_onTransactionRemovedInPeriod.bind(this));
+                this.budget.on('transactionremovedbeforeperiod', this.budget_onTransactionRemovedBeforePeriod.bind(this));
+                this.budget.on('transactionremoved', this.budget_onTransactionRemoved.bind(this));
             }
         });
     }

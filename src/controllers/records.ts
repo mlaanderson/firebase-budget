@@ -56,6 +56,16 @@ class Records<T extends Record> extends Events {
         this.emitAsync('child_removed', record, this);
     }
 
+    protected convertToArray(records: RecordMap<T>) : Array<T> {
+        let result = Array<T>();
+
+        for (let id in records) {
+            result.push(records[id]);
+        }
+
+        return result;
+    }
+
     protected sanitizeAfterRead(record: T) : T { return record; }
     protected sanitizeBeforeWrite(record: T) : T { return record; }
 

@@ -18,10 +18,13 @@ export default class TransactionList extends Renderer implements TransactionView
     private m_config: Config;
     private m_active_id: string;
     
-    SaveTransaction : (transaction: Transaction) => void = (transaction) => { console.log("SAVETRANSACTION", transaction); };
-    SaveRecurring: (transaction: RecurringTransaction) => void = (transaction) => { console.log("SAVERECURRING", transaction); };
+    SaveTransaction : (transaction: Transaction) => Promise<string> = async (transaction) => { console.log("SAVETRANSACTION", transaction); return null; };
     LoadTransaction : (id: string) => Promise<Transaction> = async (id) => { console.log("LOADTRANSACTION:", id); return null; }
+    DeleteTransaction : (id: string) => Promise<string> = async (id) => { console.log("DELETETRANSACTION", id); return null; }
+
+    SaveRecurring: (transaction: RecurringTransaction) => Promise<string> = async (transaction) => { console.log("SAVERECURRING", transaction); return null; };
     LoadRecurring : (id: string) => Promise<RecurringTransaction> = async (id) => { console.log("LOADRECURRING:", id); return null; }
+    DeleteRecurring : (id: string) => Promise<string> = async (id) => { console.log("DELETERECURRING", id); return null; }
 
     constructor(element: string | HTMLElement | JQuery<HTMLElement>, config: Config) {
         super();
@@ -69,7 +72,7 @@ export default class TransactionList extends Renderer implements TransactionView
         let transaction = await this.LoadTransaction(id);
 
         if (transaction != null) {
-            let editor = new TransactionEditor(transaction, this.SaveTransaction, () => {}, this.m_config.categories);
+            let editor = new TransactionEditor(transaction, this.SaveTransaction, this.DeleteTransaction, this.m_config.categories);
             editor.open();
         }
     }
@@ -234,4 +237,18 @@ export default class TransactionList extends Renderer implements TransactionView
     clear() {
         this.m_element.empty();
     }
+
+    addTransaction(date: string) {
+        let transaction: Transaction = {
+            amount: 0,
+            category: this.m_config.categories[0],
+            date: date,
+            name: "",
+        };
+
+        // delete is not allowed since this is a new transaction
+        let editor = new TransactionEditor(transaction, this.SaveTransaction, () => {}, this.m_config.categories);
+        editor.open();
+    }
+
 }

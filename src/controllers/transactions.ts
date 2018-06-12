@@ -198,4 +198,24 @@ export default class Transactions extends Records<Transaction> {
 
         return periodTotal;
     }
+
+    public async search(search: string | RegExp, searchName: boolean = true, searchCategory: boolean = false) : Promise<Transaction[]> {
+        let rgSearch : RegExp;
+        if (typeof search === "string") {
+            rgSearch = new RegExp(search, "i");
+        } else {
+            rgSearch = search as RegExp;
+        }
+
+        let records = this.convertToArray(await this.loadRecords());
+
+        let result = records.filter((transaction) => {
+            if (searchName && rgSearch.test(transaction.name)) return true;
+            if (searchCategory && rgSearch.test(transaction.category)) return true;
+            return false;
+        });
+
+        return result;
+
+    }
 }

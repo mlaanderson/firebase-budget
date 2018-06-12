@@ -66,6 +66,13 @@ class Records extends events_1.default {
             this.emitAsync('child_removed', record, this);
         });
     }
+    convertToArray(records) {
+        let result = Array();
+        for (let id in records) {
+            result.push(records[id]);
+        }
+        return result;
+    }
     sanitizeAfterRead(record) { return record; }
     sanitizeBeforeWrite(record) { return record; }
     loadRecords() {

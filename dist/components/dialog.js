@@ -14,6 +14,7 @@ class Dialog extends renderer_1.default {
                 });
                 this.m_dialog.on('popupafterclose', this.afterClose.bind(this));
                 this.m_dialog.on('popupafteropen', this.afterOpen.bind(this));
+                this.afterRender();
             });
         });
     }
@@ -89,6 +90,8 @@ class Dialog extends renderer_1.default {
             daySelect.insertAfter(monthSelect);
             yearSelect.insertAfter(daySelect);
         });
+    }
+    afterRender() {
     }
     afterClose() {
         this.m_dialog.empty().remove();

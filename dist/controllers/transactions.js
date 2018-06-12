@@ -191,5 +191,25 @@ class Transactions extends records_1.Records {
             return periodTotal;
         });
     }
+    search(search, searchName = true, searchCategory = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let rgSearch;
+            if (typeof search === "string") {
+                rgSearch = new RegExp(search, "i");
+            }
+            else {
+                rgSearch = search;
+            }
+            let records = this.convertToArray(yield this.loadRecords());
+            let result = records.filter((transaction) => {
+                if (searchName && rgSearch.test(transaction.name))
+                    return true;
+                if (searchCategory && rgSearch.test(transaction.category))
+                    return true;
+                return false;
+            });
+            return result;
+        });
+    }
 }
 exports.default = Transactions;
