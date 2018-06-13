@@ -11,6 +11,9 @@ import Config from "../controllers/config";
 import Spinner from "./spinner";
 import TransactionEditor from "./transactioneditor";
 import RecurringTransactionEditor from "./recurringtransactioneditor";
+import Transactions from "../controllers/transactions";
+import Budget from "../controllers/budget";
+import { async } from "@firebase/util";
 
 const TEMPLATE = "singletransaction";
 
@@ -269,4 +272,42 @@ export default class TransactionList extends Renderer implements TransactionView
         let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, () => {}, this.m_config.categories);
         editor.open();
     } 
+
+    listenToTransactions(transactions: Transactions) {
+        transactions.on('addedinperiod', async (transaction: Transaction) => {
+            let total = await transactions.getTotal();
+            this.update(transaction, total);
+        });
+
+        transactions.on('addedbeforeperiod', async (transaction: Transaction) => {
+            let total = await transactions.getTotal();
+            this.setTotal(total);
+        });
+
+        transactions.on('changed', async (transaction: Transaction) => {
+            let total = await transactions.getTotal();
+            if (transactions.Start <= transaction.date && transaction.date <= transactions.End) {
+                this.update(transaction, total);
+            } else {
+                this.m_element.children('#' + transaction.id).remove();
+                this.setTotal(total);
+            }
+        });
+
+        transactions.on('removedinperiod', async (transaction: Transaction) => {
+            let total = await transactions.getTotal();
+            this.m_element.children('#' + transaction.id).remove();
+            this.setTotal(total);
+        });
+
+        transactions.on('removedbeforeperiod', async (transaction: Transaction) => {
+            let total = await transactions.getTotal();
+            this.m_element.children('#' + transaction.id).remove();
+            this.setTotal(total);
+        });
+
+        transactions.on('periodloaded', async (transactionList: Array<Transaction>, total: number) => {
+            this.displayList(transactionList, total);
+        });
+    }
 }

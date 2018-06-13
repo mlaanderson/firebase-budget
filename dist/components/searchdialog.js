@@ -22,7 +22,7 @@ class SearchDialog extends dialog_1.default {
         let searchTextBox = this.m_dialog.find('#searchTextBox');
         let searchButton = this.m_dialog.find('#searchButton');
         let searchResults = this.m_dialog.find('#searchResults');
-        searchTextBox.width(searchResults.width() - searchButton.innerWidth() - 20);
+        searchTextBox.width(searchResults.width() - searchButton.innerWidth() - 30);
         searchTextBox.height(searchButton.innerHeight() - 4);
         searchTextBox.focus();
         searchButton.on('click', () => __awaiter(this, void 0, void 0, function* () {

@@ -197,7 +197,8 @@ class Transactions extends records_1.Records {
             this.periodEnd = end;
             this.records = yield this.loadRecordsByChild('date', start, end);
             this.populateTransactionList();
-            yield this.getTotal();
+            let total = yield this.getTotal();
+            this.emitAsync('periodloaded', this.transactionList, total);
             return this.records;
         });
     }

@@ -5,6 +5,7 @@ import { RecordMap } from "../models/record";
 import Transaction from "../models/transaction";
 import Renderer from "./renderer";
 import TransactionViewer from "./transactionviewer"
+import Transactions from "../controllers/transactions";
 
 const TEMPLATE = "info_v2";
 
@@ -18,6 +19,8 @@ function previewSorter(r1: HTMLElement, r2: HTMLElement) {
 
 export default class Previewer extends Renderer implements TransactionViewer {
     private m_element: JQuery<HTMLElement>;
+    private m_transaction: Transaction = null;
+    private m_transactions: Transactions = null;
 
     GotoTransaction: (date: string) => void = (date) => { console.log("GOTOTRANSACTION", date); };
     
@@ -55,26 +58,77 @@ export default class Previewer extends Renderer implements TransactionViewer {
         });
     }
 
-    update(transaction: Transaction) {
-        if (this.m_element.find(`tr[item=${transaction.id}]`).length > 0) {
-            this.m_element.find(`tr[item=${transaction.id}] td.in_date`).text(Date.parseFb(transaction.date).format('MMM d, yyyy'));
-            this.m_element.find(`tr[item=${transaction.id}] td.in_amount`).text(transaction.amount.toCurrency());
-        } else if (this.m_element.find(`tr[name=${transaction.name}][category=${transaction.category}]`).length > 0) {
-            let row = $(`<tr id="info_${transaction.id}" item="${transaction.id}">
-                <td class="in_date">${ Date.parseFb(transaction.date).format("MMM d, yyyy") }</td>
-                <td class="in_amount">${ transaction.amount.toCurrency() }</td>
-                </tr>`);
-            
-            row.on('click', this.handleItemClick.bind(this));
+    update(transaction?: Transaction) {
+        if (transaction) {
+            if (this.m_element.find(`tr[item=${transaction.id}]`).length > 0) {
+                this.m_element.find(`tr[item=${transaction.id}] td.in_date`).text(Date.parseFb(transaction.date).format('MMM d, yyyy'));
+                this.m_element.find(`tr[item=${transaction.id}] td.in_amount`).text(transaction.amount.toCurrency());
+            } else {
+                let row = $(`<tr id="info_${transaction.id}" item="${transaction.id}">
+                    <td class="in_date">${ Date.parseFb(transaction.date).format("MMM d, yyyy") }</td>
+                    <td class="in_amount">${ transaction.amount.toCurrency() }</td>
+                    </tr>`);
+                
+                row.on('click', this.handleItemClick.bind(this));
+                this.m_element.find('tbody').append(row);
+            }
         }
-        this.m_element.find('em').text(`${transaction.name} - ${transaction.amount.toCurrency() }`);
 
         let rows = this.m_element.find('tbody tr').toArray();
         rows.sort(previewSorter);
         this.m_element.find('tbody').empty().append(rows);
+
+        let total = 0;
+        for (let row of rows) {
+            total += parseFloat($(row).children('.in_amount').attr('value') || '0');
+        }
+
+        this.m_element.find('.info_total').text(`${ total.toCurrency() }`);
     }
 
     clear() {
         this.m_element.empty();
+        this.m_transaction = null;
+    }
+
+    private async loadFromTransaction() {
+        let list = await this.m_transactions.getSame(this.m_transaction);
+        this.displayList(list);
+    }
+
+    setTransaction(transaction: Transaction) {
+        this.m_transaction = transaction;
+
+        // if we have transactions - pull the list
+        if (this.m_transactions) {
+            this.loadFromTransaction();
+        }
+    }
+
+    listenToTransactions(transactions: Transactions) {
+        this.m_transactions = transactions;
+
+        // add the listeners
+        this.m_transactions.on('added', (transaction : Transaction) => {
+            if (this.m_transaction && this.m_transaction.category == transaction.category && this.m_transaction.name == transaction.name) {
+                this.update(transaction);
+            }
+        });
+
+        this.m_transactions.on('changed', (transaction : Transaction) => {
+            if (this.m_transaction && this.m_transaction.category == transaction.category && this.m_transaction.name == transaction.name) {
+                this.update(transaction);
+            }
+        });
+
+        this.m_transactions.on('removed', (transaction : Transaction) => {
+            this.m_element.find(`#info_${transaction.id}`).remove();
+            this.update();
+        });
+
+        // if we have a transaction, filter to it
+        if (this.m_transaction) {
+            this.loadFromTransaction();
+        }
     }
 }

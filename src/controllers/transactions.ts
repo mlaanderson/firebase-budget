@@ -210,7 +210,9 @@ export default class Transactions extends Records<Transaction> {
 
         this.records = await this.loadRecordsByChild('date', start, end);
         this.populateTransactionList();
-        await this.getTotal();
+        let total = await this.getTotal();
+
+        this.emitAsync('periodloaded', this.transactionList, total);
 
         return this.records;
     }

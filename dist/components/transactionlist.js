@@ -225,5 +225,38 @@ class TransactionList extends renderer_1.default {
         let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, () => { }, this.m_config.categories);
         editor.open();
     }
+    listenToTransactions(transactions) {
+        transactions.on('addedinperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            let total = yield transactions.getTotal();
+            this.update(transaction, total);
+        }));
+        transactions.on('addedbeforeperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            let total = yield transactions.getTotal();
+            this.setTotal(total);
+        }));
+        transactions.on('changed', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            let total = yield transactions.getTotal();
+            if (transactions.Start <= transaction.date && transaction.date <= transactions.End) {
+                this.update(transaction, total);
+            }
+            else {
+                this.m_element.children('#' + transaction.id).remove();
+                this.setTotal(total);
+            }
+        }));
+        transactions.on('removedinperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            let total = yield transactions.getTotal();
+            this.m_element.children('#' + transaction.id).remove();
+            this.setTotal(total);
+        }));
+        transactions.on('removedbeforeperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            let total = yield transactions.getTotal();
+            this.m_element.children('#' + transaction.id).remove();
+            this.setTotal(total);
+        }));
+        transactions.on('periodloaded', (transactionList, total) => __awaiter(this, void 0, void 0, function* () {
+            this.displayList(transactionList, total);
+        }));
+    }
 }
 exports.default = TransactionList;

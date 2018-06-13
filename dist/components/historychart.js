@@ -1,6 +1,14 @@
 "use strict";
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const $ = require("jquery");
 const amchart_1 = require("../amchart/amchart");
 class HistoryChart {
     constructor(element) {
@@ -50,13 +58,18 @@ class HistoryChart {
         this.m_transactions[transaction.id] = transaction;
         this.display(this.m_transactions, this.m_left, this.m_right);
     }
+    remove(transaction) {
+        delete this.m_transactions[transaction.id];
+        this.display(this.m_transactions, this.m_left, this.m_right);
+    }
     draw(sums, left, right) {
         $(() => {
             this.m_chart.dataProvider = [];
+            console.log('drawing chart', left, right);
             for (let date in sums) {
                 this.m_chart.dataProvider.push({
                     date: date,
-                    amount: sums[date],
+                    amount: Math.roundTo(sums[date], 2),
                     description: Date.parseFb(date).format("MMM dd") + ": " + sums[date].toCurrency(),
                     color: (sums[date] < 0 ? "#ff0000" : "#008800")
                 });
@@ -69,6 +82,27 @@ class HistoryChart {
     }
     clear() {
         console.log("TODO: clear the chart");
+    }
+    listenToTransactions(transactions) {
+        transactions.on('added', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            console.log('chart transaction added');
+            this.update(transaction);
+        }));
+        transactions.on('changed', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            console.log('chart transaction changed');
+            this.update(transaction);
+        }));
+        transactions.on('removed', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            console.log('chart transaction removed');
+            this.remove(transaction);
+        }));
+        transactions.on('periodloaded', (transactionList) => __awaiter(this, void 0, void 0, function* () {
+            console.log('chart transactions loaded');
+            let left = Date.parseFb(transactions.Start).subtract("3 weeks").toFbString();
+            let right = Date.parseFb(transactions.End).add('3 months').toFbString();
+            let allTransactions = yield transactions.loadRecords();
+            this.display(allTransactions, left, right);
+        }));
     }
 }
 HistoryChart.chart_config = {

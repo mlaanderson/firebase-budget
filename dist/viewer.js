@@ -29,6 +29,7 @@ const cashdialog_1 = require("./components/cashdialog");
 const transferdialog_1 = require("./components/transferdialog");
 const configdialog_1 = require("./components/configdialog");
 const logindialog_1 = require("./components/logindialog");
+const historychart_1 = require("./components/historychart");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -55,6 +56,7 @@ class BudgetForm extends renderer_1.default {
             this.btnTransfer = new button_1.default('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
             this.pnlMenu = new panel_1.default('#menu_panel');
             this.previewer = new previewer_1.default('.info_div');
+            this.chart = new historychart_1.default('chart_div');
             this.previewer.GotoTransaction = this.gotoDate.bind(this);
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
@@ -204,64 +206,6 @@ class BudgetForm extends renderer_1.default {
         };
         this.gotoPeriod(this.periodStart);
     }
-    // Data Events
-    budget_onTransactionChanged(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
-                this.transactionList.update(transaction);
-            }
-            if (this.periodEnd >= transaction.date) {
-                let total = yield this.budget.Transactions.getTotal();
-                this.transactionList.setTotal(total);
-            }
-            this.previewer.update(transaction);
-            // todo update the chart
-        });
-    }
-    budget_onPeriodLoaded(transactions) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let total = yield this.budget.Transactions.getTotal();
-            this.transactionList.displayList(this.budget.Transactions.List, total);
-            spinner_1.default.hide();
-        });
-    }
-    budget_onTransactionAddedInPeriod(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let total = yield this.budget.Transactions.getTotal();
-            this.transactionList.update(transaction, total);
-        });
-    }
-    budget_onTransactionAddedBeforePeriod(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let total = yield this.budget.Transactions.getTotal();
-            this.transactionList.setTotal(total);
-        });
-    }
-    budget_onTransactionAdded(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log("budget_onTransactionAdded");
-            //TODO: Update chart
-        });
-    }
-    budget_onTransactionRemovedInPeriod(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let total = yield this.budget.Transactions.getTotal();
-            this.transactionList.displayList(this.budget.Transactions.List, total);
-            spinner_1.default.hide();
-        });
-    }
-    budget_onTransactionRemovedBeforePeriod(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let total = yield this.budget.Transactions.getTotal();
-            this.transactionList.update(transaction, total);
-        });
-    }
-    budget_onTransactionRemoved(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log("budget_onTransactionRemoved");
-            //TODO: Update chart
-        });
-    }
     // Authorization
     firebase_onAuthStateChanged(user) {
         $(() => {
@@ -280,14 +224,12 @@ class BudgetForm extends renderer_1.default {
                 spinner_1.default.show();
                 this.budget = new budget_1.default(firebase.database().ref(user.uid));
                 this.budget.on('config_read', this.config_onRead.bind(this));
-                this.budget.on('loadperiod', this.budget_onPeriodLoaded.bind(this));
-                this.budget.on('transactionchanged', this.budget_onTransactionChanged.bind(this));
-                this.budget.on('transactionaddedinperiod', this.budget_onTransactionAddedInPeriod.bind(this));
-                this.budget.on('transactionaddedbeforeperiod', this.budget_onTransactionAddedBeforePeriod.bind(this));
-                this.budget.on('transactionadded', this.budget_onTransactionAdded.bind(this));
-                this.budget.on('transactionremovedinperiod', this.budget_onTransactionRemovedInPeriod.bind(this));
-                this.budget.on('transactionremovedbeforeperiod', this.budget_onTransactionRemovedBeforePeriod.bind(this));
-                this.budget.on('transactionremoved', this.budget_onTransactionRemoved.bind(this));
+                this.budget.ready().then(() => {
+                    this.previewer.listenToTransactions(this.budget.Transactions);
+                    this.transactionList.listenToTransactions(this.budget.Transactions);
+                    this.chart.listenToTransactions(this.budget.Transactions);
+                    this.gotoDate(Date.today());
+                });
             }
         });
     }

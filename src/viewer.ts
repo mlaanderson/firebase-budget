@@ -26,6 +26,7 @@ import CashDialog from "./components/cashdialog";
 import TransferDialog from "./components/transferdialog";
 import ConfigDialog from "./components/configdialog";
 import LoginDialog from "./components/logindialog";
+import HistoryChart from "./components/historychart";
 
 interface JQuery {
     panel(command?: string): JQuery;
@@ -50,6 +51,7 @@ class BudgetForm extends Renderer {
 
     private transactionList: TransactionList;
     private previewer : Previewer;
+    private chart : HistoryChart;
     private app: firebase.app.App;
     private budget: Budget;
 
@@ -82,7 +84,9 @@ class BudgetForm extends Renderer {
             this.btnCash = new Button('#btnCash').on('click', this.btnCash_onClick.bind(this));
             this.btnTransfer = new Button('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
             this.pnlMenu = new Panel('#menu_panel');
-            this.previewer = new Previewer('.info_div')
+            this.previewer = new Previewer('.info_div');
+
+            this.chart = new HistoryChart('chart_div');
             
             this.previewer.GotoTransaction = this.gotoDate.bind(this);
 
@@ -261,59 +265,6 @@ class BudgetForm extends Renderer {
         }
         this.gotoPeriod(this.periodStart);
     }
-    
-    // Data Events
-    async budget_onTransactionChanged(transaction: Transaction) { 
-        if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
-                this.transactionList.update(transaction);
-        } 
-        
-        if (this.periodEnd >= transaction.date) {
-            let total = await this.budget.Transactions.getTotal();
-            this.transactionList.setTotal(total);
-        }
-
-        this.previewer.update(transaction);
-
-        // todo update the chart
-    }
-
-    async budget_onPeriodLoaded(transactions: RecordMap<Transaction>) {
-        let total = await this.budget.Transactions.getTotal();
-        this.transactionList.displayList(this.budget.Transactions.List, total);
-        Spinner.hide();
-    }
-
-    async budget_onTransactionAddedInPeriod(transaction: Transaction) {
-        let total = await this.budget.Transactions.getTotal();
-        this.transactionList.update(transaction, total);
-    }
-
-    async budget_onTransactionAddedBeforePeriod(transaction: Transaction) {
-        let total = await this.budget.Transactions.getTotal();
-        this.transactionList.setTotal(total);
-    }
-
-    async budget_onTransactionAdded(transaction: Transaction) {
-        console.log("budget_onTransactionAdded");
-        //TODO: Update chart
-    }
-
-    async budget_onTransactionRemovedInPeriod(transaction: Transaction) {
-        let total = await this.budget.Transactions.getTotal();
-        this.transactionList.displayList(this.budget.Transactions.List, total);
-        Spinner.hide();
-    }
-
-    async budget_onTransactionRemovedBeforePeriod(transaction: Transaction) {
-        let total = await this.budget.Transactions.getTotal();
-        this.transactionList.update(transaction, total);
-    }
-
-    async budget_onTransactionRemoved(transaction: Transaction) {
-        console.log("budget_onTransactionRemoved");
-        //TODO: Update chart
-    }
 
     // Authorization
     firebase_onAuthStateChanged(user: firebase.User) {
@@ -330,15 +281,15 @@ class BudgetForm extends Renderer {
             } else {
                 Spinner.show();
                 this.budget = new Budget(firebase.database().ref(user.uid));
+
                 this.budget.on('config_read', this.config_onRead.bind(this));
-                this.budget.on('loadperiod', this.budget_onPeriodLoaded.bind(this));
-                this.budget.on('transactionchanged', this.budget_onTransactionChanged.bind(this));
-                this.budget.on('transactionaddedinperiod', this.budget_onTransactionAddedInPeriod.bind(this));
-                this.budget.on('transactionaddedbeforeperiod', this.budget_onTransactionAddedBeforePeriod.bind(this));
-                this.budget.on('transactionadded', this.budget_onTransactionAdded.bind(this));
-                this.budget.on('transactionremovedinperiod', this.budget_onTransactionRemovedInPeriod.bind(this));
-                this.budget.on('transactionremovedbeforeperiod', this.budget_onTransactionRemovedBeforePeriod.bind(this));
-                this.budget.on('transactionremoved', this.budget_onTransactionRemoved.bind(this));
+
+                this.budget.ready().then(() => {
+                    this.previewer.listenToTransactions(this.budget.Transactions);
+                    this.transactionList.listenToTransactions(this.budget.Transactions);
+                    this.chart.listenToTransactions(this.budget.Transactions);
+                    this.gotoDate(Date.today());
+                });
             }
         });
     }

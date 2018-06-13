@@ -21,7 +21,7 @@ export default class SearchDialog extends Dialog {
         let searchButton = this.m_dialog.find('#searchButton');
         let searchResults = this.m_dialog.find('#searchResults');
 
-        searchTextBox.width(searchResults.width() - searchButton.innerWidth() - 20);
+        searchTextBox.width(searchResults.width() - searchButton.innerWidth() - 30);
         searchTextBox.height(searchButton.innerHeight() - 4);
 
         searchTextBox.focus();

@@ -1,8 +1,10 @@
-import * as $ from "jquery";
+/// <reference path="../../node_modules/@types/jquery/index.d.ts" />
+
 import {AmChart, AmChartObject, AmChartConfig } from "../amchart/amchart";
 import TransactionViewer from "./transactionviewer";
 import { RecordMap } from "../models/record";
 import Transaction from "../models/transaction";
+import Transactions from "../controllers/transactions";
 
 export default class HistoryChart implements TransactionViewer {
     private static chart_config: AmChartConfig = {
@@ -155,14 +157,21 @@ export default class HistoryChart implements TransactionViewer {
         this.display(this.m_transactions, this.m_left, this.m_right);
     }
 
+    remove(transaction: Transaction) {
+        delete this.m_transactions[transaction.id];
+        this.display(this.m_transactions, this.m_left, this.m_right);
+    }
+
     draw(sums: { [date : string] : number }, left: string, right: string) {
         $(() => {
             this.m_chart.dataProvider = [];
 
+            console.log('drawing chart', left, right);
+
             for (let date in sums) {
                 this.m_chart.dataProvider.push({
                     date: date,
-                    amount: sums[date],
+                    amount: Math.roundTo(sums[date], 2),
                     description: Date.parseFb(date).format("MMM dd") + ": " + sums[date].toCurrency(),
                     color: (sums[date] < 0 ? "#ff0000" : "#008800")
                 });
@@ -178,5 +187,30 @@ export default class HistoryChart implements TransactionViewer {
 
     clear() {
         console.log("TODO: clear the chart");
+    }
+
+    listenToTransactions(transactions: Transactions) {
+        transactions.on('added', async (transaction: Transaction) => {
+            console.log('chart transaction added');
+            this.update(transaction);
+        });
+
+        transactions.on('changed', async (transaction: Transaction) => {
+            console.log('chart transaction changed');
+            this.update(transaction);
+        });
+
+        transactions.on('removed', async (transaction: Transaction) => {
+            console.log('chart transaction removed');
+            this.remove(transaction);
+        });
+
+        transactions.on('periodloaded', async (transactionList: Array<Transaction>) => {
+            console.log('chart transactions loaded');
+            let left = (Date.parseFb(transactions.Start).subtract("3 weeks") as Date).toFbString();
+            let right = Date.parseFb(transactions.End).add('3 months').toFbString();
+            let allTransactions = await transactions.loadRecords();
+            this.display(allTransactions, left, right);
+        });
     }
 }
