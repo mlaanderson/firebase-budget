@@ -5,6 +5,8 @@ import Renderer from "./renderer";
 
 
 export default class Dialog extends Renderer {
+    private m_rendered = false;
+    private m_opened = false;
     protected m_dialog: JQuery<HTMLElement>;
 
     constructor(filename: string, data?: Object) {
@@ -15,8 +17,11 @@ export default class Dialog extends Renderer {
                     history: false,
                     overlayTheme: 'b'
                 });
+                this.m_dialog.on('popupafterclose', () => this.m_opened = false);
                 this.m_dialog.on('popupafterclose', this.afterClose.bind(this));
+                this.m_dialog.on('popupafteropen', () => this.m_opened = true);
                 this.m_dialog.on('popupafteropen', this.afterOpen.bind(this));
+                this.m_rendered = true;
                 this.afterRender();
             });
         });
@@ -114,23 +119,37 @@ export default class Dialog extends Renderer {
 
     protected afterOpen() : void {}
 
-    close() {
+    close() : Dialog {
         $(() => {
-            if (!this.m_dialog) {
+            if (!this.m_rendered) {
                 setTimeout(() => this.close(), 100);
                 return;
             }
             this.m_dialog.popup('close');
         });
+        return this;
     }
 
-    open() {
+    open() : Dialog {
         $(() => {
-            if (!this.m_dialog) {
+            if (!this.m_rendered) {
                 setTimeout(() => this.open(), 100);
                 return;
             }
             this.m_dialog.popup('open');
         });
+        return this;
+    }
+
+    position(options?: { positionTo?: "window" | "origin", x?: number, y?: number}) : Dialog {
+        if (this.m_opened === false) return this;
+        $(() => {
+            if (!this.m_rendered) {
+                setTimeout(() => this.position(options), 100);
+                return;
+            }
+            this.m_dialog.popup('reposition', options || { positionTo: 'window' });
+        });
+        return this;
     }
 }

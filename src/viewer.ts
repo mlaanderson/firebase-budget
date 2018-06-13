@@ -27,6 +27,8 @@ import TransferDialog from "./components/transferdialog";
 import ConfigDialog from "./components/configdialog";
 import LoginDialog from "./components/logindialog";
 import HistoryChart from "./components/historychart";
+import CanvasReport from "./components/canvasreport";
+import PeriodReport from "./components/periodreport";
 
 interface JQuery {
     panel(command?: string): JQuery;
@@ -180,7 +182,9 @@ class BudgetForm extends Renderer {
 
     btnReport_onClick(e: JQueryEventObject) : void {
         this.pnlMenu.close();
-        console.log("TODO: Implement reporting")
+        let dialog = new PeriodReport();
+        dialog.listenToTransactions(this.budget.Transactions);
+        dialog.open();
     }
 
     async btnDownload_onClick(e: JQueryEventObject) {
@@ -304,7 +308,6 @@ class BudgetForm extends Renderer {
         this.periodStart = null;
         $(() => { firebase.auth().signOut(); });
     }
-
 }
 
 let m_viewer = new BudgetForm();

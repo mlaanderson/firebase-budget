@@ -30,6 +30,7 @@ const transferdialog_1 = require("./components/transferdialog");
 const configdialog_1 = require("./components/configdialog");
 const logindialog_1 = require("./components/logindialog");
 const historychart_1 = require("./components/historychart");
+const periodreport_1 = require("./components/periodreport");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -131,7 +132,9 @@ class BudgetForm extends renderer_1.default {
     }
     btnReport_onClick(e) {
         this.pnlMenu.close();
-        console.log("TODO: Implement reporting");
+        let dialog = new periodreport_1.default();
+        dialog.listenToTransactions(this.budget.Transactions);
+        dialog.open();
     }
     btnDownload_onClick(e) {
         return __awaiter(this, void 0, void 0, function* () {
