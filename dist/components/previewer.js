@@ -50,6 +50,17 @@ class Previewer extends renderer_1.default {
         this.render(TEMPLATE, { items: transactions, title: transactions.length > 0 ? transactions[0].name : "" }).then((template) => {
             this.m_element.empty().append($(template));
             this.m_element.find('tr').on('click', this.handleItemClick.bind(this));
+            this.m_element.find('tr').on('mouseover', (e) => {
+                let target = $(e.target);
+                if (target.is('tr') == false) {
+                    target = target.parents('tr');
+                }
+                this.m_element.find('tr').css('background-color', '');
+                target.css('background-color', '#eef');
+            });
+            this.m_element.find('tr').on('mouseout', () => {
+                this.m_element.find('tr').css('background-color', '');
+            });
         });
     }
     update(transaction) {
@@ -64,6 +75,13 @@ class Previewer extends renderer_1.default {
                     <td class="in_amount">${transaction.amount.toCurrency()}</td>
                     </tr>`);
                 row.on('click', this.handleItemClick.bind(this));
+                row.on('mouseout', () => {
+                    this.m_element.find('tr').css('background-color', '');
+                });
+                row.on('mouseover', () => {
+                    this.m_element.find('tr').css('background-color', '');
+                    row.css('background-color', '#eef');
+                });
                 this.m_element.find('tbody').append(row);
             }
         }

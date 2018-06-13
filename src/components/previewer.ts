@@ -54,7 +54,17 @@ export default class Previewer extends Renderer implements TransactionViewer {
         this.render(TEMPLATE, { items: transactions, title: transactions.length > 0 ? transactions[0].name : "" }).then((template) => {
             this.m_element.empty().append($(template));
             this.m_element.find('tr').on('click', this.handleItemClick.bind(this));
-
+            this.m_element.find('tr').on('mouseover', (e) => {
+                let target = $(e.target);
+                if (target.is('tr') == false) {
+                    target = target.parents('tr');
+                }
+                this.m_element.find('tr').css('background-color', '');
+                target.css('background-color', '#eef');
+            });
+            this.m_element.find('tr').on('mouseout', () => {
+                this.m_element.find('tr').css('background-color', '');
+            });
         });
     }
 
@@ -70,6 +80,13 @@ export default class Previewer extends Renderer implements TransactionViewer {
                     </tr>`);
                 
                 row.on('click', this.handleItemClick.bind(this));
+                row.on('mouseout', () => { 
+                    this.m_element.find('tr').css('background-color', '');
+                });
+                row.on('mouseover', () => {
+                    this.m_element.find('tr').css('background-color', '');
+                    row.css('background-color', '#eef');
+                });
                 this.m_element.find('tbody').append(row);
             }
         }
@@ -77,6 +94,8 @@ export default class Previewer extends Renderer implements TransactionViewer {
         let rows = this.m_element.find('tbody tr').toArray();
         rows.sort(previewSorter);
         this.m_element.find('tbody').empty().append(rows);
+
+
 
         let total = 0;
         for (let row of rows) {
