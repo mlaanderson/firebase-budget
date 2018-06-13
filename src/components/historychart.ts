@@ -164,24 +164,24 @@ export default class HistoryChart implements TransactionViewer {
 
     draw(sums: { [date : string] : number }, left: string, right: string) {
         $(() => {
-            this.m_chart.dataProvider = [];
+            if ($('#footer_info').css('display') !== 'none') {
+                this.m_chart.dataProvider = [];
 
-            console.log('drawing chart', left, right);
+                for (let date in sums) {
+                    this.m_chart.dataProvider.push({
+                        date: date,
+                        amount: Math.roundTo(sums[date], 2),
+                        description: Date.parseFb(date).format("MMM dd") + ": " + sums[date].toCurrency(),
+                        color: (sums[date] < 0 ? "#ff0000" : "#008800")
+                    });
+                }
 
-            for (let date in sums) {
-                this.m_chart.dataProvider.push({
-                    date: date,
-                    amount: Math.roundTo(sums[date], 2),
-                    description: Date.parseFb(date).format("MMM dd") + ": " + sums[date].toCurrency(),
-                    color: (sums[date] < 0 ? "#ff0000" : "#008800")
-                });
+                let chLeft = Date.parseFb(left);
+                let chRight = Date.parseFb(right);
+
+                this.m_chart.validateData();
+                this.m_chart.zoomToDates(chLeft, chRight);
             }
-
-            let chLeft = Date.parseFb(left);
-            let chRight = Date.parseFb(right);
-
-            this.m_chart.validateData();
-            this.m_chart.zoomToDates(chLeft, chRight);
         });
     }
 
