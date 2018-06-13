@@ -99,16 +99,29 @@
     <body>
         <div data-role="page" id="transactions">
             <div data-role="panel" id="menu_panel">
-                <a href="#" title="Search..." class="ui-btn ui-icon-search ui-btn-icon-left ui-mini" id="btnSearch">Search...</a>
-                <hr/>
-                <a href="#" title="Download" class="ui-btn ui-icon-save ui-corner-all ui-btn-icon-left ui-mini" id="btnDownload">Download</a>
-                <!-- <a href="#" title="Spending Graph" class="ui-btn ui-icon-bars ui-corner-all ui-btn-icon-left ui-mini" id="btnReport">Report</a> -->
-                <a href="#" title="Cash" class="ui-btn ui-icon-money ui-corner-all ui-btn-icon-left ui-mini" id="btnCash">Cash</a>
-                <a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-corner-all ui-btn-icon-left ui-mini" id="btnTransfer">Transfers</a>
-                <hr/>
-                <a href="#" title="Settings" class="ui-btn ui-icon-gear ui-btn-icon-left ui-mini" id="btnConfig">Settings</a>
-                <hr/>
-                <a hfre="#" title="Logout" class="ui-btn ui-icon-power ui-btn-icon-left ui-corner-all ui-mini" id="btnLogout">Logout</a>
+                <ul data-role="listview" data-theme="a">
+                    <li><a href="#" title="Search..." class="ui-btn ui-icon-search ui-btn-icon-left ui-mini" id="btnSearch">Search...</a></li>
+                    <li><a href="#" title="Cash" class="ui-btn ui-icon-money ui-corner-all ui-btn-icon-left ui-mini" id="btnCash">Cash</a></li>
+                    <li><a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-corner-all ui-btn-icon-left ui-mini" id="btnTransfer">Transfers</a></li>
+                    <li style="padding-top: 0; padding-bottom: 0; display: none">
+                        <div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="carat-d" data-expanded-icon="carat-u" data-theme="b">
+                            <h3 style="margin-top: 0; margin-bottom: 0">Reports...</h3>
+                            <ul data-role="listview" data-theme="a">
+                                <li><a href="#" title="Period" class="ui-btn ui-icon-bars ui-btn-icon-left ui-mini">Period</a></li>
+                                <li><a href="#" title="Year to Date" class="ui-btn ui-icon-bars ui-btn-icon-left ui-mini">Year to Date</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li style="padding-top: 0; padding-bottom: 0">
+                        <div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="carat-d" data-expanded-icon="carat-u" data-theme="b">
+                            <h3 style="margin-top: 0; margin-bottom: 0">Settings...</h3>
+                            <ul data-role="listview" data-theme="a">
+                                <li><a href="#" title="Download" class="ui-btn ui-icon-save ui-corner-all ui-btn-icon-left ui-mini" id="btnDownload">Download</a></li>
+                                <li><a href="#" title="Configuration" class="ui-btn ui-icon-gear ui-btn-icon-left ui-mini" id="btnConfig">Configuration</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li><a href="#" title="Logout" class="ui-btn ui-icon-power ui-btn-icon-left ui-corner-all ui-mini" id="btnLogout">Logout</a></li>
             </div>
 
             <div data-role="header" data-position="fixed">
