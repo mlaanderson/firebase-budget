@@ -9,6 +9,7 @@ import Config from "./config";
 import Cash from "../models/cash";
 import "../lib/number.ext";
 import "../lib/math.ext";
+import "../lib/string.ext";
 
 class TransactonEvents {
     static Added = 'added';
@@ -253,5 +254,38 @@ export default class Transactions extends Records<Transaction> {
 
         return result;
 
+    }
+
+    private Date2Excel(value: Date | string) : string {
+        // format for excel
+        let date : Date;
+
+        if (typeof value === "string") {
+            date = Date.parseFb(value);
+        } else {
+            date = value;
+        }
+
+        return date.getFullYear().toString().padStart(4, '0') + '/' +
+            (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+            date.getDate().toString().padStart(2, '0') + ' ' + 
+            date.getHours().toString().padStart(2, '0') + ':' + 
+            date.getMinutes().toString().padStart(2, '0') + ':' +
+            date.getSeconds().toString().padStart(2, '0');
+    }
+
+    public async getCsv(start?: string, end?: string) : Promise<string> {
+        let records = this.convertToArray(await this.loadRecordsByChild('date', start, end));
+        let result = `Category,Name,Date,Amount,Memo`;
+
+        records.sort((a, b) => {
+            return Date.parseFb(a.date).getTime() - Date.parseFb(b.date).getTime();
+        });
+
+        for (let record of records) {
+            result += `\r\n"${record.category.replace('"', '""')}","${record.name.replace('"', '""')}","${this.Date2Excel(record.date)}",${record.amount},${record.note ? '"' + record.note + '"' : ""}`;
+        }
+
+        return result;
     }
 }

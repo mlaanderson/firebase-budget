@@ -29,6 +29,7 @@ import LoginDialog from "./components/logindialog";
 import HistoryChart from "./components/historychart";
 import CanvasReport from "./components/canvasreport";
 import PeriodReport from "./components/periodreport";
+import YtdReport from "./components/ytdreport";
 
 interface JQuery {
     panel(command?: string): JQuery;
@@ -45,8 +46,10 @@ class BudgetForm extends Renderer {
     private btnLogout : Button;
     private btnConfig : Button;
     private btnDownload : Button;
+    private btnDownloadAsCsv : Button;
     private btnNewRecurring : Button;
     private btnReport : Button;
+    private btnYtdReport : Button;
     private btnCash : Button;
     private btnTransfer : Button;
     private pnlMenu: Panel;
@@ -81,8 +84,10 @@ class BudgetForm extends Renderer {
             this.btnLogout = new Button('#btnLogout').on('click', this.btnLogout_onClick.bind(this));
             this.btnConfig = new Button('#btnConfig').on('click', this.btnConfig_onClick.bind(this));
             this.btnDownload = new Button('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
+            this.btnDownloadAsCsv = new Button('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
             this.btnNewRecurring = new Button('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
             this.btnReport = new Button('#btnReport').on('click', this.btnReport_onClick.bind(this));
+            this.btnYtdReport = new Button('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
             this.btnCash = new Button('#btnCash').on('click', this.btnCash_onClick.bind(this));
             this.btnTransfer = new Button('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
             this.pnlMenu = new Panel('#menu_panel');
@@ -120,78 +125,8 @@ class BudgetForm extends Renderer {
         this.gotoPeriod(start);
     }
 
-    // UI Events
-    btnSearch_onClick(e: JQueryEventObject) : void {
-        this.pnlMenu.close();
-
-        let searchForm = new SearchDialog(this.budget.Transactions);
-        searchForm.GotoPeriod = (date: string) => {
-            searchForm.close();
-            this.gotoDate(date);
-        }
-        searchForm.open();
-    }
-
-    btnToday_onClick(e: JQueryEventObject) : void {
-        e.preventDefault();
-        let { start } = this.budget.Config.calculatePeriod(Date.today());
-        this.gotoPeriod(start);
-    }
-
-    btnPrev_onClick(e: JQueryEventObject) : void {
-        e.preventDefault();
-        this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
-    }
-
-    periodMenu_onChange(e: JQueryEventObject) : void {
-        e.preventDefault();
-        this.gotoPeriod(this.periodMenu.val().toString())
-    }
-
-    btnNext_onClick(e: JQueryEventObject) : void {
-        e.preventDefault();
-        this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
-    }
-
-    btnEditTransaction_onClick(e: JQueryEventObject) : void {
-        this.transactionList.editSelected();
-    }
-
-    btnAddTransaction_onClick(e: JQueryEventObject) : void {
-        this.transactionList.addTransaction(this.periodStart);
-    }
-
-    btnLogout_onClick(e: JQueryEventObject) : void {
-        e.preventDefault();
-        this.pnlMenu.close();
-        console.log('logging out');
-        this.logout();
-    }
-
-    btnNewRecurring_onClick(e: JQueryEventObject) : void {
-        this.transactionList.addRecurring(this.periodStart);
-    }
-
-    btnConfig_onClick(e: JQueryEventObject) : void {
-        this.pnlMenu.close();
-        let configDialog = new ConfigDialog(this.budget.Config, () => {
-            this.budget.Config.write();
-        });
-        configDialog.open();
-    }
-
-    btnReport_onClick(e: JQueryEventObject) : void {
-        this.pnlMenu.close();
-        let dialog = new PeriodReport();
-        dialog.listenToTransactions(this.budget.Transactions);
-        dialog.open();
-    }
-
-    async btnDownload_onClick(e: JQueryEventObject) {
-        let backup = await this.budget.getBackup();
-        let stringData = JSON.stringify(backup);
-        let blob = new Blob([stringData], { type: 'application/json' });
-        let filename = 'budget-' + Date.today().toFbString() + '.json';
+    private download(data: any, filename: string, type: string) {
+        let blob = new Blob([data], { type: type });
 
         if (window.navigator.msSaveBlob) {
             window.navigator.msSaveBlob(blob, filename);
@@ -204,10 +139,103 @@ class BudgetForm extends Renderer {
             elem.click();
             document.body.removeChild(elem);
         }
+    }
+
+    // UI Events
+    btnSearch_onClick(e: JQuery.Event) : void {
+        this.pnlMenu.close();
+
+        let searchForm = new SearchDialog(this.budget.Transactions);
+        searchForm.GotoPeriod = (date: string) => {
+            searchForm.close();
+            this.gotoDate(date);
+        }
+        searchForm.open();
+    }
+
+    btnToday_onClick(e: JQuery.Event) : void {
+        e.preventDefault();
+        let { start } = this.budget.Config.calculatePeriod(Date.today());
+        this.gotoPeriod(start);
+    }
+
+    btnPrev_onClick(e: JQuery.Event) : void {
+        e.preventDefault();
+        this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+    }
+
+    periodMenu_onChange(e: JQuery.Event) : void {
+        e.preventDefault();
+        this.gotoPeriod(this.periodMenu.val().toString())
+    }
+
+    btnNext_onClick(e: JQuery.Event) : void {
+        e.preventDefault();
+        this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+    }
+
+    btnEditTransaction_onClick(e: JQuery.Event) : void {
+        this.transactionList.editSelected();
+    }
+
+    btnAddTransaction_onClick(e: JQuery.Event) : void {
+        this.transactionList.addTransaction(this.periodStart);
+    }
+
+    btnLogout_onClick(e: JQuery.Event) : void {
+        e.preventDefault();
+        this.pnlMenu.close();
+        console.log('logging out');
+        this.logout();
+    }
+
+    btnNewRecurring_onClick(e: JQuery.Event) : void {
+        this.transactionList.addRecurring(this.periodStart);
+    }
+
+    btnConfig_onClick(e: JQuery.Event) : void {
+        this.pnlMenu.close();
+        let configDialog = new ConfigDialog(this.budget.Config, () => {
+            this.budget.Config.write();
+        });
+        configDialog.open();
+    }
+
+    btnReport_onClick(e: JQuery.Event) : void {
+        this.pnlMenu.close();
+        let dialog = new PeriodReport();
+        dialog.listenToTransactions(this.budget.Transactions);
+        dialog.open();
+    }
+
+    btnYtdReport_onClick(e: JQuery.Event) : void {
+        this.pnlMenu.close();
+        let dialog = new YtdReport();
+        dialog.listenToTransactions(this.budget.Transactions);
+        dialog.open();
+    }
+
+    async btnDownloadAsCsv_onClick(e: JQuery.Event) {
+        let data = await this.budget.Transactions.getCsv();
+        let filename = `budget-${Date.today().toFbString()}.csv`
+
+        this.download(data, filename, 'text/csv');
+
+        this.pnlMenu.close();
+
+    }
+
+    async btnDownload_onClick(e: JQuery.Event) {
+        let backup = await this.budget.getBackup();
+        let stringData = JSON.stringify(backup);
+        let filename = 'budget-' + Date.today().toFbString() + '.json';
+
+        this.download(stringData, filename, 'application/json');
+
         this.pnlMenu.close();
     }
 
-    btnCash_onClick(e: JQueryEventObject) : void {
+    btnCash_onClick(e: JQuery.Event) : void {
         e.preventDefault();
         this.pnlMenu.close();
 
@@ -215,7 +243,7 @@ class BudgetForm extends Renderer {
         cashDialog.open();
     }
 
-    btnTransfer_onClick(e: JQueryEventObject) : void {
+    btnTransfer_onClick(e: JQuery.Event) : void {
         e.preventDefault();
         this.pnlMenu.close();
 

@@ -4,7 +4,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
     entry: './dist/viewer.js',
-    mode: 'development',
+    mode: 'production',
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'public', 'dist')

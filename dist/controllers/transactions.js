@@ -15,6 +15,7 @@ const records_1 = require("./records");
 const cash_1 = require("../models/cash");
 require("../lib/number.ext");
 require("../lib/math.ext");
+require("../lib/string.ext");
 class TransactonEvents {
 }
 TransactonEvents.Added = 'added';
@@ -237,6 +238,35 @@ class Transactions extends records_1.Records {
                     return true;
                 return false;
             });
+            return result;
+        });
+    }
+    Date2Excel(value) {
+        // format for excel
+        let date;
+        if (typeof value === "string") {
+            date = Date.parseFb(value);
+        }
+        else {
+            date = value;
+        }
+        return date.getFullYear().toString().padStart(4, '0') + '/' +
+            (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+            date.getDate().toString().padStart(2, '0') + ' ' +
+            date.getHours().toString().padStart(2, '0') + ':' +
+            date.getMinutes().toString().padStart(2, '0') + ':' +
+            date.getSeconds().toString().padStart(2, '0');
+    }
+    getCsv(start, end) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let records = this.convertToArray(yield this.loadRecordsByChild('date', start, end));
+            let result = `Category,Name,Date,Amount,Memo`;
+            records.sort((a, b) => {
+                return Date.parseFb(a.date).getTime() - Date.parseFb(b.date).getTime();
+            });
+            for (let record of records) {
+                result += `\r\n"${record.category.replace('"', '""')}","${record.name.replace('"', '""')}","${this.Date2Excel(record.date)}",${record.amount},${record.note ? '"' + record.note + '"' : ""}`;
+            }
             return result;
         });
     }

@@ -31,6 +31,7 @@ const configdialog_1 = require("./components/configdialog");
 const logindialog_1 = require("./components/logindialog");
 const historychart_1 = require("./components/historychart");
 const periodreport_1 = require("./components/periodreport");
+const ytdreport_1 = require("./components/ytdreport");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -51,8 +52,10 @@ class BudgetForm extends renderer_1.default {
             this.btnLogout = new button_1.default('#btnLogout').on('click', this.btnLogout_onClick.bind(this));
             this.btnConfig = new button_1.default('#btnConfig').on('click', this.btnConfig_onClick.bind(this));
             this.btnDownload = new button_1.default('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
+            this.btnDownloadAsCsv = new button_1.default('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
             this.btnNewRecurring = new button_1.default('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
             this.btnReport = new button_1.default('#btnReport').on('click', this.btnReport_onClick.bind(this));
+            this.btnYtdReport = new button_1.default('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
             this.btnCash = new button_1.default('#btnCash').on('click', this.btnCash_onClick.bind(this));
             this.btnTransfer = new button_1.default('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
             this.pnlMenu = new panel_1.default('#menu_panel');
@@ -80,6 +83,21 @@ class BudgetForm extends renderer_1.default {
     gotoDate(date) {
         let { start } = this.budget.Config.calculatePeriod(date);
         this.gotoPeriod(start);
+    }
+    download(data, filename, type) {
+        let blob = new Blob([data], { type: type });
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+        }
+        else {
+            let elem = window.document.createElement('a');
+            elem.href = window.URL.createObjectURL(blob);
+            elem.download = filename;
+            elem.style.display = 'none';
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
     }
     // UI Events
     btnSearch_onClick(e) {
@@ -136,24 +154,26 @@ class BudgetForm extends renderer_1.default {
         dialog.listenToTransactions(this.budget.Transactions);
         dialog.open();
     }
+    btnYtdReport_onClick(e) {
+        this.pnlMenu.close();
+        let dialog = new ytdreport_1.default();
+        dialog.listenToTransactions(this.budget.Transactions);
+        dialog.open();
+    }
+    btnDownloadAsCsv_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let data = yield this.budget.Transactions.getCsv();
+            let filename = `budget-${Date.today().toFbString()}.csv`;
+            this.download(data, filename, 'text/csv');
+            this.pnlMenu.close();
+        });
+    }
     btnDownload_onClick(e) {
         return __awaiter(this, void 0, void 0, function* () {
             let backup = yield this.budget.getBackup();
             let stringData = JSON.stringify(backup);
-            let blob = new Blob([stringData], { type: 'application/json' });
             let filename = 'budget-' + Date.today().toFbString() + '.json';
-            if (window.navigator.msSaveBlob) {
-                window.navigator.msSaveBlob(blob, filename);
-            }
-            else {
-                let elem = window.document.createElement('a');
-                elem.href = window.URL.createObjectURL(blob);
-                elem.download = filename;
-                elem.style.display = 'none';
-                document.body.appendChild(elem);
-                elem.click();
-                document.body.removeChild(elem);
-            }
+            this.download(stringData, filename, 'application/json');
             this.pnlMenu.close();
         });
     }
