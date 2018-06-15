@@ -1,0 +1,31 @@
+{
+  "name": "src",
+  "version": "1.0.0",
+  "description": "TS Source for firebase-budget",
+  "main": "../src/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "compile": "tsc",
+    "pack": "webpack-cli",
+    "build": "npm run compile && npm run pack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mlaanderson/firebase-budget/issues"
+  },
+  "homepage": "https://github.com/mlaanderson/firebase-budget#readme",
+  "dependencies": {
+    "@types/ejs": "^2.6.0",
+    "@types/firebase": "^3.2.1",
+    "@types/jquery": "^3.3.2",
+    "@types/jquerymobile": "^1.4.30"
+  },
+  "devDependencies": {
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "webpack": "^4.12.0"
+  }
+}

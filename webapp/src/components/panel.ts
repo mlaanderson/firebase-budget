@@ -1,7 +1,6 @@
 /// <reference path="../../node_modules/@types/jquery/index.d.ts" />
 /// <reference path="../../node_modules/@types/jquerymobile/index.d.ts" />
 
-
 export default class Panel {
     protected element : JQuery<HTMLElement>;
 

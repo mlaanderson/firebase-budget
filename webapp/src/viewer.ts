@@ -380,9 +380,3 @@ Object.defineProperty(window, 'viewer', {
         return m_viewer;
     }
 })
-
-Object.defineProperty(window, "MessageBox", {
-    get: () => {
-        return MessageBox;
-    }
-})

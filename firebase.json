@@ -4,5 +4,10 @@
   },
   "hosting": {
     "public": "public"
+  },
+  "functions": {
+    "predeploy": [
+      "npm --prefix \"functions\" run build"
+    ]
   }
 }
