@@ -141,23 +141,25 @@ class TransactionList extends renderer_1.default {
             this.m_element.empty();
             for (let transaction of transactions) {
                 promises.push(this.render(TEMPLATE, { item: transaction }).then((template) => {
-                    let row = $(template).data("transaction", transaction);
+                    let row = $(template);
                     this.m_element.append(row);
                 }));
             }
             Promise.all(promises).then(() => {
                 // setup the alternate row classes
-                let n = 0;
-                let category = this.m_element.children('tr').first().data('transaction').category;
-                let rows = this.m_element.children('tr').toArray();
-                for (let el of rows) {
-                    if ($(el).data('transaction').category != category) {
-                        n = 1 - n;
-                        category = $(el).data('transaction').category;
+                if (this.m_element.children('tr').length > 0) {
+                    let n = 0;
+                    let category = this.m_element.children('tr').first().attr('category');
+                    let rows = this.m_element.children('tr').toArray();
+                    for (let el of rows) {
+                        if ($(el).attr('category') != category) {
+                            n = 1 - n;
+                            category = $(el).attr('category');
+                        }
+                        $(el).addClass("row_" + n);
                     }
-                    $(el).addClass("row_" + n);
+                    ;
                 }
-                ;
                 // add the listeners
                 this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
                 this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
@@ -187,6 +189,20 @@ class TransactionList extends renderer_1.default {
                 rows.sort(this.rowSorter.bind(this));
                 // add the rows again
                 this.m_element.append(rows);
+                // setup the alternate row classes
+                if (this.m_element.children('tr').length > 0) {
+                    let n = 0;
+                    let category = this.m_element.children('tr').first().attr('category');
+                    let rows = this.m_element.children('tr').toArray();
+                    for (let el of rows) {
+                        if ($(el).attr('transaction') != category) {
+                            n = 1 - n;
+                            category = $(el).attr('category');
+                        }
+                        $(el).removeClass('row_0').removeClass('row_1').addClass("row_" + n);
+                    }
+                    ;
+                }
                 // re-add the listeners
                 this.m_element.children('tr').off().on('mouseover', this.onMouseOver.bind(this));
                 this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));

@@ -170,24 +170,26 @@ export default class TransactionList extends Renderer implements TransactionView
 
             for (let transaction of transactions) {
                 promises.push(this.render(TEMPLATE, { item: transaction }).then((template) => {
-                    let row = $(template).data("transaction", transaction);
+                    let row = $(template);
                     this.m_element.append(row);
                 }));
             }
 
             Promise.all(promises).then(() => {
                 // setup the alternate row classes
-                let n = 0;
-                let category = (this.m_element.children('tr').first().data('transaction') as Transaction).category
-                let rows = this.m_element.children('tr').toArray();
+                if (this.m_element.children('tr').length > 0) {
+                    let n = 0;
+                    let category = this.m_element.children('tr').first().attr('category');
+                    let rows = this.m_element.children('tr').toArray();
 
-                for (let el of rows) {
-                    if (($(el).data('transaction') as Transaction).category != category) {
-                        n = 1 - n;
-                        category = ($(el).data('transaction') as Transaction).category;
-                    }
-                    $(el).addClass("row_" + n);
-                };
+                    for (let el of rows) {
+                        if ($(el).attr('category') != category) {
+                            n = 1 - n;
+                            category = $(el).attr('category');
+                        }
+                        $(el).addClass("row_" + n);
+                    };
+                }
 
                 // add the listeners
                 this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
@@ -226,6 +228,21 @@ export default class TransactionList extends Renderer implements TransactionView
 
                 // add the rows again
                 this.m_element.append(rows);
+
+                // setup the alternate row classes
+                if (this.m_element.children('tr').length > 0) {
+                    let n = 0;
+                    let category = this.m_element.children('tr').first().attr('category');
+                    let rows = this.m_element.children('tr').toArray();
+
+                    for (let el of rows) {
+                        if ($(el).attr('transaction') != category) {
+                            n = 1 - n;
+                            category = $(el).attr('category');
+                        }
+                        $(el).removeClass('row_0').removeClass('row_1').addClass("row_" + n);
+                    };
+                }
 
                 // re-add the listeners
                 this.m_element.children('tr').off().on('mouseover', this.onMouseOver.bind(this));

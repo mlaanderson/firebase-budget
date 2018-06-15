@@ -64,6 +64,9 @@ class Transactions extends records_1.Records {
                 return;
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 // add the transaction to the local cache
+                if (!this.records) {
+                    this.records = {};
+                }
                 this.records[transaction.id] = transaction;
                 this.populateTransactionList();
                 this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
