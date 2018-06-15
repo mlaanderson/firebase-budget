@@ -30,6 +30,9 @@ import HistoryChart from "./components/historychart";
 import CanvasReport from "./components/canvasreport";
 import PeriodReport from "./components/periodreport";
 import YtdReport from "./components/ytdreport";
+import ForgotPasswordDialog from "./components/forgotpassworddialog";
+import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/messagebox";
+import SignUpDialog from "./components/signupdialog";
 
 interface JQuery {
     panel(command?: string): JQuery;
@@ -308,7 +311,7 @@ class BudgetForm extends Renderer {
                 
                 // show the login dialog
                 this.pnlMenu.close();
-                let loginDialog = new LoginDialog(this.login);
+                let loginDialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
                 loginDialog.open();
             } else {
                 Spinner.show();
@@ -324,6 +327,38 @@ class BudgetForm extends Renderer {
                 });
             }
         });
+    }
+
+    async sendResetEmail(username: string) { 
+        firebase.auth().sendPasswordResetEmail(username, {
+            url: `${location.origin}?email=${encodeURIComponent(username)}`
+        });
+        Spinner.hide();
+        await MessageBox.show("The password reset has been sent. Check your inbox for instructions.", "Reset Email Sent", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        let loginDialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
+        loginDialog.open();
+    }
+
+    async registerAccount(username: string, password: string) {
+        await firebase.auth().createUserWithEmailAndPassword(username, password);
+        await MessageBox.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        let dialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
+        dialog.open();
+    }
+
+    signup() {
+        $(() => {
+            console.log("creating signup dialog");
+            let dialog = new SignUpDialog(this.registerAccount.bind(this));
+            dialog.open();
+        });
+    }
+
+    resetPassword(username: string) { 
+        $(() => {
+            let dialog = new ForgotPasswordDialog(this.sendResetEmail.bind(this), username);
+            dialog.open();
+        })
     }
 
     login(username: string, password: string) {
@@ -343,5 +378,11 @@ let m_viewer = new BudgetForm();
 Object.defineProperty(window, 'viewer', {
     get: () => {
         return m_viewer;
+    }
+})
+
+Object.defineProperty(window, "MessageBox", {
+    get: () => {
+        return MessageBox;
     }
 })

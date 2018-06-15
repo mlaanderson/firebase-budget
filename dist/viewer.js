@@ -32,6 +32,9 @@ const logindialog_1 = require("./components/logindialog");
 const historychart_1 = require("./components/historychart");
 const periodreport_1 = require("./components/periodreport");
 const ytdreport_1 = require("./components/ytdreport");
+const forgotpassworddialog_1 = require("./components/forgotpassworddialog");
+const messagebox_1 = require("./components/messagebox");
+const signupdialog_1 = require("./components/signupdialog");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -240,7 +243,7 @@ class BudgetForm extends renderer_1.default {
                 }
                 // show the login dialog
                 this.pnlMenu.close();
-                let loginDialog = new logindialog_1.default(this.login);
+                let loginDialog = new logindialog_1.default(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
                 loginDialog.open();
             }
             else {
@@ -254,6 +257,38 @@ class BudgetForm extends renderer_1.default {
                     this.gotoDate(Date.today());
                 });
             }
+        });
+    }
+    sendResetEmail(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            firebase.auth().sendPasswordResetEmail(username, {
+                url: `${location.origin}?email=${encodeURIComponent(username)}`
+            });
+            spinner_1.default.hide();
+            yield messagebox_1.default.show("The password reset has been sent. Check your inbox for instructions.", "Reset Email Sent", messagebox_1.MessageBoxButtons.OK, messagebox_1.MessageBoxIcon.Information);
+            let loginDialog = new logindialog_1.default(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
+            loginDialog.open();
+        });
+    }
+    registerAccount(username, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield firebase.auth().createUserWithEmailAndPassword(username, password);
+            yield messagebox_1.default.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", messagebox_1.MessageBoxButtons.OK, messagebox_1.MessageBoxIcon.Information);
+            let dialog = new logindialog_1.default(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
+            dialog.open();
+        });
+    }
+    signup() {
+        $(() => {
+            console.log("creating signup dialog");
+            let dialog = new signupdialog_1.default(this.registerAccount.bind(this));
+            dialog.open();
+        });
+    }
+    resetPassword(username) {
+        $(() => {
+            let dialog = new forgotpassworddialog_1.default(this.sendResetEmail.bind(this), username);
+            dialog.open();
         });
     }
     login(username, password) {
@@ -270,5 +305,10 @@ let m_viewer = new BudgetForm();
 Object.defineProperty(window, 'viewer', {
     get: () => {
         return m_viewer;
+    }
+});
+Object.defineProperty(window, "MessageBox", {
+    get: () => {
+        return messagebox_1.default;
     }
 });

@@ -1,11 +1,13 @@
-<div data-role="popup" id="configEditor" data-theme="a" class="ui-corner-all">
-    <div style="padding:10px 20px">
-        <h3>Configuration</h3>
+<div data-dismissible="true" data-theme="b" class="ui-corner-all" style="min-width: 350px;">
+    <div data-role="header" role="banner" data-theme="a" class="ui-header ui-bar-a">
+        <h3>Settings</h3>
+    </div>
+    <div role="main" class="ui-content">
         <div class="ui-field-contain">
             <label for="date">Start Date</label>
-            <input type="date" id="date" value="<%= start %>">
+            <input type="date" id="date" value="<%= start %>" data-theme="a">
             <label for="period_length">Period</label>
-            <input type="text" id="period_length" value="<%= length %>">
+            <input type="text" id="period_length" value="<%= length %>" data-theme="a">
             <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
         </div>
     </div>

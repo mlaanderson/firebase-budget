@@ -35,7 +35,7 @@ export default abstract class PieReport extends CanvasReport {
         let mouseRadius = Math.sqrt(dX * dX + dY * dY);
 
         if (mouseRadius <= radius) { 
-            tooltip.css({ 'display': '', 'top': (e.offsetY + 10) + 'px', 'left': (e.offsetX + 5) + 'px' });
+            tooltip.css({ 'display': '', 'top': (e.offsetY + 30) + 'px', 'left': (e.offsetX + 25) + 'px' });
 
             let mouseAngle = Math.atan2(dY, dX) + Math.PI / 2;
             let total = 0;
@@ -106,8 +106,7 @@ export default abstract class PieReport extends CanvasReport {
             ctx.textBaseline = "middle";
 
             let title = `${Date.parseFb(this.m_start).format('MMM d, yyyy')} to ${Date.parseFb(this.m_end).format('MMM d, yyyy')}`;
-
-            ctx.fillText(title, ctx.canvas.width / 2, 15, ctx.measureText(title).width);
+            this.m_dialog.find('[data-role=header] h3').text(title);
 
             ctx.translate(ctx.canvas.width / 2, 0.8 * (ctx.canvas.height / 2));
             ctx.rotate(-Math.PI / 2);

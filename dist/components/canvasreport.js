@@ -67,8 +67,9 @@ class CanvasReport extends report_1.default {
         if (this.m_resizeTarget.valid) {
             this.m_dialog.width(this.m_resizeTarget.calculatedWidth);
             this.m_dialog.height(this.m_resizeTarget.calculatedHeight);
+            let titleHeight = this.m_dialog.find('[data-role=header]').height();
             this.canvas[0].width = this.m_dialog.innerWidth();
-            this.canvas[0].height = this.m_dialog.innerHeight();
+            this.canvas[0].height = this.m_dialog.innerHeight() - titleHeight;
             this.onPaint(this.context);
         }
         this.position();

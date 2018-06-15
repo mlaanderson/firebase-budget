@@ -11,12 +11,43 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 const spinner_1 = require("./spinner");
 class LoginDialog extends dialog_1.default {
-    constructor(login) {
+    constructor(login, reset, signup) {
         super('login_v2');
         this.login = () => __awaiter(this, void 0, void 0, function* () { });
         this.login = login;
+        this.reset = reset;
+        this.signup = signup;
+    }
+    decodeQueryString() {
+        let result = {};
+        if (location.search) {
+            let parts = location.search.split(/[\?&]/g).filter(s => s.length > 0);
+            let re = /([^=]+)(?:\=(.*))?/;
+            for (let part of parts) {
+                let [capture, key, value] = re.exec(part);
+                if (value) {
+                    value = decodeURIComponent(value);
+                }
+                else {
+                    value = null;
+                }
+                result[key] = value;
+            }
+        }
+        return result;
     }
     afterOpen() {
+        spinner_1.default.hide();
+        let query = this.decodeQueryString();
+        if ('email' in query) {
+            this.m_dialog.find('#email').val(query.email);
+        }
+        if (!this.signup) {
+            this.m_dialog.find('#createAccount').hide();
+        }
+        if (!this.reset) {
+            this.m_dialog.find('#forgotPassword').hide();
+        }
         this.m_dialog.find('#btnSignIn').on('click', () => __awaiter(this, void 0, void 0, function* () {
             let flash = this.m_dialog.find('#errors');
             function login_flash(message) {
@@ -52,6 +83,16 @@ class LoginDialog extends dialog_1.default {
             if (e.keyCode == 13) {
                 this.m_dialog.find('#btnSignIn').click();
             }
+        });
+        this.m_dialog.find('#createAccount').on('click', (e) => {
+            e.preventDefault();
+            this.close();
+            this.signup();
+        });
+        this.m_dialog.find('#forgotPassword').on('click', (e) => {
+            e.preventDefault();
+            this.reset(this.m_dialog.find('#email').val().toString());
+            this.close();
         });
     }
 }

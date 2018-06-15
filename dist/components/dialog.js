@@ -18,6 +18,8 @@ class Dialog extends renderer_1.default {
                 this.m_dialog.on('popupafterclose', this.afterClose.bind(this));
                 this.m_dialog.on('popupafteropen', () => this.m_opened = true);
                 this.m_dialog.on('popupafteropen', this.afterOpen.bind(this));
+                this.fixDateFields();
+                this.m_dialog.trigger('create');
                 this.m_rendered = true;
                 this.afterRender();
             });
@@ -36,15 +38,15 @@ class Dialog extends renderer_1.default {
             if (input.type == 'hidden')
                 return;
             input.type = 'hidden';
-            let monthSelect = $('<select>', { id: id + '-month' });
+            let monthSelect = $('<select data-theme="a">', { id: id + '-month' });
             monthSelect.append(Date.MONTHS.map((name, index) => {
                 return $('<option>', { value: index + 1, selected: (index == date.getUTCMonth()) }).text(name);
             }));
-            let daySelect = $('<select>', { id: id + '-day' });
+            let daySelect = $('<select data-theme="a">', { id: id + '-day' });
             for (let n = 1; n <= date.daysInMonth(); n++) {
                 daySelect.append($('<option>', { value: n, selected: n == date.getUTCDate() }).text(n));
             }
-            let yearSelect = $('<select>', { id: id + '-year' });
+            let yearSelect = $('<select data-theme="a">', { id: id + '-year' });
             for (let n = 2016; n <= 2100; n++) {
                 yearSelect.append($('<option>', { value: n, selected: n == date.getUTCFullYear() }).text(n));
             }
