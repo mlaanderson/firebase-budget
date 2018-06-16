@@ -1,0 +1,22 @@
+<div data-dismissible="true" data-theme="b" class="ui-corner-all" style="min-width: 300px; max-width: 600px;">
+    <div data-role="header" role="banner" data-theme="a" class="ui-header ui-bar-a">
+        <h3 class="wizardTitle"><%= title %></h3>
+    </div>
+    <div role="main" class="ui-content">
+        <div class="wizardContent" style="overflow-y: scroll; overflow-x: unset;">
+        <% for (let content of contents) { %>
+            <div>
+                <% if (content.type === 'image') { %>
+                    <img src="<%= content.data %>" style="max-width: 100%;">
+                <% } else { %>
+                    <p><%- content.data %></p>
+                <% } %>
+            </div>
+        <% } %>
+        </div>
+
+        <button <%= backDisabled ? 'style="display:none"' : '' %> type="button" class="wizardBackButton ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-arrow-l ui-btn-inline ui-mini"><%= backText %></button>
+        <button <%= nextDisabled ? 'style="display:none"' : '' %> type="button" class="wizardNextButton ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-right ui-icon-arrow-r ui-btn-inline ui-mini"><%= nextText %></button>
+    
+    </div>
+</div>

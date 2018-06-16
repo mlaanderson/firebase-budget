@@ -94,10 +94,12 @@
         <script src="amcharts/serial.js"></script>
         <script src="js/ejs.min.js"></script>
         <script src="js/ejs.ext.js"></script>
+        <script src="js/jqm.timespan.js"></script>
         <script src="dist/bundle.js"></script>
     </head>
     <body>
         <div data-role="page" id="transactions">
+            <!-- BEGIN PANEL MENU -->
             <div data-role="panel" id="menu_panel">
                 <ul data-role="listview" data-theme="a">
                     <li><a href="#" title="Search..." class="ui-btn ui-icon-search ui-btn-icon-left ui-mini" id="btnSearch">Search...</a></li>
@@ -124,9 +126,11 @@
                     </li>
                     <li><a href="#" title="Logout" class="ui-btn ui-icon-power ui-btn-icon-left ui-corner-all ui-mini" id="btnLogout">Logout</a></li>
             </div>
+            <!-- END PANEL MENU -->
 
+            <!-- BEGIN HEADER -->
             <div data-role="header" data-position="fixed">
-                <h1>&nbsp;</h1>
+                <h1>Anderson Budget</h1>
                 <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
                     <a href="#menu_panel" class="ui-btn ui-icon-bars ui-btn-icon-notext ui-corner-all" id="btnMenu" title="Menu">Menu</a>
                 </div>
@@ -135,7 +139,8 @@
                 <a href="#" title="Add" class="ui-btn ui-icon-plus ui-btn-icon-notext ui-corner-all" id="btnAddTransaction">Add</a>
                 
                 </div>
-            </div><!-- /header -->
+            </div>
+            <!-- END HEADER -->
 
             <div role="main" class="ui-content" id="main">
                 <div id="transaction_table">

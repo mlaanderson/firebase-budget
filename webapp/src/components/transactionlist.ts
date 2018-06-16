@@ -9,11 +9,10 @@ import Renderer from "./renderer";
 import TransactionViewer from "./transactionviewer"
 import Config from "../controllers/config";
 import Spinner from "./spinner";
+import ModalSpinner from "./modalspinner";
 import TransactionEditor from "./transactioneditor";
 import RecurringTransactionEditor from "./recurringtransactioneditor";
 import Transactions from "../controllers/transactions";
-import Budget from "../controllers/budget";
-import { async } from "@firebase/util";
 
 const TEMPLATE = "singletransaction";
 
@@ -149,6 +148,9 @@ export default class TransactionList extends Renderer implements TransactionView
     }
 
     displayList(transactions: Array<Transaction>, total?: number) {
+        transactions = transactions.slice();
+        transactions.sort(this.sorter.bind(this));
+        
         $(() => {
             // prevent races between the constructor and this method
             if (!this.m_element) {
@@ -200,7 +202,7 @@ export default class TransactionList extends Renderer implements TransactionView
 
                 this.window_onResize();
                 // hide the spinner
-                Spinner.hide();
+                ModalSpinner.hide();
             });
         });
     }

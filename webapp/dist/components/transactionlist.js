@@ -12,6 +12,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const renderer_1 = require("./renderer");
 const spinner_1 = require("./spinner");
+const modalspinner_1 = require("./modalspinner");
 const transactioneditor_1 = require("./transactioneditor");
 const recurringtransactioneditor_1 = require("./recurringtransactioneditor");
 const TEMPLATE = "singletransaction";
@@ -125,6 +126,8 @@ class TransactionList extends renderer_1.default {
         this.displayList(list, total);
     }
     displayList(transactions, total) {
+        transactions = transactions.slice();
+        transactions.sort(this.sorter.bind(this));
         $(() => {
             // prevent races between the constructor and this method
             if (!this.m_element) {
@@ -168,7 +171,7 @@ class TransactionList extends renderer_1.default {
                 this.m_element.find('.recurring').on('click', this.onRecurringClick.bind(this));
                 this.window_onResize();
                 // hide the spinner
-                spinner_1.default.hide();
+                modalspinner_1.default.hide();
             });
         });
     }

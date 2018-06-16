@@ -2,14 +2,17 @@
   "name": "src",
   "version": "1.0.0",
   "description": "TS Source for firebase-budget",
-  "main": "../src/index.js",
+  "main": "./src/index.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
     "compile": "tsc",
     "pack": "webpack-cli",
-    "build": "npm run compile && npm run pack"
+    "productionpack": "webpack-cli --mode production",
+    "clean": "del /F /S /Q dist",
+    "build": "npm run compile && npm run pack",
+    "release": "npm run clean && npm run compile && npm run productionpack"
   },
   "keywords": [],
   "author": "",

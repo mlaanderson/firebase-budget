@@ -17,7 +17,7 @@ import Renderer from "./components/renderer";
 import TransactionList from "./components/transactionlist";
 import Previewer from "./components/previewer";
 import Spinner from "./components/spinner";
-import { RecordMap } from "./models/record";
+import ModalSpinner from "./components/modalspinner";
 import Transaction from "./models/transaction";
 import SearchDialog from "./components/searchdialog";
 import RecurringTransaction from "./models/recurringtransaction";
@@ -27,16 +27,14 @@ import TransferDialog from "./components/transferdialog";
 import ConfigDialog from "./components/configdialog";
 import LoginDialog from "./components/logindialog";
 import HistoryChart from "./components/historychart";
-import CanvasReport from "./components/canvasreport";
 import PeriodReport from "./components/periodreport";
 import YtdReport from "./components/ytdreport";
 import ForgotPasswordDialog from "./components/forgotpassworddialog";
 import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/messagebox";
 import SignUpDialog from "./components/signupdialog";
+import { ConfigurationData } from "./controllers/config";
+import ShowIntroWizard from "./introwizard";
 
-interface JQuery {
-    panel(command?: string): JQuery;
-}
 
 class BudgetForm extends Renderer {
     private btnSearch : Button;
@@ -102,6 +100,14 @@ class BudgetForm extends Renderer {
 
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
+
+        // try to bind the ctrl/command + f
+        $(document).on('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key == 'f'|| e.key == 'F')) {
+                e.preventDefault();
+                this.btnSearch.click();
+            }
+        });
     }
 
     private gotoPeriod(period: string | Date | Timespan) {
@@ -118,7 +124,7 @@ class BudgetForm extends Renderer {
         this.periodMenu.val(this.periodStart);
         this.periodMenu.refresh();
 
-        document.title = `${period.format("MMM d")} - ${end.format("MMM d")}`;
+        $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
 
         this.budget.gotoDate(this.periodStart);
     }
@@ -188,7 +194,6 @@ class BudgetForm extends Renderer {
     btnLogout_onClick(e: JQuery.Event) : void {
         e.preventDefault();
         this.pnlMenu.close();
-        console.log('logging out');
         this.logout();
     }
 
@@ -259,7 +264,7 @@ class BudgetForm extends Renderer {
         let previewTransactions = await this.budget.Transactions.getSame(transaction);
 
         if (previewTransactions != null) {
-            this.previewer.displayList(previewTransactions);
+            this.previewer.setTransaction(transaction);
         }
 
         return previewTransactions || [];
@@ -276,7 +281,7 @@ class BudgetForm extends Renderer {
         this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.Transactions.remove(key); }
 
         this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
-        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { console.log("saving", transaction); return this.budget.Recurrings.save(transaction); }
+        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.Recurrings.save(transaction); }
         this.transactionList.DeleteRecurring = (key: string) => { return this.budget.Recurrings.remove(key); }
 
 
@@ -303,7 +308,7 @@ class BudgetForm extends Renderer {
 
     // Authorization
     firebase_onAuthStateChanged(user: firebase.User) {
-        $(() => {
+        $(async () => {
             if (user === null) {
                 this.budget = null
                 Spinner.hide();
@@ -314,7 +319,17 @@ class BudgetForm extends Renderer {
                 let loginDialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
                 loginDialog.open();
             } else {
-                Spinner.show();
+                ModalSpinner.show();
+
+                let config = (await firebase.database().ref(user.uid).child('config').once('value')).val() as ConfigurationData;
+
+                if (config === null || config.showWizard == true) {
+                    // not yet initilized or need to see the wizard
+                    ModalSpinner.hide();
+                    await ShowIntroWizard();
+                    ModalSpinner.show();
+                }
+
                 this.budget = new Budget(firebase.database().ref(user.uid));
 
                 this.budget.on('config_read', this.config_onRead.bind(this));
@@ -348,7 +363,6 @@ class BudgetForm extends Renderer {
 
     signup() {
         $(() => {
-            console.log("creating signup dialog");
             let dialog = new SignUpDialog(this.registerAccount.bind(this));
             dialog.open();
         });
@@ -380,3 +394,11 @@ Object.defineProperty(window, 'viewer', {
         return m_viewer;
     }
 })
+
+Object.defineProperty(window, 'ShowIntroWizard', {
+    get: () => {
+        return ShowIntroWizard;
+    }
+});
+
+(e: JQuery.Event) => {}

@@ -4,10 +4,47 @@ if (!String.prototype.startsWith) {
         return (this.slice(position, searchString.length) === searchString);
     };
 }
+/** Date extensions */
+var WeekDays;
+(function (WeekDays) {
+    WeekDays[WeekDays["Sunday"] = 0] = "Sunday";
+    WeekDays[WeekDays["Monday"] = 1] = "Monday";
+    WeekDays[WeekDays["Tuesday"] = 2] = "Tuesday";
+    WeekDays[WeekDays["Wednesday"] = 3] = "Wednesday";
+    WeekDays[WeekDays["Thursday"] = 4] = "Thursday";
+    WeekDays[WeekDays["Friday"] = 5] = "Friday";
+    WeekDays[WeekDays["Saturday"] = 6] = "Saturday";
+})(WeekDays || (WeekDays = {}));
+;
 Date.DAYSOFWEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 Date.ABBRDAYSOFWEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 Date.MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 Date.ABBRMONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+Date.WeekDays = WeekDays;
+Date.next = function (dayOfWeek) {
+    if (typeof dayOfWeek === "string") {
+        dayOfWeek = WeekDays[dayOfWeek];
+    }
+    if (dayOfWeek < 0 || 7 < dayOfWeek)
+        throw "Invalid day of the week";
+    let result = Date.today();
+    while (result.getUTCDay() != dayOfWeek) {
+        result = result.add('1 day');
+    }
+    return result;
+};
+Date.previous = function (dayOfWeek) {
+    if (typeof dayOfWeek === "string") {
+        dayOfWeek = WeekDays[dayOfWeek];
+    }
+    if (dayOfWeek < 0 || 7 < dayOfWeek)
+        throw "Invalid day of the week";
+    let result = Date.today();
+    while (result.getUTCDay() != dayOfWeek) {
+        result = result.subtract('1 day');
+    }
+    return result;
+};
 Date.today = function () {
     var d = new Date(Date.now());
     return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
@@ -179,6 +216,7 @@ class Timespan {
         }
     }
 }
+Date.Timespan = Timespan;
 Date.prototype.toFbString = function () {
     return this.getUTCFullYear() + "-" + (this.getUTCMonth() < 9 ? "0" +
         (this.getUTCMonth() + 1) : this.getUTCMonth() + 1) + "-" +

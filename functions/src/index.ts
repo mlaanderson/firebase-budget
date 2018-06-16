@@ -27,10 +27,10 @@ async function setupUser(user: admin.auth.UserRecord, context: functions.EventCo
     let userRef = admin.database().ref(uid);
     
     await userRef.set({
-        showWizard: true,
         name: 'Live',
         email: user.email,
         config: {
+            showWizard: true,
             categories: ['Income', 'Charity', 'Saving', 'Housing', 'Utilities', 'Food', 'Clothing', 'Transportation', 'Medical', 'Personal', 'Education', 'Recreation', 'Debt'],
             periods : {
                 start: formatDate(today()),

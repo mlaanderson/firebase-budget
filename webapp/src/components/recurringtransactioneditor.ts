@@ -1,6 +1,6 @@
 import Dialog from "./dialog";
 import RecurringTransaction from "../models/recurringtransaction";
-
+import "../lib/jquery.ext";
 
 export default class RecurringTransactionEditor extends Dialog {
     private transaction: RecurringTransaction;
@@ -17,6 +17,9 @@ export default class RecurringTransactionEditor extends Dialog {
     }
 
     protected afterOpen() {
+        this.m_dialog.find('#period').on('validity', (e: JQuery.Event) => {
+            this.m_dialog.find('#btnSave').attr('disabled', !this.m_dialog.find('#period').timespan('valid'));
+        });
         // wire up the close button
         this.m_dialog.find('#btnSave').on('click', async () => {
             let isDeposit = $("#type").prop('checked') as boolean;

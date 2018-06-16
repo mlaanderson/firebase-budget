@@ -8,9 +8,12 @@ export default class Spinner {
         });
     }
 
-    show() {
+    show(text?: string) {
         $(() => {
-            $.mobile.loading('show');
+            $.mobile.loading('show', {
+                text: text || "",
+                textVisible: !!text
+            });
         });
     }
 
@@ -22,9 +25,9 @@ export default class Spinner {
 
     private static staticSpinner: Spinner;
 
-    static show() {
+    static show(text?: string) {
         if (!Spinner.staticSpinner) Spinner.staticSpinner = new Spinner();
-        Spinner.staticSpinner.show();
+        Spinner.staticSpinner.show(text);
     }
 
     static hide() {

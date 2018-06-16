@@ -35,6 +35,7 @@ class SearchDialog extends dialog_1.default {
             if (searchTextBox.val() == '')
                 return;
             let results = yield this.transactions.search(searchTextBox.val());
+            results = results.slice();
             results.sort((a, b) => {
                 return Date.parseFb(a.date).getTime() - Date.parseFb(b.date).getTime();
             });

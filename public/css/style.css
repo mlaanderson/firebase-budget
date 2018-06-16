@@ -46,6 +46,10 @@ body { background-color: #e9e9e9; }
     margin: 0 10px !important;
 }
 
+.ui-timespan-invalid {
+    background: url('/images/underline.gif') bottom repeat-x !important;
+}
+
 /* Most desktops */
 @media only screen and (min-device-width: 1281px) {
     #btnEditTransaction {

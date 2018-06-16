@@ -8,7 +8,8 @@ interface ConfigurationPeriod {
     start: string;
 }
 
-interface ConfigurationData {
+export interface ConfigurationData {
+    showWizard?: boolean;
     categories: Array<string>;
     periods: ConfigurationPeriod;
 }

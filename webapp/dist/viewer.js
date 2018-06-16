@@ -23,6 +23,7 @@ const renderer_1 = require("./components/renderer");
 const transactionlist_1 = require("./components/transactionlist");
 const previewer_1 = require("./components/previewer");
 const spinner_1 = require("./components/spinner");
+const modalspinner_1 = require("./components/modalspinner");
 const searchdialog_1 = require("./components/searchdialog");
 const panel_1 = require("./components/panel");
 const cashdialog_1 = require("./components/cashdialog");
@@ -35,6 +36,7 @@ const ytdreport_1 = require("./components/ytdreport");
 const forgotpassworddialog_1 = require("./components/forgotpassworddialog");
 const messagebox_1 = require("./components/messagebox");
 const signupdialog_1 = require("./components/signupdialog");
+const introwizard_1 = require("./introwizard");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -67,6 +69,13 @@ class BudgetForm extends renderer_1.default {
             this.previewer.GotoTransaction = this.gotoDate.bind(this);
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
+        // try to bind the ctrl/command + f
+        $(document).on('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key == 'f' || e.key == 'F')) {
+                e.preventDefault();
+                this.btnSearch.click();
+            }
+        });
     }
     gotoPeriod(period) {
         if (typeof period == "string") {
@@ -80,7 +89,7 @@ class BudgetForm extends renderer_1.default {
         this.periodEnd = end.toFbString();
         this.periodMenu.val(this.periodStart);
         this.periodMenu.refresh();
-        document.title = `${period.format("MMM d")} - ${end.format("MMM d")}`;
+        $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
         this.budget.gotoDate(this.periodStart);
     }
     gotoDate(date) {
@@ -138,7 +147,6 @@ class BudgetForm extends renderer_1.default {
     btnLogout_onClick(e) {
         e.preventDefault();
         this.pnlMenu.close();
-        console.log('logging out');
         this.logout();
     }
     btnNewRecurring_onClick(e) {
@@ -197,7 +205,7 @@ class BudgetForm extends renderer_1.default {
             let transaction = yield this.budget.Transactions.load(id);
             let previewTransactions = yield this.budget.Transactions.getSame(transaction);
             if (previewTransactions != null) {
-                this.previewer.displayList(previewTransactions);
+                this.previewer.setTransaction(transaction);
             }
             return previewTransactions || [];
         });
@@ -211,7 +219,7 @@ class BudgetForm extends renderer_1.default {
         this.transactionList.SaveTransaction = (transaction) => { return this.budget.Transactions.save(transaction); };
         this.transactionList.DeleteTransaction = (key) => __awaiter(this, void 0, void 0, function* () { return this.budget.Transactions.remove(key); });
         this.transactionList.LoadRecurring = (key) => { return this.budget.Recurrings.load(key); };
-        this.transactionList.SaveRecurring = (transaction) => { console.log("saving", transaction); return this.budget.Recurrings.save(transaction); };
+        this.transactionList.SaveRecurring = (transaction) => { return this.budget.Recurrings.save(transaction); };
         this.transactionList.DeleteRecurring = (key) => { return this.budget.Recurrings.remove(key); };
         for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
             let label = date.format("MMM d") + " - " + date.add(this.budget.Config.length).subtract("1 day").format("MMM d, yyyy");
@@ -234,7 +242,7 @@ class BudgetForm extends renderer_1.default {
     }
     // Authorization
     firebase_onAuthStateChanged(user) {
-        $(() => {
+        $(() => __awaiter(this, void 0, void 0, function* () {
             if (user === null) {
                 this.budget = null;
                 spinner_1.default.hide();
@@ -247,7 +255,14 @@ class BudgetForm extends renderer_1.default {
                 loginDialog.open();
             }
             else {
-                spinner_1.default.show();
+                modalspinner_1.default.show();
+                let config = (yield firebase.database().ref(user.uid).child('config').once('value')).val();
+                if (config === null || config.showWizard == true) {
+                    // not yet initilized or need to see the wizard
+                    modalspinner_1.default.hide();
+                    yield introwizard_1.default();
+                    modalspinner_1.default.show();
+                }
                 this.budget = new budget_1.default(firebase.database().ref(user.uid));
                 this.budget.on('config_read', this.config_onRead.bind(this));
                 this.budget.ready().then(() => {
@@ -257,7 +272,7 @@ class BudgetForm extends renderer_1.default {
                     this.gotoDate(Date.today());
                 });
             }
-        });
+        }));
     }
     sendResetEmail(username) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -280,7 +295,6 @@ class BudgetForm extends renderer_1.default {
     }
     signup() {
         $(() => {
-            console.log("creating signup dialog");
             let dialog = new signupdialog_1.default(this.registerAccount.bind(this));
             dialog.open();
         });
@@ -307,3 +321,9 @@ Object.defineProperty(window, 'viewer', {
         return m_viewer;
     }
 });
+Object.defineProperty(window, 'ShowIntroWizard', {
+    get: () => {
+        return introwizard_1.default;
+    }
+});
+(e) => { };

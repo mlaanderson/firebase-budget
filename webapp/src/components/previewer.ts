@@ -51,6 +51,10 @@ export default class Previewer extends Renderer implements TransactionViewer {
     }
 
     displayList(transactions: Array<Transaction>) {
+        transactions = transactions.slice();
+        transactions.sort((a, b) => {
+            return Date.parseFb(a.date).getTime() - Date.parseFb(b.date).getTime();
+        });
         this.render(TEMPLATE, { items: transactions, title: transactions.length > 0 ? transactions[0].name : "" }).then((template) => {
             this.m_element.empty().append($(template));
             this.m_element.find('tr').on('click', this.handleItemClick.bind(this));
@@ -74,9 +78,9 @@ export default class Previewer extends Renderer implements TransactionViewer {
                 this.m_element.find(`tr[item=${transaction.id}] td.in_date`).text(Date.parseFb(transaction.date).format('MMM d, yyyy'));
                 this.m_element.find(`tr[item=${transaction.id}] td.in_amount`).text(transaction.amount.toCurrency());
             } else {
-                let row = $(`<tr id="info_${transaction.id}" item="${transaction.id}">
-                    <td class="in_date">${ Date.parseFb(transaction.date).format("MMM d, yyyy") }</td>
-                    <td class="in_amount">${ transaction.amount.toCurrency() }</td>
+                let row = $(`<tr id="info_${ transaction.id }" item="${ transaction.id }" name="${ transaction.name }" category="${ transaction.category }">
+                    <td class="in_date" value="${ transaction.date }">${ Date.parseFb(transaction.date).format("MMM d, yyyy") }</td>
+                    <td class="in_amount" value="${ transaction.amount }">${ transaction.amount.toCurrency() }</td>
                     </tr>`);
                 
                 row.on('click', this.handleItemClick.bind(this));
@@ -91,16 +95,15 @@ export default class Previewer extends Renderer implements TransactionViewer {
             }
         }
 
-        let rows = this.m_element.find('tbody tr').toArray();
-        rows.sort(previewSorter);
-        this.m_element.find('tbody').empty().append(rows);
-
-
-
+        let rows = this.m_element.find('tbody').first().children('tr').toArray();
         let total = 0;
         for (let row of rows) {
             total += parseFloat($(row).children('.in_amount').attr('value') || '0');
         }
+
+        rows.sort(previewSorter);
+        this.m_element.find('tbody').empty();
+        this.m_element.find('tbody').append(rows);
 
         this.m_element.find('.info_total').text(`${ total.toCurrency() }`);
     }

@@ -8,9 +8,12 @@ class Spinner {
             $.mobile.loading();
         });
     }
-    show() {
+    show(text) {
         $(() => {
-            $.mobile.loading('show');
+            $.mobile.loading('show', {
+                text: text || "",
+                textVisible: !!text
+            });
         });
     }
     hide() {
@@ -18,10 +21,10 @@ class Spinner {
             $.mobile.loading('hide');
         });
     }
-    static show() {
+    static show(text) {
         if (!Spinner.staticSpinner)
             Spinner.staticSpinner = new Spinner();
-        Spinner.staticSpinner.show();
+        Spinner.staticSpinner.show(text);
     }
     static hide() {
         if (!Spinner.staticSpinner)

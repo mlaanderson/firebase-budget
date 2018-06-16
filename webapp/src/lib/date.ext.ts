@@ -11,23 +11,71 @@ if (!String.prototype.startsWith) {
 }
 
 /** Date extensions */
+
+enum WeekDays {
+    Sunday = 0,
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday
+};
+
+type WeekDayValue =  number | "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+
 interface DateConstructor {
     today: () => Date;
     parseFb: (value: string) => Date;
     max: (d1 : Date, d2: Date) => Date;
     min: (d1: Date, d2: Date) => Date;
     periodCalc: (start : string, length: string | number) => Date;
+    next: (dayOfWeek: number | string) => Date;
+    previous: (dayOfWeek: number | string) => Date;
 
     DAYSOFWEEK : Array<string>;
     ABBRDAYSOFWEEK : Array<string>;
     MONTHS : Array<string>;
     ABBRMONTHS : Array<string>;
+    WeekDays : typeof WeekDays;
+    Timespan : typeof Timespan;
 }
 
 Date.DAYSOFWEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 Date.ABBRDAYSOFWEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 Date.MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 Date.ABBRMONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+Date.WeekDays = WeekDays;
+
+Date.next = function(dayOfWeek: WeekDayValue) : Date {
+    if (typeof dayOfWeek === "string") {
+        dayOfWeek = WeekDays[dayOfWeek] as number;
+    }
+
+    if (dayOfWeek < 0 || 7 < dayOfWeek) throw "Invalid day of the week";
+
+    let result = Date.today();
+    while (result.getUTCDay() != dayOfWeek) {
+        result = result.add('1 day');
+    }
+
+    return result;
+}
+
+Date.previous = function(dayOfWeek: WeekDayValue) : Date {
+    if (typeof dayOfWeek === "string") {
+        dayOfWeek = WeekDays[dayOfWeek] as number;
+    }
+
+    if (dayOfWeek < 0 || 7 < dayOfWeek) throw "Invalid day of the week";
+
+    let result = Date.today();
+    while (result.getUTCDay() != dayOfWeek) {
+        result = result.subtract('1 day') as Date;
+    }
+
+    return result;
+}
 
 Date.today = function() : Date {
     var d = new Date(Date.now());
@@ -247,6 +295,7 @@ class Timespan {
         }
     }
 }
+Date.Timespan = Timespan;
 
 
 /** Date.prototype Extensions */

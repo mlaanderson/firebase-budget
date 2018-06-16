@@ -1,7 +1,8 @@
 "use strict";
 /// <reference path="../ejs.d.ts" />
 Object.defineProperty(exports, "__esModule", { value: true });
-class Renderer {
+const events_1 = require("../controllers/events");
+class Renderer extends events_1.default {
     render(filename, data) {
         return new Promise((resolve, reject) => {
             data = data || {};
