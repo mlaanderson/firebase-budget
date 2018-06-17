@@ -316,14 +316,8 @@ class BudgetForm extends renderer_1.default {
     }
 }
 let m_viewer = new BudgetForm();
-Object.defineProperty(window, 'viewer', {
-    get: () => {
-        return m_viewer;
-    }
-});
-Object.defineProperty(window, 'ShowIntroWizard', {
-    get: () => {
-        return introwizard_1.default;
-    }
-});
-(e) => { };
+// Object.defineProperty(window, 'viewer', {
+//     get: () => {
+//         return m_viewer;
+//     }
+// });

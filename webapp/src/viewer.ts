@@ -389,16 +389,8 @@ class BudgetForm extends Renderer {
 
 let m_viewer = new BudgetForm();
 
-Object.defineProperty(window, 'viewer', {
-    get: () => {
-        return m_viewer;
-    }
-})
-
-Object.defineProperty(window, 'ShowIntroWizard', {
-    get: () => {
-        return ShowIntroWizard;
-    }
-});
-
-(e: JQuery.Event) => {}
+// Object.defineProperty(window, 'viewer', {
+//     get: () => {
+//         return m_viewer;
+//     }
+// });

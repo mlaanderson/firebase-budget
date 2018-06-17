@@ -75,7 +75,8 @@ class Timespan {
             this.m_time = {
                 millis: value,
                 months: 0,
-                years: 0
+                years: 0,
+                days: null
             };
         }
         else {
@@ -127,6 +128,9 @@ class Timespan {
     get TotalWeeks() {
         return this.getTotalDays() / 7.0;
     }
+    get Days() {
+        return this.m_time.days ? this.m_time.days.slice() : null;
+    }
     toString() {
         var result = "";
         var wks = Math.floor(this.getTotalWeeks());
@@ -157,18 +161,34 @@ class Timespan {
     }
     static parse(value) {
         var re_phrase = /(\d+(?:\.\d+)?)\s*(year|yr|month|week|wk|day|dy|hour|hr|min|minute|second|sec)s?/gi;
+        var re_month_days = /^\s*(\d+)(?:st|nd|rd|th)?\s+(?:(?:and|&)\s+)?(\d+)(?:st|nd|rd|th)?\s*$/;
         var re_time = /^(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$/;
         if (re_time.test(value) == true) {
             var groups = re_time.exec(value);
             if (groups === null)
-                return { millis: 0, months: 0, years: 0 };
+                return { millis: 0, months: 0, years: 0, days: null };
             var hours = parseFloat(groups[1]);
             var minutes = parseFloat(groups[2]);
             var seconds = parseFloat(groups[3]);
             return {
                 millis: seconds * 1000 + minutes * 60 * 1000 + hours * 3600 * 1000,
                 months: 0,
-                years: 0
+                years: 0,
+                days: null
+            };
+        }
+        else if (re_month_days.test(value) == true) {
+            // this selects certain days of the month...limited to 2 for now
+            var groups = re_month_days.exec(value);
+            if (groups === null)
+                return { millis: 0, months: 0, years: 0, days: null };
+            var first = parseInt(groups[1]);
+            var last = parseInt(groups[2]);
+            return {
+                millis: 0,
+                months: 0,
+                years: 0,
+                days: [first, last]
             };
         }
         else {
@@ -212,7 +232,7 @@ class Timespan {
                         break;
                 }
             }
-            return { millis: sum, months: months, years: years };
+            return { millis: sum, months: months, years: years, days: null };
         }
     }
 }
@@ -229,6 +249,23 @@ Date.prototype.add = function (value) {
     }
     if (typeof value === 'number') {
         value = new Timespan(value);
+    }
+    if (value.Days) {
+        // handle a list of month days
+        var dResult = new Date(this.getTime()).add('1 day');
+        var match = false;
+        do {
+            if (value.Days.indexOf(dResult.getUTCDate()) >= 0) {
+                match = true;
+            }
+            else if (dResult.getUTCDate() === dResult.daysInMonth() && value.Days.find(d => d > dResult.getUTCDate())) {
+                match = true;
+            }
+            else {
+                dResult = dResult.add('1 day');
+            }
+        } while (match === false);
+        return dResult;
     }
     var result = new Date(value.getTimeStruct().millis + this.getTime());
     if (value.getTimeStruct().years != 0) {
@@ -253,6 +290,23 @@ Date.prototype.subtract = function (value) {
     }
     if (value instanceof Date) {
         return new Timespan(this.getTime() - value.getTime());
+    }
+    if (value.Days) {
+        // handle a list of month days
+        var dResult = new Date(this.getTime()).subtract('1 day');
+        var match = false;
+        do {
+            if (value.Days.indexOf(dResult.getUTCDate()) >= 0) {
+                match = true;
+            }
+            else if (dResult.getUTCDate() === dResult.daysInMonth() && value.Days.find(d => d > dResult.getUTCDate())) {
+                match = true;
+            }
+            else {
+                dResult = dResult.subtract('1 day');
+            }
+        } while (match === false);
+        return dResult;
     }
     var result = new Date(this.getTime() - value.getTimeStruct().millis);
     if (value.getTimeStruct().years != 0) {
