@@ -36,5 +36,5 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
-# test.js which can contain login
+# test.js file which may have login info
 test.js

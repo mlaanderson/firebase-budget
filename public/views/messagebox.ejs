@@ -1,0 +1,14 @@
+<div data-role="popup" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="min-width: 300px" class="ui-popup ui-body-b ui-overlay-shadow ui-corner-all">
+    <div data-role="header" role="banner" data-theme="a" class="ui-header ui-bar-a">
+        <a href="#" class="ui-btn <%= icon %> ui-btn-icon-notext ui-corner-all">icon_holder</a>
+        <h3 class="ui-icon-info-circle"><%= caption %></h3>
+    </div>
+    <div role="main" class="ui-content">
+        <p><%= text %></p>
+        <div class="button-holder">
+            <% for (let button of buttons) { %>
+            <button type="button" data-inline="true" result="<%= button.result %>" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b"><%= button.text %></button>
+            <% } %>
+        </div>
+    </div>
+</div>

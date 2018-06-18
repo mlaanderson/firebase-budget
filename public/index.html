@@ -94,39 +94,91 @@
         <script src="amcharts/serial.js"></script>
         <script src="js/ejs.min.js"></script>
         <script src="js/ejs.ext.js"></script>
+        <script src="js/jqm.timespan.js"></script>
         <script src="dist/bundle.js"></script>
     </head>
     <body>
         <div data-role="page" id="transactions">
+            <!-- BEGIN PANEL MENU -->
+            <div data-role="panel" id="menu_panel">
+                <ul data-role="listview" data-theme="a">
+                    <li><a href="#" title="Search..." class="ui-btn ui-icon-search ui-btn-icon-left ui-mini" id="btnSearch">Search...</a></li>
+                    <li><a href="#" title="Cash" class="ui-btn ui-icon-money ui-corner-all ui-btn-icon-left ui-mini" id="btnCash">Cash</a></li>
+                    <li><a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-corner-all ui-btn-icon-left ui-mini" id="btnTransfer">Transfers</a></li>
+                    <li data-role="list-divider"></li>
+                    <li><a href="#" title="Undo" class="ui-btn ui-icon-back ui-corner-all ui-btn-icon-left ui-mini" id="btnUndo">Undo</a></li>
+                    <li><a href="#" title="Redo" class="ui-btn ui-icon-forward ui-corner-all ui-btn-icon-left ui-mini" id="btnRedo">Redo</a></li>
+                    <li style="padding-top: 0; padding-bottom: 0">
+                        <div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="carat-d" data-expanded-icon="carat-u" data-theme="b">
+                            <h3 style="margin-top: 0; margin-bottom: 0">Reports...</h3>
+                            <ul data-role="listview" data-theme="a">
+                                <li><a id="btnReport" href="#" title="Period" class="ui-btn ui-icon-bars ui-btn-icon-left ui-mini">Period</a></li>
+                                <li><a id="btnYtdReport" href="#" title="Year to Date" class="ui-btn ui-icon-bars ui-btn-icon-left ui-mini">Year to Date</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li style="padding-top: 0; padding-bottom: 0">
+                        <div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="carat-d" data-expanded-icon="carat-u" data-theme="b">
+                            <h3 style="margin-top: 0; margin-bottom: 0">Settings...</h3>
+                            <ul data-role="listview" data-theme="a">
+                                <li><a href="#" title="Download" class="ui-btn ui-icon-save ui-corner-all ui-btn-icon-left ui-mini" id="btnDownload">Download</a></li>
+                                <li><a href="#" title="Download as CSV" class="ui-btn ui-icon-save ui-corner-all ui-btn-icon-left ui-mini" id="btnDownloadAsCsv">Download Spreadsheet</a></li>
+                                <li><a href="#" title="Configuration" class="ui-btn ui-icon-gear ui-btn-icon-left ui-mini" id="btnConfig">Configuration</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li><a href="#" title="Logout" class="ui-btn ui-icon-power ui-btn-icon-left ui-corner-all ui-mini" id="btnLogout">Logout</a></li>
+            </div>
+            <!-- END PANEL MENU -->
+
+            <!-- BEGIN HEADER -->
             <div data-role="header" data-position="fixed">
-                <h1>&nbsp;</h1>
+                <h1>Anderson Budget</h1>
                 <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
-                    <a href="#" title="Today" class="ui-btn ui-icon-clock ui-btn-icon-notext ui-corner-all" id="btnToday">Today</a>
-                    <a href="#" title="Previous Period" class="ui-btn ui-icon-arrow-l ui-btn-icon-notext ui-corner-all" id="btnPrev">Prev</a>
-                    <select id="periodMenu" data-icon="calendar"></select>
-                    <a href="#" title="Next Period" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnNext">Next</a>
+                    <a href="#menu_panel" class="ui-btn ui-icon-bars ui-btn-icon-notext ui-corner-all" id="btnMenu" title="Menu">Menu</a>
                 </div>
                 <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
                 <a href="#" title="Edit" class="ui-btn ui-icon-edit ui-btn-icon-notext ui-corner-all" id="btnEditTransaction">Edit</a>
                 <a href="#" title="Add" class="ui-btn ui-icon-plus ui-btn-icon-notext ui-corner-all" id="btnAddTransaction">Add</a>
                 
                 </div>
-            </div><!-- /header -->
+            </div>
+            <!-- END HEADER -->
 
-            <div role="main" class="ui-content" id="main"></div>
+            <div role="main" class="ui-content" id="main">
+                <div id="transaction_table">
+                    <table class="ui-responsive table-stroke" style="width: 100%" id="tblTransactions">
+                        <thead>
+                            <tr>
+                                <th class="trDate" data-priority="1">Date</th>
+                                <th class="trCategory" data-priority="2">Category</th>
+                                <th class="trName" data-priority="3">Name</th>
+                                <th class="trAmount" data-priority="4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                            <th class="trTotal" id="total_calc" colspan="4"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    </div>
+                    <div class="info_div">
+                </div>
+            </div>
 
             <div data-role="footer" data-position="fixed">
                 <h4>&nbsp;</h4>
                 <div class="ui-btn-left" data-role="controlgroup" data-type="horizontal" data-mini="true">
-                    <a href="#" class="ui-btn ui-icon-power ui-btn-icon-notext ui-corner-all" id="btnLogout" title="Logout">Logout</a>
+                        <a href="#" title="Today" class="ui-btn ui-icon-clock ui-btn-icon-notext ui-corner-all" id="btnToday">Today</a>
+                        <a href="#" title="Previous Period" class="ui-btn ui-icon-arrow-l ui-btn-icon-notext ui-corner-all" id="btnPrev">Prev</a>
+                        <select id="periodMenu" data-icon="calendar"></select>
+                        <a href="#" title="Next Period" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnNext">Next</a>
                 </div>
                 <div class="ui-btn-right" data-role="controlgroup" data-theme="b" data-type="horizontal" data-mini="true">
-                    <a href="#" title="Config" class="ui-btn ui-icon-gear ui-btn-icon-notext ui-corner-all" id="btnConfig">Config</a>
-                    <a href="#" title="Download" class="ui-btn ui-icon-save ui-btn-icon-notext ui-corner-all" id="btnDownload">Download</a>
                     <a href="#" title="New Recurring Transaction" class="ui-btn ui-icon-rotate-right ui-btn-icon-notext ui-corner-all" id="btnNewRecurring">New Recurring</a>
-                    <a href="#" title="Spending Graph" class="ui-btn ui-icon-bars ui-btn-icon-notext ui-corner-all" id="btnReport">Report</a>
-                    <a href="#" title="Cash" class="ui-btn ui-icon-money ui-btn-icon-notext ui-corner-all" id="btnCash">Cash</a>
-                    <a href="#" title="Transfer to Savings" class="ui-btn ui-icon-arrow-r ui-btn-icon-notext ui-corner-all" id="btnTransfer">Transfer</a>
                 </div>
                 <div id="footer_info">
                     <div id="chart_div"></div>
