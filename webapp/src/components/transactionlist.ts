@@ -46,18 +46,23 @@ export default class TransactionList extends Renderer implements TransactionView
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
     }
 
-    private sorter(a: { category: string, name: string }, b: { category: string, name: string }) : number {
+    private sorter(a: { category: string, name: string, amount?: number }, b: { category: string, name: string, amount?: number }) : number {
         let idxA = this.m_config.categories.indexOf(a.category);
         let idxB = this.m_config.categories.indexOf(b.category);
         if (idxA != idxB) return idxA - idxB;
 
         if (a.name < b.name) return -1;
         if (a.name > b.name) return 1;
+
+        if (a.amount && b.amount) {
+            return b.amount - a.amount;
+        }
+        
         return 0;
     }
 
     private rowSorter(a: HTMLElement | JQuery<HTMLElement>, b: HTMLElement | JQuery<HTMLElement>) : number {
-        return this.sorter({ category: $(a).attr('category'), name: $(a).attr('name') }, { category: $(b).attr('category'), name: $(b).attr('name') });
+        return this.sorter({ category: $(a).attr('category'), name: $(a).attr('name'), amount: parseFloat($(a).attr('amount')) }, { category: $(b).attr('category'), name: $(b).attr('name'), amount: parseFloat($(b).attr('amount')) });
     }
 
     private getRow(e: JQuery.Event) : JQuery<HTMLElement> {

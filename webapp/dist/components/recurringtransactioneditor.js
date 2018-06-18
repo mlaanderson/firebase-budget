@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 require("../lib/jquery.ext");
+const spinner_1 = require("./spinner");
 class RecurringTransactionEditor extends dialog_1.default {
     constructor(transaction, saveTransaction, deleteTransaction, categories) {
         super('editrecurring_v2', { transaction: transaction, categories: categories });
@@ -34,12 +35,16 @@ class RecurringTransactionEditor extends dialog_1.default {
             this.transaction.cash = $('#cash').prop('checked') && (isDeposit == false);
             this.transaction.transfer = $('#transfer').prop('checked');
             this.transaction.note = $('#note').val().toString();
+            spinner_1.default.show();
             yield this.saveTransaction(this.transaction);
+            spinner_1.default.hide();
             this.close();
         }));
         // wire up the delete button
         this.m_dialog.find('#btnDelete').on('click', () => __awaiter(this, void 0, void 0, function* () {
+            spinner_1.default.show();
             yield this.deleteTransaction(this.transaction.id);
+            spinner_1.default.hide();
             this.close();
         }));
         // allow the enter key to click the save button

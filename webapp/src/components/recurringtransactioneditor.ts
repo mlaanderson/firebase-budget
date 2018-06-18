@@ -1,6 +1,7 @@
 import Dialog from "./dialog";
 import RecurringTransaction from "../models/recurringtransaction";
 import "../lib/jquery.ext";
+import Spinner from "./spinner";
 
 export default class RecurringTransactionEditor extends Dialog {
     private transaction: RecurringTransaction;
@@ -34,13 +35,17 @@ export default class RecurringTransactionEditor extends Dialog {
             this.transaction.transfer = $('#transfer').prop('checked') as boolean;
             this.transaction.note = $('#note').val().toString();
 
+            Spinner.show();
             await this.saveTransaction(this.transaction);
+            Spinner.hide();
             this.close();
         });
 
         // wire up the delete button
         this.m_dialog.find('#btnDelete').on('click', async() => {
+            Spinner.show();
             await this.deleteTransaction(this.transaction.id);
+            Spinner.hide();
             this.close();
         });
 

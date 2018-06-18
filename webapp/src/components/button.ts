@@ -3,11 +3,13 @@
 
 export default class Button {
     protected element : JQuery<HTMLElement>;
+    private m_disabled: boolean;
 
     constructor(button: string | HTMLElement | JQuery<HTMLElement>) {
         $(() => {
             this.element = $(button);
         });
+        this.m_disabled = false;
     }
 
     on(events: string, handler: (e: JQueryEventObject) => void) : Button {
@@ -48,5 +50,26 @@ export default class Button {
             this.element.click();
         });
         return this;
+    }
+
+    get disabled() : boolean {
+        return this.m_disabled;
+    }
+
+    set disabled(value: boolean) {
+        this.m_disabled = value;
+        $(() => {
+            if (!this.element) {
+                setTimeout(() => {
+                    this.disabled = value;
+                }, 100);
+                return;
+            }
+            if (value) {
+                this.element.addClass('ui-disabled');
+            } else {
+                this.element.removeClass('ui-disabled');
+            }
+        });
     }
 }

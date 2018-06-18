@@ -6,6 +6,7 @@ class Button {
         $(() => {
             this.element = $(button);
         });
+        this.m_disabled = false;
     }
     on(events, handler) {
         $(() => {
@@ -42,6 +43,26 @@ class Button {
             this.element.click();
         });
         return this;
+    }
+    get disabled() {
+        return this.m_disabled;
+    }
+    set disabled(value) {
+        this.m_disabled = value;
+        $(() => {
+            if (!this.element) {
+                setTimeout(() => {
+                    this.disabled = value;
+                }, 100);
+                return;
+            }
+            if (value) {
+                this.element.addClass('ui-disabled');
+            }
+            else {
+                this.element.removeClass('ui-disabled');
+            }
+        });
     }
 }
 exports.default = Button;

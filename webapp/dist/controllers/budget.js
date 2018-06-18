@@ -14,6 +14,7 @@ const events_1 = require("./events");
 const config_1 = require("./config");
 const transactions_1 = require("./transactions");
 const recurringtransactions_1 = require("./recurringtransactions");
+const historymanager_1 = require("./historymanager");
 class Budget extends events_1.default {
     constructor(reference) {
         super();
@@ -29,6 +30,10 @@ class Budget extends events_1.default {
                 this.account = snap.ref;
                 this.transactions = new transactions_1.default(this.account.child('transactions'), this.config);
                 this.recurring = new recurringtransactions_1.default(this.account.child('recurring'));
+                this.history = new historymanager_1.default(this.transactions, this.recurring);
+                this.history.on('change', () => {
+                    this.emitAsync('history_change');
+                });
                 // start at the current period
                 // this.gotoDate(Date.today());
                 // assign listeners
@@ -87,56 +92,26 @@ class Budget extends events_1.default {
     }
     recurring_OnRemove(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            let promises = new Array();
-            let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
-            let recurrings = yield this.transactions.getRecurring(id);
-            if (date < this.transactions.Start) {
-                date = this.transactions.Start;
-            }
-            // delete linked transactions after this period or today's period
-            // whichever is newer
-            for (let k in recurrings) {
-                if (recurrings[k].date >= date) {
-                    promises.push(this.transactions.remove(k));
-                }
-            }
-            yield Promise.all(promises);
         });
     }
     recurring_OnSave(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            // update the existing transactions which depend on this
-            let recurrings = yield this.transactions.getRecurring(transaction.id);
-            let promises = new Array();
-            let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
-            if (date < this.transactions.Start) {
-                date = this.transactions.Start;
-            }
-            // delete linked transactions after this period or today's period
-            // whichever is newer
-            for (let k in recurrings) {
-                if (recurrings[k].date >= date) {
-                    promises.push(this.transactions.remove(k));
-                }
-            }
-            yield Promise.all(promises);
-            promises = [];
-            // insert new transactions according to the schedule
-            for (let tDate = Date.parseFb(transaction.start); tDate.le(transaction.end); tDate = tDate.add(transaction.period)) {
-                if (tDate.toFbString() >= date) {
-                    promises.push(this.transactions.save({
-                        amount: transaction.amount,
-                        cash: transaction.cash,
-                        category: transaction.category,
-                        date: tDate.toFbString(),
-                        name: transaction.name,
-                        note: transaction.note,
-                        recurring: transaction.id,
-                        transfer: transaction.transfer
-                    }));
-                }
-            }
-            yield Promise.all(promises);
+        });
+    }
+    get CanUndo() {
+        return this.history && this.history.canUndo;
+    }
+    get CanRedo() {
+        return this.history && this.history.canRedo;
+    }
+    Undo() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.history.undo();
+        });
+    }
+    Redo() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.history.redo();
         });
     }
     get Transactions() {
@@ -166,6 +141,152 @@ class Budget extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             let snapshot = yield this.root.once('value');
             return snapshot.val();
+        });
+    }
+    saveTransaction(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let initial = transaction.id ? yield this.transactions.load(transaction.id) : null;
+            let change = {
+                items: [{
+                        action: transaction.id ? "change" : "create",
+                        type: "Transaction",
+                        initial: initial,
+                        final: transaction
+                    }]
+            };
+            let id = yield this.Transactions.save(transaction);
+            change.items[0].final.id = id;
+            this.history.push(change);
+            return id;
+        });
+    }
+    removeTransaction(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (typeof transaction === "string") {
+                transaction = yield this.transactions.load(transaction);
+            }
+            let id = yield this.Transactions.remove(transaction);
+            this.history.push({
+                items: [{
+                        action: "delete",
+                        type: "Transaction",
+                        final: transaction
+                    }]
+            });
+            return id;
+        });
+    }
+    saveRecurring(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let changes;
+            let initial = null;
+            if (transaction.id) {
+                initial = yield this.Recurrings.load(transaction.id);
+            }
+            changes = {
+                items: [{
+                        action: transaction.id ? "change" : "create",
+                        type: "Recurring",
+                        initial: initial,
+                        final: transaction
+                    }]
+            };
+            let id = yield this.Recurrings.save(transaction);
+            changes.items[0].final.id = id;
+            // update the existing transactions which depend on this
+            let recurrings = yield this.transactions.getRecurring(transaction.id);
+            let promises = new Array();
+            let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
+            if (date < this.transactions.Start) {
+                date = this.transactions.Start;
+            }
+            // delete linked transactions after this period or today's period
+            // whichever is newer
+            for (let k in recurrings) {
+                if (recurrings[k].date >= date) {
+                    changes.items.push({
+                        action: "delete",
+                        type: "Transaction",
+                        final: recurrings[k]
+                    });
+                    promises.push(this.transactions.remove(k));
+                }
+            }
+            yield Promise.all(promises);
+            promises = [];
+            // insert new transactions according to the schedule
+            for (let tDate = Date.parseFb(transaction.start); tDate.le(transaction.end); tDate = tDate.add(transaction.period)) {
+                if (tDate.toFbString() >= date) {
+                    let promise = this.transactions.save({
+                        amount: transaction.amount,
+                        cash: transaction.cash,
+                        category: transaction.category,
+                        date: tDate.toFbString(),
+                        name: transaction.name,
+                        note: transaction.note,
+                        recurring: transaction.id,
+                        transfer: transaction.transfer
+                    }).then(s => {
+                        // insert the change into history
+                        changes.items.push({
+                            action: "create",
+                            type: "Transaction",
+                            final: {
+                                id: s,
+                                amount: transaction.amount,
+                                cash: transaction.cash,
+                                category: transaction.category,
+                                date: tDate.toFbString(),
+                                name: transaction.name,
+                                note: transaction.note,
+                                recurring: transaction.id,
+                                transfer: transaction.transfer
+                            }
+                        });
+                        return s;
+                    });
+                    promises.push(promise);
+                }
+            }
+            yield Promise.all(promises);
+            this.history.push(changes);
+            return id;
+        });
+    }
+    removeRecurring(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (typeof transaction === "string") {
+                transaction = yield this.recurring.load(transaction);
+            }
+            let changes = {
+                items: [{
+                        action: "delete",
+                        type: "Recurring",
+                        final: transaction
+                    }]
+            };
+            let id = yield this.Recurrings.remove(transaction);
+            let promises = new Array();
+            let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
+            let recurrings = yield this.transactions.getRecurring(id);
+            if (date < this.transactions.Start) {
+                date = this.transactions.Start;
+            }
+            // delete linked transactions after this period or today's period
+            // whichever is newer
+            for (let k in recurrings) {
+                if (recurrings[k].date >= date) {
+                    changes.items.push({
+                        action: "delete",
+                        type: "Transaction",
+                        final: recurrings[k]
+                    });
+                    promises.push(this.transactions.remove(k));
+                }
+            }
+            yield Promise.all(promises);
+            this.history.push(changes);
+            return id;
         });
     }
 }

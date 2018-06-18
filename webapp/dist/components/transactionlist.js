@@ -45,10 +45,13 @@ class TransactionList extends renderer_1.default {
             return -1;
         if (a.name > b.name)
             return 1;
+        if (a.amount && b.amount) {
+            return b.amount - a.amount;
+        }
         return 0;
     }
     rowSorter(a, b) {
-        return this.sorter({ category: $(a).attr('category'), name: $(a).attr('name') }, { category: $(b).attr('category'), name: $(b).attr('name') });
+        return this.sorter({ category: $(a).attr('category'), name: $(a).attr('name'), amount: parseFloat($(a).attr('amount')) }, { category: $(b).attr('category'), name: $(b).attr('name'), amount: parseFloat($(b).attr('amount')) });
     }
     getRow(e) {
         return $(e.target).is('tr') ? $(e.target) : $(e.target).parents('tr').first();

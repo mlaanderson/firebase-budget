@@ -63,38 +63,61 @@ class BudgetForm extends renderer_1.default {
             this.btnYtdReport = new button_1.default('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
             this.btnCash = new button_1.default('#btnCash').on('click', this.btnCash_onClick.bind(this));
             this.btnTransfer = new button_1.default('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
+            this.btnUndo = new button_1.default('#btnUndo').on('click', this.btnUndo_onClick.bind(this));
+            this.btnRedo = new button_1.default('#btnRedo').on('click', this.btnRedo_onClick.bind(this));
             this.pnlMenu = new panel_1.default('#menu_panel');
             this.previewer = new previewer_1.default('.info_div');
+            this.btnUndo.disabled = true;
+            this.btnRedo.disabled = true;
             this.chart = new historychart_1.default('chart_div');
             this.previewer.GotoTransaction = this.gotoDate.bind(this);
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
-        // try to bind the ctrl/command + f
+        // try to bind the ctrl/command keys
         $(document).on('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && (e.key == 'f' || e.key == 'F')) {
-                e.preventDefault();
-                this.btnSearch.click();
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'f':
+                    case 'F':
+                        e.preventDefault();
+                        this.btnSearch.click();
+                        break;
+                    case 'z':
+                    case 'Z':
+                        e.preventDefault();
+                        this.btnUndo.click();
+                        break;
+                    case 'y':
+                    case 'Y':
+                        e.preventDefault();
+                        this.btnRedo.click();
+                        break;
+                }
             }
         });
     }
     gotoPeriod(period) {
-        if (typeof period == "string") {
-            period = Date.parseFb(period);
-        }
-        else {
-            period = period;
-        }
-        let end = period.add(this.budget.Config.length).subtract("1 day");
-        this.periodStart = period.toFbString();
-        this.periodEnd = end.toFbString();
-        this.periodMenu.val(this.periodStart);
-        this.periodMenu.refresh();
-        $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
-        this.budget.gotoDate(this.periodStart);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (typeof period == "string") {
+                period = Date.parseFb(period);
+            }
+            else {
+                period = period;
+            }
+            let end = period.add(this.budget.Config.length).subtract("1 day");
+            this.periodStart = period.toFbString();
+            this.periodEnd = end.toFbString();
+            this.periodMenu.val(this.periodStart);
+            this.periodMenu.refresh();
+            $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
+            yield this.budget.gotoDate(this.periodStart);
+        });
     }
     gotoDate(date) {
-        let { start } = this.budget.Config.calculatePeriod(date);
-        this.gotoPeriod(start);
+        return __awaiter(this, void 0, void 0, function* () {
+            let { start } = this.budget.Config.calculatePeriod(date);
+            yield this.gotoPeriod(start);
+        });
     }
     download(data, filename, type) {
         let blob = new Blob([data], { type: type });
@@ -112,31 +135,63 @@ class BudgetForm extends renderer_1.default {
         }
     }
     // UI Events
+    btnUndo_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.budget)
+                return;
+            if (!this.budget.CanUndo)
+                return;
+            spinner_1.default.show();
+            yield this.budget.Undo();
+            spinner_1.default.hide();
+            this.pnlMenu.close();
+        });
+    }
+    btnRedo_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.budget)
+                return;
+            if (!this.budget.CanRedo)
+                return;
+            spinner_1.default.show();
+            yield this.budget.Redo();
+            spinner_1.default.hide();
+            this.pnlMenu.close();
+        });
+    }
     btnSearch_onClick(e) {
         this.pnlMenu.close();
         let searchForm = new searchdialog_1.default(this.budget.Transactions);
-        searchForm.GotoPeriod = (date) => {
+        searchForm.GotoPeriod = (date) => __awaiter(this, void 0, void 0, function* () {
             searchForm.close();
-            this.gotoDate(date);
-        };
+            yield this.gotoDate(date);
+        });
         searchForm.open();
     }
     btnToday_onClick(e) {
-        e.preventDefault();
-        let { start } = this.budget.Config.calculatePeriod(Date.today());
-        this.gotoPeriod(start);
+        return __awaiter(this, void 0, void 0, function* () {
+            e.preventDefault();
+            let { start } = this.budget.Config.calculatePeriod(Date.today());
+            yield this.gotoPeriod(start);
+        });
     }
     btnPrev_onClick(e) {
-        e.preventDefault();
-        this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+        return __awaiter(this, void 0, void 0, function* () {
+            e.preventDefault();
+            yield this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+        });
     }
     periodMenu_onChange(e) {
-        e.preventDefault();
-        this.gotoPeriod(this.periodMenu.val().toString());
+        return __awaiter(this, void 0, void 0, function* () {
+            e.preventDefault();
+            yield this.gotoPeriod(this.periodMenu.val().toString());
+        });
     }
     btnNext_onClick(e) {
-        e.preventDefault();
-        this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+        return __awaiter(this, void 0, void 0, function* () {
+            e.preventDefault();
+            yield this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+        });
     }
     btnEditTransaction_onClick(e) {
         this.transactionList.editSelected();
@@ -212,33 +267,35 @@ class BudgetForm extends renderer_1.default {
     }
     // Configuration
     config_onRead() {
-        this.periodMenu.empty();
-        this.transactionList = new transactionlist_1.default('#tblTransactions', this.budget.Config);
-        // wire up the load/save/delete functionality
-        this.transactionList.LoadTransaction = (key) => { return this.budget.Transactions.load(key); };
-        this.transactionList.SaveTransaction = (transaction) => { return this.budget.Transactions.save(transaction); };
-        this.transactionList.DeleteTransaction = (key) => __awaiter(this, void 0, void 0, function* () { return this.budget.Transactions.remove(key); });
-        this.transactionList.LoadRecurring = (key) => { return this.budget.Recurrings.load(key); };
-        this.transactionList.SaveRecurring = (transaction) => { return this.budget.Recurrings.save(transaction); };
-        this.transactionList.DeleteRecurring = (key) => { return this.budget.Recurrings.remove(key); };
-        for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
-            let label = date.format("MMM d") + " - " + date.add(this.budget.Config.length).subtract("1 day").format("MMM d, yyyy");
-            this.periodMenu.append(date.toFbString(), label);
-        }
-        if (this.periodStart) {
-            let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
-            this.periodStart = start;
-            this.periodEnd = end;
-        }
-        else {
-            let { start, end } = this.budget.Config.calculatePeriod(Date.today());
-            this.periodStart = start;
-            this.periodEnd = end;
-        }
-        this.transactionList.PreviewTransaction = (id) => {
-            return this.transactionList_PreviewTransaction(id);
-        };
-        this.gotoPeriod(this.periodStart);
+        return __awaiter(this, void 0, void 0, function* () {
+            this.periodMenu.empty();
+            this.transactionList = new transactionlist_1.default('#tblTransactions', this.budget.Config);
+            // wire up the load/save/delete functionality
+            this.transactionList.LoadTransaction = (key) => { return this.budget.Transactions.load(key); };
+            this.transactionList.SaveTransaction = (transaction) => { return this.budget.saveTransaction(transaction); };
+            this.transactionList.DeleteTransaction = (key) => __awaiter(this, void 0, void 0, function* () { return this.budget.removeTransaction(key); });
+            this.transactionList.LoadRecurring = (key) => { return this.budget.Recurrings.load(key); };
+            this.transactionList.SaveRecurring = (transaction) => { return this.budget.saveRecurring(transaction); };
+            this.transactionList.DeleteRecurring = (key) => { return this.budget.removeRecurring(key); };
+            for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
+                let label = date.format("MMM d") + " - " + date.add(this.budget.Config.length).subtract("1 day").format("MMM d, yyyy");
+                this.periodMenu.append(date.toFbString(), label);
+            }
+            if (this.periodStart) {
+                let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
+                this.periodStart = start;
+                this.periodEnd = end;
+            }
+            else {
+                let { start, end } = this.budget.Config.calculatePeriod(Date.today());
+                this.periodStart = start;
+                this.periodEnd = end;
+            }
+            this.transactionList.PreviewTransaction = (id) => {
+                return this.transactionList_PreviewTransaction(id);
+            };
+            yield this.gotoPeriod(this.periodStart);
+        });
     }
     // Authorization
     firebase_onAuthStateChanged(user) {
@@ -265,6 +322,10 @@ class BudgetForm extends renderer_1.default {
                 }
                 this.budget = new budget_1.default(firebase.database().ref(user.uid));
                 this.budget.on('config_read', this.config_onRead.bind(this));
+                this.budget.on('history_change', () => {
+                    this.btnUndo.disabled = !this.budget.CanUndo;
+                    this.btnRedo.disabled = !this.budget.CanRedo;
+                });
                 this.budget.ready().then(() => {
                     this.previewer.listenToTransactions(this.budget.Transactions);
                     this.transactionList.listenToTransactions(this.budget.Transactions);
@@ -316,8 +377,8 @@ class BudgetForm extends renderer_1.default {
     }
 }
 let m_viewer = new BudgetForm();
-// Object.defineProperty(window, 'viewer', {
-//     get: () => {
-//         return m_viewer;
-//     }
-// });
+Object.defineProperty(window, 'viewer', {
+    get: () => {
+        return m_viewer;
+    }
+});

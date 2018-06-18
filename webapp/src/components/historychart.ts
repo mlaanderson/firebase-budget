@@ -191,22 +191,18 @@ export default class HistoryChart implements TransactionViewer {
 
     listenToTransactions(transactions: Transactions) {
         transactions.on('added', async (transaction: Transaction) => {
-            console.log('chart transaction added');
             this.update(transaction);
         });
 
         transactions.on('changed', async (transaction: Transaction) => {
-            console.log('chart transaction changed');
             this.update(transaction);
         });
 
         transactions.on('removed', async (transaction: Transaction) => {
-            console.log('chart transaction removed');
             this.remove(transaction);
         });
 
         transactions.on('periodloaded', async (transactionList: Array<Transaction>) => {
-            console.log('chart transactions loaded');
             let left = (Date.parseFb(transactions.Start).subtract("3 weeks") as Date).toFbString();
             let right = Date.parseFb(transactions.End).add('3 months').toFbString();
             let allTransactions = await transactions.loadRecords();

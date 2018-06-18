@@ -38,6 +38,8 @@ import ShowIntroWizard from "./introwizard";
 
 class BudgetForm extends Renderer {
     private btnSearch : Button;
+    private btnUndo: Button;
+    private btnRedo: Button;
     private btnToday : Button;
     private btnPrev : Button;
     private periodMenu : Select;
@@ -91,8 +93,13 @@ class BudgetForm extends Renderer {
             this.btnYtdReport = new Button('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
             this.btnCash = new Button('#btnCash').on('click', this.btnCash_onClick.bind(this));
             this.btnTransfer = new Button('#btnTransfer').on('click', this.btnTransfer_onClick.bind(this));
+            this.btnUndo = new Button('#btnUndo').on('click', this.btnUndo_onClick.bind(this));
+            this.btnRedo = new Button('#btnRedo').on('click', this.btnRedo_onClick.bind(this));
             this.pnlMenu = new Panel('#menu_panel');
             this.previewer = new Previewer('.info_div');
+
+            this.btnUndo.disabled = true;
+            this.btnRedo.disabled = true;
 
             this.chart = new HistoryChart('chart_div');
             
@@ -101,16 +108,31 @@ class BudgetForm extends Renderer {
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
 
-        // try to bind the ctrl/command + f
+        // try to bind the ctrl/command keys
         $(document).on('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && (e.key == 'f'|| e.key == 'F')) {
-                e.preventDefault();
-                this.btnSearch.click();
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'f':
+                    case 'F':
+                        e.preventDefault();
+                        this.btnSearch.click();
+                    break;
+                    case 'z':
+                    case 'Z':
+                        e.preventDefault();
+                        this.btnUndo.click();
+                    break;
+                    case 'y':
+                    case 'Y':
+                        e.preventDefault();
+                        this.btnRedo.click();
+                    break;
+                }
             }
         });
     }
 
-    private gotoPeriod(period: string | Date | Timespan) {
+    private async gotoPeriod(period: string | Date | Timespan) {
         if (typeof period == "string") {
             period = Date.parseFb(period);
         } else {
@@ -126,12 +148,12 @@ class BudgetForm extends Renderer {
 
         $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
 
-        this.budget.gotoDate(this.periodStart);
+        await this.budget.gotoDate(this.periodStart);
     }
 
-    private gotoDate(date: string | Date) {
+    private async gotoDate(date: string | Date) {
         let { start } = this.budget.Config.calculatePeriod(date);
-        this.gotoPeriod(start);
+        await this.gotoPeriod(start);
     }
 
     private download(data: any, filename: string, type: string) {
@@ -151,36 +173,54 @@ class BudgetForm extends Renderer {
     }
 
     // UI Events
-    btnSearch_onClick(e: JQuery.Event) : void {
+    async btnUndo_onClick(e: JQuery.Event) {
+        if (!this.budget) return;
+        if (!this.budget.CanUndo) return;
+        Spinner.show();
+        await this.budget.Undo();
+        Spinner.hide();
+        this.pnlMenu.close();
+    }
+
+    async btnRedo_onClick(e: JQuery.Event) {
+        if (!this.budget) return;
+        if (!this.budget.CanRedo) return;
+        Spinner.show();
+        await this.budget.Redo();
+        Spinner.hide();
+        this.pnlMenu.close();
+    }
+
+    btnSearch_onClick(e: JQuery.Event) {
         this.pnlMenu.close();
 
         let searchForm = new SearchDialog(this.budget.Transactions);
-        searchForm.GotoPeriod = (date: string) => {
+        searchForm.GotoPeriod = async (date: string) => {
             searchForm.close();
-            this.gotoDate(date);
+            await this.gotoDate(date);
         }
         searchForm.open();
     }
 
-    btnToday_onClick(e: JQuery.Event) : void {
+    async btnToday_onClick(e: JQuery.Event) {
         e.preventDefault();
         let { start } = this.budget.Config.calculatePeriod(Date.today());
-        this.gotoPeriod(start);
+        await this.gotoPeriod(start);
     }
 
-    btnPrev_onClick(e: JQuery.Event) : void {
+    async btnPrev_onClick(e: JQuery.Event) {
         e.preventDefault();
-        this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+        await this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
     }
 
-    periodMenu_onChange(e: JQuery.Event) : void {
+    async periodMenu_onChange(e: JQuery.Event) {
         e.preventDefault();
-        this.gotoPeriod(this.periodMenu.val().toString())
+        await this.gotoPeriod(this.periodMenu.val().toString())
     }
 
-    btnNext_onClick(e: JQuery.Event) : void {
+    async btnNext_onClick(e: JQuery.Event) {
         e.preventDefault();
-        this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+        await this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
     }
 
     btnEditTransaction_onClick(e: JQuery.Event) : void {
@@ -271,18 +311,18 @@ class BudgetForm extends Renderer {
     }
 
     // Configuration
-    config_onRead() {
+    async config_onRead() {
         this.periodMenu.empty();
 
         this.transactionList = new TransactionList('#tblTransactions', this.budget.Config);
         // wire up the load/save/delete functionality
         this.transactionList.LoadTransaction = (key: string) => { return this.budget.Transactions.load(key); }
-        this.transactionList.SaveTransaction = (transaction: Transaction) => { return this.budget.Transactions.save(transaction); }
-        this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.Transactions.remove(key); }
+        this.transactionList.SaveTransaction = (transaction: Transaction) => { return this.budget.saveTransaction(transaction); }
+        this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.removeTransaction(key); }
 
         this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
-        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.Recurrings.save(transaction); }
-        this.transactionList.DeleteRecurring = (key: string) => { return this.budget.Recurrings.remove(key); }
+        this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.saveRecurring(transaction); }
+        this.transactionList.DeleteRecurring = (key: string) => { return this.budget.removeRecurring(key); }
 
 
         for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
@@ -303,7 +343,7 @@ class BudgetForm extends Renderer {
         this.transactionList.PreviewTransaction = (id: string) => {
             return this.transactionList_PreviewTransaction(id);
         }
-        this.gotoPeriod(this.periodStart);
+        await this.gotoPeriod(this.periodStart);
     }
 
     // Authorization
@@ -333,6 +373,10 @@ class BudgetForm extends Renderer {
                 this.budget = new Budget(firebase.database().ref(user.uid));
 
                 this.budget.on('config_read', this.config_onRead.bind(this));
+                this.budget.on('history_change', () => {
+                    this.btnUndo.disabled = !this.budget.CanUndo;
+                    this.btnRedo.disabled = !this.budget.CanRedo;
+                });
 
                 this.budget.ready().then(() => {
                     this.previewer.listenToTransactions(this.budget.Transactions);
@@ -389,8 +433,8 @@ class BudgetForm extends Renderer {
 
 let m_viewer = new BudgetForm();
 
-// Object.defineProperty(window, 'viewer', {
-//     get: () => {
-//         return m_viewer;
-//     }
-// });
+Object.defineProperty(window, 'viewer', {
+    get: () => {
+        return m_viewer;
+    }
+});

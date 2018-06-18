@@ -86,19 +86,15 @@ class HistoryChart {
     }
     listenToTransactions(transactions) {
         transactions.on('added', (transaction) => __awaiter(this, void 0, void 0, function* () {
-            console.log('chart transaction added');
             this.update(transaction);
         }));
         transactions.on('changed', (transaction) => __awaiter(this, void 0, void 0, function* () {
-            console.log('chart transaction changed');
             this.update(transaction);
         }));
         transactions.on('removed', (transaction) => __awaiter(this, void 0, void 0, function* () {
-            console.log('chart transaction removed');
             this.remove(transaction);
         }));
         transactions.on('periodloaded', (transactionList) => __awaiter(this, void 0, void 0, function* () {
-            console.log('chart transactions loaded');
             let left = Date.parseFb(transactions.Start).subtract("3 weeks").toFbString();
             let right = Date.parseFb(transactions.End).add('3 months').toFbString();
             let allTransactions = yield transactions.loadRecords();
