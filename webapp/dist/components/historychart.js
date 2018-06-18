@@ -55,10 +55,14 @@ class HistoryChart {
         this.draw(sums, left, right);
     }
     update(transaction) {
+        if (!this.m_transactions)
+            this.m_transactions = {};
         this.m_transactions[transaction.id] = transaction;
         this.display(this.m_transactions, this.m_left, this.m_right);
     }
     remove(transaction) {
+        if (!this.m_transactions)
+            this.m_transactions = {};
         delete this.m_transactions[transaction.id];
         this.display(this.m_transactions, this.m_left, this.m_right);
     }

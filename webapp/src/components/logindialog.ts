@@ -2,7 +2,7 @@ import Dialog from "./dialog";
 import Spinner from "./spinner";
 import ForgotPasswordDialog from "./forgotpassworddialog";
 
-type LoginMethod = (username: string, password: string) => void;
+type LoginMethod = (username: string, password: string) => Promise<void>;
 type ResetMethod = (username: string) => void;
 type SignupMethod = () => void;
 

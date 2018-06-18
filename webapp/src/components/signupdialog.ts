@@ -1,6 +1,6 @@
 import Dialog from "./dialog";
 import Spinner from "./spinner";
-import ForgotPasswordDialog from "./forgotpassworddialog";
+import MessageBox from "./messagebox";
 
 type SignupMethod = (username: string, password: string) => void;
 
@@ -25,9 +25,10 @@ export default class SignUpDialog extends Dialog {
             }
 
             try {
-                await this.signup(this.m_dialog.find('#registerEmail').val().toString(), this.m_dialog.find('#registerPassword').val().toString());
                 Spinner.show();
+                await this.signup(this.m_dialog.find('#registerEmail').val().toString(), this.m_dialog.find('#registerPassword').val().toString());
                 this.close();
+    
             } catch (error) {
                 switch (error.code) {
                     case 'auth/email-already-in-use':

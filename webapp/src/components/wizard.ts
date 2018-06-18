@@ -98,3 +98,7 @@ export default class Wizard extends Dialog {
         this.emitAsync('page', this.pages[0].id || this.pages[0].title, 0);
     }
 }
+
+Object.defineProperty(window, 'Wizard', {
+    get: () => { return Wizard; }
+});

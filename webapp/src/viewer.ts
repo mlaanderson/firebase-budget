@@ -366,7 +366,7 @@ class BudgetForm extends Renderer {
                 if (config === null || config.showWizard == true) {
                     // not yet initilized or need to see the wizard
                     ModalSpinner.hide();
-                    await ShowIntroWizard();
+                    await ShowIntroWizard(firebase.database().ref(user.uid).child('config'));
                     ModalSpinner.show();
                 }
 
@@ -400,9 +400,11 @@ class BudgetForm extends Renderer {
 
     async registerAccount(username: string, password: string) {
         await firebase.auth().createUserWithEmailAndPassword(username, password);
-        await MessageBox.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        let dialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
-        dialog.open();
+        setImmediate(async () => {
+            await MessageBox.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            let dialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
+            dialog.open();
+        });
     }
 
     signup() {
@@ -419,9 +421,18 @@ class BudgetForm extends Renderer {
         })
     }
 
-    login(username: string, password: string) {
-        $(() => {
-            firebase.auth().signInWithEmailAndPassword(username, password);
+    login(username: string, password: string) : Promise<void> {
+        return new Promise((resolve, reject) => {
+            $(async () => {
+                try {
+                    console.log('logging in...');
+                    await firebase.auth().signInWithEmailAndPassword(username, password);
+                    console.log('no error heard');
+                    resolve();
+                } catch (error) { console.log(error);
+                    reject(error);
+                }
+            });
         });
     }
 

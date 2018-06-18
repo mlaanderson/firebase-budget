@@ -25,8 +25,8 @@ class SignUpDialog extends dialog_1.default {
                 flash.text(message).slideUp(0).slideDown(300).delay(1500).slideUp(300);
             }
             try {
-                yield this.signup(this.m_dialog.find('#registerEmail').val().toString(), this.m_dialog.find('#registerPassword').val().toString());
                 spinner_1.default.show();
+                yield this.signup(this.m_dialog.find('#registerEmail').val().toString(), this.m_dialog.find('#registerPassword').val().toString());
                 this.close();
             }
             catch (error) {

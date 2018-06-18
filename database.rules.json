@@ -24,6 +24,18 @@
                     ".indexOn": ["date"]
                 }
             }
+        },
+        "tips": {
+            ".read": true,
+            ".write": "auth != null && ('avt4iq3WquPSfOUVjpmCXemDmj62' == auth.uid || 'iOuux3ZFmyYoNFXn7SHpYmEIAni1' == auth.uid)"
+        },
+        "tutorials": {
+            ".read": true,
+            ".write": "auth != null && ('avt4iq3WquPSfOUVjpmCXemDmj62' == auth.uid || 'iOuux3ZFmyYoNFXn7SHpYmEIAni1' == auth.uid)"
+        },
+        "website": {
+            ".read": true,
+            ".write": "auth != null && ('avt4iq3WquPSfOUVjpmCXemDmj62' == auth.uid || 'iOuux3ZFmyYoNFXn7SHpYmEIAni1' == auth.uid)"
         }
     }
 }

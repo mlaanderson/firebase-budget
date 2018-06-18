@@ -1,4 +1,6 @@
 import Wizard, { WizardBlock, WizardPage } from "./components/wizard";
+import * as firebase from "firebase/app";
+import "firebase/database";
 
 let pages: Array<WizardPage> = [
     {
@@ -110,22 +112,26 @@ let pages: Array<WizardPage> = [
     }
 ];
 
-export default function ShowIntroWizard() {
+export default function ShowIntroWizard(config: firebase.database.Reference) {
     ['navigationBar.png', 'addButton.png', 'newTransaction.png', 'newRecurring.png'].map(img => $(`<img src="/images/introWizard/${img}/>"`));
     return new Promise((resolve, reject) => {
         let wizard = new Wizard(pages);
         let budgetStart: string, budgetPeriod: string;
 
-        wizard.on('done', () => {
+        wizard.on('done', async () => {
+            await config.child('showWizard').set(false);
             resolve();
         });
 
-        wizard.on('beforepage', (id, idx) => {
+        wizard.on('beforepage', async (id, idx) => {
             if (id == 'setupScreen') {
                 budgetStart = $('[name=budgetStart]').val().toString();
                 budgetPeriod = $('[name=budgetPeriod]').val().toString();
 
-                console.log(budgetStart, budgetPeriod);
+                await config.child('periods').set({
+                    start: budgetStart,
+                    length: budgetPeriod
+                });
             }
         });
 

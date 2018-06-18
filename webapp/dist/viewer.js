@@ -317,7 +317,7 @@ class BudgetForm extends renderer_1.default {
                 if (config === null || config.showWizard == true) {
                     // not yet initilized or need to see the wizard
                     modalspinner_1.default.hide();
-                    yield introwizard_1.default();
+                    yield introwizard_1.default(firebase.database().ref(user.uid).child('config'));
                     modalspinner_1.default.show();
                 }
                 this.budget = new budget_1.default(firebase.database().ref(user.uid));
@@ -349,9 +349,11 @@ class BudgetForm extends renderer_1.default {
     registerAccount(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
             yield firebase.auth().createUserWithEmailAndPassword(username, password);
-            yield messagebox_1.default.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", messagebox_1.MessageBoxButtons.OK, messagebox_1.MessageBoxIcon.Information);
-            let dialog = new logindialog_1.default(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
-            dialog.open();
+            setImmediate(() => __awaiter(this, void 0, void 0, function* () {
+                yield messagebox_1.default.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", messagebox_1.MessageBoxButtons.OK, messagebox_1.MessageBoxIcon.Information);
+                let dialog = new logindialog_1.default(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
+                dialog.open();
+            }));
         });
     }
     signup() {
@@ -367,8 +369,19 @@ class BudgetForm extends renderer_1.default {
         });
     }
     login(username, password) {
-        $(() => {
-            firebase.auth().signInWithEmailAndPassword(username, password);
+        return new Promise((resolve, reject) => {
+            $(() => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    console.log('logging in...');
+                    yield firebase.auth().signInWithEmailAndPassword(username, password);
+                    console.log('no error heard');
+                    resolve();
+                }
+                catch (error) {
+                    console.log(error);
+                    reject(error);
+                }
+            }));
         });
     }
     logout() {

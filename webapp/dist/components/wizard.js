@@ -66,3 +66,6 @@ class Wizard extends dialog_1.default {
     }
 }
 exports.default = Wizard;
+Object.defineProperty(window, 'Wizard', {
+    get: () => { return Wizard; }
+});
