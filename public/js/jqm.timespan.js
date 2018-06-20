@@ -13,7 +13,7 @@
             inputElement.addClass('ui-timespan-valid');
             $(document).trigger("timespancreate");
 
-            inputElement.on('keyup', (evt) => {
+            inputElement.on('keyup', function(evt) {
                 try {
                     let ts = Date.Timespan.parse(inputElement.val());
                     inputElement.data('mobile.timespan.valid', true);
@@ -23,7 +23,7 @@
                     event.valid = true;
 
                     inputElement.trigger(event);
-                } catch {
+                } catch (err) {
                     inputElement.data('mobile.timespan.valid', false);
                     inputElement.removeClass('ui-timespan-valid').addClass('ui-timespan-invalid');
 
@@ -40,7 +40,7 @@
         }
     });
 
-    $(document).bind("pagecreate", (e) => {
+    $(document).bind("pagecreate", function(e) {
         $(document).trigger('timespanbeforecreate');
         return $(":jqmData(role='timespan')", e.target).timespan();
     });

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Anderson Budget - Help</title>
+        <meta name="viewport" content="width=device-width">
+
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-title" content="Anderson Budget"/>
+        
+        
+        <link rel="apple-touch-icon" href="/images/budget-iphone.png"/>
+        <link rel="apple-touch-icon" sizes="76x76" href="/images/budget-ipad.png"/>
+        <link rel="apple-touch-icon" sizes="120x120" href="/images/budget-iphone-retina.png"/>
+        <link rel="apple-touch-icon" sizes="152x152" href="/images/budget-ipad-retina.png"/>
+
+          <!-- STARTUP IMAGES -->
+
+        <!-- iPad retina portrait startup image -->
+        <link href="/images/splash-1536x2008.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 2)
+                     and (orientation: portrait)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPad retina landscape startup image -->
+        <link href="/images/splash-1496x2048.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 2)
+                     and (orientation: landscape)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPad non-retina portrait startup image -->
+        <link href="/images/splash-768x1004.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 1)
+                     and (orientation: portrait)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPad non-retina landscape startup image -->
+        <link href="/images/splash-748x1024.png"
+              media="(device-width: 768px) and (device-height: 1024px)
+                     and (-webkit-device-pixel-ratio: 1)
+                     and (orientation: landscape)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 6 Plus portrait startup image -->
+        <link href="/images/splash-1242x2148.png"
+              media="(device-width: 414px) and (device-height: 736px)
+                     and (-webkit-device-pixel-ratio: 3)
+                     and (orientation: portrait)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 6 Plus landscape startup image -->
+        <link href="/images/splash-1182x2208.png"
+              media="(device-width: 414px) and (device-height: 736px)
+                     and (-webkit-device-pixel-ratio: 3)
+                     and (orientation: landscape)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 6 startup image -->
+        <link href="/images/splash-750x1294.png"
+              media="(device-width: 375px) and (device-height: 667px)
+                     and (-webkit-device-pixel-ratio: 2)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone 5 startup image -->
+        <link href="/images/splash-640x1096.png"
+              media="(device-width: 320px) and (device-height: 568px)
+                     and (-webkit-device-pixel-ratio: 2)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone < 5 retina startup image -->
+        <link href="/images/splash-640x920.png"
+              media="(device-width: 320px) and (device-height: 480px)
+                     and (-webkit-device-pixel-ratio: 2)"
+              rel="apple-touch-startup-image">
+
+        <!-- iPhone < 5 non-retina startup image -->
+        <link href="/images/splash-320x460.png"
+              media="(device-width: 320px) and (device-height: 480px)
+                     and (-webkit-device-pixel-ratio: 1)"
+              rel="apple-touch-startup-image">
+
+          
+        <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jquery.mobile-1.4.5.min.css">
+        <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jqm-icon-pack-fa.css">
+        <link rel="stylesheet" href="/css/style.css">
+
+        <script src="/jquery.mobile/js/jquery-1.12.4.min.js"></script>
+        <script src="/jquery.mobile/js/jquery.mobile-1.4.5.min.js"></script>
+
+        <script src="js/html2canvas.min.js"></script>
+
+        <script src="js/screenshot.js"></script>
+
+        <style>
+            .content {
+                margin: 0 10px 0 10px;
+                width: 100%;
+            }
+
+            .content h1, .content h2, .content h4 {
+                text-align: center !important;
+            }
+
+            .content dt {
+                padding-top: 0.25em;
+                font-weight: 700;
+            }
+
+            .content dd {
+                margin-left: 1em;
+                margin-right: 0.5em;
+            }
+
+            @media (min-width:55em) {
+                .content {
+                    max-width: 55em;
+                    margin: 0 auto;
+                }
+            }
+        </style>
+    </head>
+    <body>
+
+        <!-- HOME PAGE -->
+        <div data-role="page" id="home">
+            <div data-role="header" data-position="fixed">
+                <h1>Anderson Budget</h1>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content" id="main">
+                <div class="content">
+                    <h1>Anderson Budget</h1>
+                    <h4>Home Budgetting App</h4>
+                    <div data-role="controlgroup" data-type="horizontal">
+                        <a href="#home" class="ui-btn ui-corner-all ui-icon-home ui-btn-icon-left ui-btn-active">Home</a>
+                        <a href="#help" class="ui-btn ui-corner-all ui-icon-question-circle ui-btn-icon-left">Help</a>
+                        <a href="#about" class="ui-btn ui-corner-all ui-icon-info-circle ui-btn-icon-left">About</a>
+                    </div>
+                    <h3>About</h3>
+                    <p>
+                        The Anderson Budget app is a budgetting application for home use. It allows you to
+                        put your money to work for you by keeping you on top of your finances.
+                    </p>
+                    <h3>Features</h3>
+                    <ul>
+                        <li>
+                            <dt>Mobile Friendly</dt>
+                            <dd>
+                                The web version of the app works equally well on a desktop brower and on a
+                                mobile browser. 
+                            </dd>
+                        </li>
+                        <li>
+                            <dt>Cloud Based</dt>
+                            <dd>
+                                The data lives in the cloud, so losing your mobile device or having a hard drive
+                                crash does not mean you lose your budget. Changes are stored to the clound almost
+                                instantly, and just as quickly are visible to other devices logged into the same
+                                account.
+                            </dd>
+                        </li>
+                        <li>
+                            <dt>Easy to Use</dt>
+                            <dd>
+                                <img src="images/introWizard/cash_dialog.png" style="float:right; margin-left: 10px; margin-right: 15px;">
+                                Each pay period you will see where your money is coming from and where it is going.
+                                <p>
+                                    If you plan to use an envelope system, transactions marked as cash withdrawals are
+                                    automatically added up and calculated not only for the right amount of cash to
+                                    withdraw, but what denominations to request.
+                                </p>
+                                <div>
+                                    If you mark transactions to be transfered to or from savings, the app will total those
+                                    up and tell you how much to transfer and whether to transfer the total into or out of
+                                    your savings account.
+                                </div>
+                            </dd>
+                        </li>
+                        <li>
+                            <dt>Secure</dt>
+                            <dd>
+                                Your data is only available to your login. If you choose to delete your account, your
+                                data is immediatly deleted. Your data is only delivered over secure links.
+                            </dd>
+                        </li>
+                        <li>
+                            <dt>Collaborative</dt>
+                            <dd>
+                                If you share your account with others, they can work collaboratively with you on the
+                                budget from another device. You will see their changes and they will see your changes
+                                as soon as they are made.
+                            </dd>
+                        </li>
+                    </ul>
+                </div>
+            </div>   
+        </div>
+
+        <div data-role="page" id="help">
+            <div data-role="header" data-position="fixed" role="banner">
+                <h1>Anderson Budget - Help</h1>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content" id="help">
+                <div class="content">
+                    <h1>Anderson Budget - About</h1>
+                    <h4>Home Budgetting App</h4>
+                    <div data-role="controlgroup" data-type="horizontal">
+                        <a href="#home" class="ui-btn ui-corner-all ui-icon-home ui-btn-icon-left">Home</a>
+                        <a href="#help" class="ui-btn ui-corner-all ui-icon-question-circle ui-btn-icon-left ui-btn-active">Help</a>
+                        <a href="#about" class="ui-btn ui-corner-all ui-icon-info-circle ui-btn-icon-left">About</a>
+                    </div>
+                    <div data-role="controlgroup" data-type="horizontal">
+                        <a href="#help" class="ui-btn ui-corner-all ui-btn-active">Overview</a>
+                        <a href="#help-transactions" class="ui-btn ui-corner-all">Transactions</a>
+                        <a href="#help-recurring" class="ui-btn ui-corner-all">Recurring</a>
+                    </div>
+                    <h3>Overview</h3>
+                    <p></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABOUT US PAGE -->
+        <div data-role="page" id="about">
+            <div data-role="header" data-position="fixed" role="banner">
+                <h1>Anderson Budget - About Us</h1>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content" id="main">
+                <div class="content">
+                    <h1>Anderson Budget - About</h1>
+                    <h4>Home Budgetting App</h4>
+                    <div data-role="controlgroup" data-type="horizontal">
+                        <a href="#home" class="ui-btn ui-corner-all ui-icon-home ui-btn-icon-left">Home</a>
+                        <a href="#help" class="ui-btn ui-corner-all ui-icon-question-circle ui-btn-icon-left">Help</a>
+                        <a href="#about" class="ui-btn ui-corner-all ui-icon-info-circle ui-btn-icon-left ui-btn-active">About</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
