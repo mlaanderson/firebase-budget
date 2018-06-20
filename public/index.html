@@ -96,6 +96,10 @@
         <script src="js/ejs.ext.js"></script>
         <script src="js/jqm.timespan.js"></script>
         <script src="dist/bundle.js"></script>
+        
+        <script src="js/ensure-browser.js"></script>
+
+
         <!-- <script src="js/html2canvas.min.js"></script>
         <script src="js/screenshot.js"></script> -->
     </head>
@@ -187,6 +191,22 @@
                     <div id="chart_div"></div>
                     <div class="info_div"></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- popup for older browsers -->
+        <div data-dismissible="false" data-theme="a" class="ui-corner-all" style="width: 400px;" id="oldBrowserWarning">
+            <div data-role="header" role="banner" data-theme="b" class="ui-header ui-bar-b">
+                    <a href="#" class="ui-btn ui-btn-exclamation-triangle ui-btn-icon-notext ui-corner-all">icon_holder</a>
+                <h3>Warning: Out of Date Browser Detected</h3>
+            </div>
+            <div role="main" class="ui-content">
+                <p>Your browser is out of date. For better security and experience, please install a modern browser. The browsers listed below are known to work:</p>
+                <p id="edge"><a href="https://www.microsoft.com/en-us/windows/microsoft-edge">Microsoft Edge</a></p>
+                <p id="chrome"><a href="https://www.google.com/chrome/">Google Chrome</a></p>
+                <p id="firefox"><a href="https://www.mozilla.org/en-US/firefox/">Mozilla Firefox</a></p>
+                <p id="safari"><a href="https://www.apple.com/safari/">Apple Safari</a></p>
+                <p id="opera"><a href="https://www.opera.com/">Opera</a></p>
             </div>
         </div>
     </body>

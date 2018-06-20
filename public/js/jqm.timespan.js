@@ -6,8 +6,8 @@
         },
 
         _create: function() {
-            let inputElement = this.element;
-            let opts = $.extend(this.options, inputElement.data("options"));
+            var inputElement = this.element;
+            var opts = $.extend(this.options, inputElement.data("options"));
 
             inputElement.data('mobile.timespan.valid', true);
             inputElement.addClass('ui-timespan-valid');
@@ -15,11 +15,11 @@
 
             inputElement.on('keyup', function(evt) {
                 try {
-                    let ts = Date.Timespan.parse(inputElement.val());
+                    var ts = Date.Timespan.parse(inputElement.val());
                     inputElement.data('mobile.timespan.valid', true);
                     inputElement.removeClass('ui-timespan-invalid').addClass('ui-timespan-valid');
 
-                    let event = jQuery.Event('validity');
+                    var event = jQuery.Event('validity');
                     event.valid = true;
 
                     inputElement.trigger(event);
@@ -27,7 +27,7 @@
                     inputElement.data('mobile.timespan.valid', false);
                     inputElement.removeClass('ui-timespan-valid').addClass('ui-timespan-invalid');
 
-                    let event = jQuery.Event('validity');
+                    var event = jQuery.Event('validity');
                     event.valid = false;
 
                     inputElement.trigger(event);
