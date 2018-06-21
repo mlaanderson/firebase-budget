@@ -58,6 +58,7 @@ class BudgetForm extends renderer_1.default {
             this.btnConfig = new button_1.default('#btnConfig').on('click', this.btnConfig_onClick.bind(this));
             this.btnDownload = new button_1.default('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
             this.btnDownloadAsCsv = new button_1.default('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
+            this.btnDowloadPeriodAsCsv = new button_1.default('#btnDowloadPeriodAsCsv').on('click', this.btnDowloadPeriodAsCsv_onClick.bind(this));
             this.btnNewRecurring = new button_1.default('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
             this.btnReport = new button_1.default('#btnReport').on('click', this.btnReport_onClick.bind(this));
             this.btnYtdReport = new button_1.default('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
@@ -230,6 +231,14 @@ class BudgetForm extends renderer_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             let data = yield this.budget.Transactions.getCsv();
             let filename = `budget-${Date.today().toFbString()}.csv`;
+            this.download(data, filename, 'text/csv');
+            this.pnlMenu.close();
+        });
+    }
+    btnDowloadPeriodAsCsv_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let data = yield this.budget.Transactions.getCsv(this.periodStart, this.periodEnd);
+            let filename = `budget-${Date.parseFb(this.periodStart).format('MMM d')} to ${Date.parseFb(this.periodEnd).format('MMM d')}.csv`;
             this.download(data, filename, 'text/csv');
             this.pnlMenu.close();
         });

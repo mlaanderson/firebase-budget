@@ -8,7 +8,7 @@
         <% if (item.recurring) { %><span class="recurring" id="<%= item.id %>_recurring" recurring="<%= item.recurring %>" aria-label="Recurring"><i class="fas fa-recycle"></i></span><%}%>
         <% if (item.paid) { %><span aria-label="Paid"><i class="fas fa-check"></i></span><%}%>
         <% if (typeof item.note != "undefined") { %><span aria-label="<%= item.note.replace(/"/g, '&quot;') %>"><i class="far fa-comment"></i></span><% } %>
-        <% if (item.transfer) { %><span aria-label="Transfer to Savings"><i class="fas fa-arrow-right"></i></span><%}%>
+        <% if (item.transfer) { %><span aria-label="Transfer to Savings"><i class="fas fa-hand-holding-usd"></i></span><%}%>
     </td>
     <td class="trAmount" style="text-align: right"><%= item.amount.toCurrency() %></td>
 </tr>

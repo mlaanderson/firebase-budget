@@ -67,11 +67,6 @@ class TransactionList extends renderer_1.default {
         this.m_element.children('tr').on('click', this.onClick.bind(this));
         this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
         this.m_element.find('span.recurring').on('click', this.onRecurringClick.bind(this));
-        // tooltip
-        setTimeout(() => {
-            this.m_element.find('[data-title] svg').on('mouseenter', this.onMouseOverTitle.bind(this));
-            this.m_element.find('[data-title] svg').on('mouseleave', this.onMouseOutTitle.bind(this));
-        }, 150);
     }
     findTitleElement(e) {
         if ($(e.target).parent().jqmData('title'))

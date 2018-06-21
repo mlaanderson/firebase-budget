@@ -50,6 +50,7 @@ class BudgetForm extends Renderer {
     private btnConfig : Button;
     private btnDownload : Button;
     private btnDownloadAsCsv : Button;
+    private btnDowloadPeriodAsCsv : Button;
     private btnNewRecurring : Button;
     private btnReport : Button;
     private btnYtdReport : Button;
@@ -88,6 +89,7 @@ class BudgetForm extends Renderer {
             this.btnConfig = new Button('#btnConfig').on('click', this.btnConfig_onClick.bind(this));
             this.btnDownload = new Button('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
             this.btnDownloadAsCsv = new Button('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
+            this.btnDowloadPeriodAsCsv = new Button('#btnDowloadPeriodAsCsv').on('click', this.btnDowloadPeriodAsCsv_onClick.bind(this));
             this.btnNewRecurring = new Button('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
             this.btnReport = new Button('#btnReport').on('click', this.btnReport_onClick.bind(this));
             this.btnYtdReport = new Button('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
@@ -271,6 +273,13 @@ class BudgetForm extends Renderer {
 
         this.pnlMenu.close();
 
+    }
+
+    async btnDowloadPeriodAsCsv_onClick(e: JQuery.Event) {
+        let data = await this.budget.Transactions.getCsv(this.periodStart, this.periodEnd);
+        let filename = `budget-${Date.parseFb(this.periodStart).format('MMM d')} to ${Date.parseFb(this.periodEnd).format('MMM d')}.csv`;
+        this.download(data, filename, 'text/csv');
+        this.pnlMenu.close();
     }
 
     async btnDownload_onClick(e: JQuery.Event) {
