@@ -1,0 +1,31 @@
+.ui-btn-fa {
+    padding-left: 2.5em;
+}
+
+.ui-btn-fa.ui-btn-icon-left:after, .ui-btn-fa.ui-btn-icon-right:after, .ui-btn-fa.ui-btn-icon-top:after, .ui-btn-fa.ui-btn-icon-bottom:after, .ui-btn-fa.ui-btn-icon-notext:after {
+    background-color: rgba(0,0,0,0.0);
+}
+
+.ui-btn-fa .svg-inline--fa {
+    position: absolute;
+    left: 10.5px;
+    top: 5.8px;
+    width: 16px;
+    height: 16px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.298039);
+    border-radius: 1em;
+    border: 3px solid rgba(0, 0, 0, 0.0);
+}
+
+.ui-btn-fa.ui-mini .svg-inline--fa {
+    position: absolute;
+    left: 4.875px;
+    width: 16px;
+    height: 16px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.298039);
+    border-radius: 1em;
+    /* Transparent border shows the element's own background */
+    border: 3px solid rgba(0, 0, 0, 0.0);
+}

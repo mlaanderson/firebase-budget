@@ -20,6 +20,7 @@ export default class TransactionList extends Renderer implements TransactionView
     private m_element: JQuery<HTMLElement>;
     private m_config: Config;
     private m_active_id: string;
+    private m_tooltip: JQuery<HTMLElement>;
     
     SaveTransaction : (transaction: Transaction) => Promise<string> = async (transaction) => { console.log("SAVETRANSACTION", transaction); return null; };
     LoadTransaction : (id: string) => Promise<Transaction> = async (id) => { console.log("LOADTRANSACTION:", id); return null; }
@@ -37,6 +38,7 @@ export default class TransactionList extends Renderer implements TransactionView
 
         $(() => {
             this.m_element = $(element).children('tbody');
+            this.m_tooltip = $(element).siblings('.tooltip');
             $(window).on('resize', this.window_onResize);
         });
     }
@@ -70,11 +72,41 @@ export default class TransactionList extends Renderer implements TransactionView
     }
 
     private addListeners() {
+        this.m_element.children('tr').off();
+        this.m_element.find('span.recurring').off();
+        this.m_element.find('[data-title]').off();
+        this.m_element.find('[data-title]').children().off();
+
         this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
         this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
         this.m_element.children('tr').on('click', this.onClick.bind(this));
         this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
         this.m_element.find('span.recurring').on('click',this.onRecurringClick.bind(this));
+
+    }
+
+    private findTitleElement(e: JQuery.Event) : JQuery<HTMLElement> {
+        if ($(e.target).parent().jqmData('title')) return $(e.target).parent();
+        return $(e.target); 
+    }
+
+    private onMouseOutTitle(e: JQuery.Event) {
+        let target = this.findTitleElement(e);
+        if (target.jqmData('title')) {
+            target.data('titleShow', false);
+            this.m_tooltip.css('display', 'none');
+        }
+    }
+
+    private onMouseOverTitle(e: JQuery.Event) { console.log(e);
+        let target = this.findTitleElement(e);
+        if (target.jqmData('title')) {
+            if (target.data('titleShow') !== true) {
+                this.m_tooltip.text(target.jqmData('title'));
+                this.m_tooltip.css({ 'display': '', 'top': (e.clientY - 20) + 'px', 'left': (e.clientX) + 'px' });
+            }
+            target.data('titleShow', true);
+        }
     }
 
     private async editTransaction(id: string) {
@@ -199,11 +231,7 @@ export default class TransactionList extends Renderer implements TransactionView
                 }
 
                 // add the listeners
-                this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
-                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
-                this.m_element.children('tr').on('click', this.onClick.bind(this));
-                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
-                this.m_element.find('.recurring').on('click', this.onRecurringClick.bind(this));
+                this.addListeners();
 
                 this.window_onResize();
                 // hide the spinner
@@ -252,11 +280,7 @@ export default class TransactionList extends Renderer implements TransactionView
                 }
 
                 // re-add the listeners
-                this.m_element.children('tr').off().on('mouseover', this.onMouseOver.bind(this));
-                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
-                this.m_element.children('tr').on('click', this.onClick.bind(this));
-                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
-                this.m_element.find('.recurring').off().on('click', this.onRecurringClick.bind(this));
+                this.addListeners();
 
                 this.window_onResize();
             });

@@ -2,13 +2,13 @@
     <td class="trDate"><%= new Date(item.date).format('MMM d, yyyy') %></td>
     <td class="trCategory"><%= item.category %></td>
     <td class="trName">
-        <%= item.name %>
-        <% if (item.cash == true) { %><span title="Cash">$</span><%}%>
-        <% if (item.checkLink) { %><span title="Check">&#x2328;</span><%}%>
-        <% if (item.recurring) { %><span class="recurring" id="<%= item.id %>_recurring" recurring="<%= item.recurring %>" title="Recurring">&#x21bb;</span><%}%>
-        <% if (item.paid) { %><span title="Paid">&#x2713;</span><%}%>
-        <% if (typeof item.note != "undefined") { %><span title="<%= item.note.replace(/"/g, '&quot;') %>">&#x2709;</span><% } %>
-        <% if (item.transfer) { %><span title="Transfer to Savings">&#x2192;</span><%}%>
+        <%= item.name %>&nbsp;
+        <% if (item.cash == true) { %><span aria-label="Cash"><i class="fas fa-dollar-sign"></i></span><%}%>
+        <% if (item.check) { %><span aria-label="Check <%= item.check %>"><i class="fas fa-money-check"></i></span><%}%>
+        <% if (item.recurring) { %><span class="recurring" id="<%= item.id %>_recurring" recurring="<%= item.recurring %>" aria-label="Recurring"><i class="fas fa-recycle"></i></span><%}%>
+        <% if (item.paid) { %><span aria-label="Paid"><i class="fas fa-check"></i></span><%}%>
+        <% if (typeof item.note != "undefined") { %><span aria-label="<%= item.note.replace(/"/g, '&quot;') %>"><i class="far fa-comment"></i></span><% } %>
+        <% if (item.transfer) { %><span aria-label="Transfer to Savings"><i class="fas fa-arrow-right"></i></span><%}%>
     </td>
     <td class="trAmount" style="text-align: right"><%= item.amount.toCurrency() %></td>
 </tr>

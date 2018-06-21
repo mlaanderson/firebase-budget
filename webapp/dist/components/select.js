@@ -60,7 +60,7 @@ class Select {
         this.element.append(option);
     }
     empty() {
-        this.element.empty();
+        this.element.find('option').remove();
     }
     refresh() {
         this.element.selectmenu('refresh');

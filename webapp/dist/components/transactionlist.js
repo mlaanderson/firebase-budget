@@ -29,6 +29,7 @@ class TransactionList extends renderer_1.default {
         this.m_config = config;
         $(() => {
             this.m_element = $(element).children('tbody');
+            this.m_tooltip = $(element).siblings('.tooltip');
             $(window).on('resize', this.window_onResize);
         });
     }
@@ -57,11 +58,43 @@ class TransactionList extends renderer_1.default {
         return $(e.target).is('tr') ? $(e.target) : $(e.target).parents('tr').first();
     }
     addListeners() {
+        this.m_element.children('tr').off();
+        this.m_element.find('span.recurring').off();
+        this.m_element.find('[data-title]').off();
+        this.m_element.find('[data-title]').children().off();
         this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
         this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
         this.m_element.children('tr').on('click', this.onClick.bind(this));
         this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
         this.m_element.find('span.recurring').on('click', this.onRecurringClick.bind(this));
+        // tooltip
+        setTimeout(() => {
+            this.m_element.find('[data-title] svg').on('mouseenter', this.onMouseOverTitle.bind(this));
+            this.m_element.find('[data-title] svg').on('mouseleave', this.onMouseOutTitle.bind(this));
+        }, 150);
+    }
+    findTitleElement(e) {
+        if ($(e.target).parent().jqmData('title'))
+            return $(e.target).parent();
+        return $(e.target);
+    }
+    onMouseOutTitle(e) {
+        let target = this.findTitleElement(e);
+        if (target.jqmData('title')) {
+            target.data('titleShow', false);
+            this.m_tooltip.css('display', 'none');
+        }
+    }
+    onMouseOverTitle(e) {
+        console.log(e);
+        let target = this.findTitleElement(e);
+        if (target.jqmData('title')) {
+            if (target.data('titleShow') !== true) {
+                this.m_tooltip.text(target.jqmData('title'));
+                this.m_tooltip.css({ 'display': '', 'top': (e.clientY - 20) + 'px', 'left': (e.clientX) + 'px' });
+            }
+            target.data('titleShow', true);
+        }
     }
     editTransaction(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -167,11 +200,7 @@ class TransactionList extends renderer_1.default {
                     ;
                 }
                 // add the listeners
-                this.m_element.children('tr').on('mouseover', this.onMouseOver.bind(this));
-                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
-                this.m_element.children('tr').on('click', this.onClick.bind(this));
-                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
-                this.m_element.find('.recurring').on('click', this.onRecurringClick.bind(this));
+                this.addListeners();
                 this.window_onResize();
                 // hide the spinner
                 modalspinner_1.default.hide();
@@ -210,11 +239,7 @@ class TransactionList extends renderer_1.default {
                     ;
                 }
                 // re-add the listeners
-                this.m_element.children('tr').off().on('mouseover', this.onMouseOver.bind(this));
-                this.m_element.children('tr').on('mouseout', this.onMouseOut.bind(this));
-                this.m_element.children('tr').on('click', this.onClick.bind(this));
-                this.m_element.children('tr').on('dblclick', this.onDoubleClick.bind(this));
-                this.m_element.find('.recurring').off().on('click', this.onRecurringClick.bind(this));
+                this.addListeners();
                 this.window_onResize();
             });
         });

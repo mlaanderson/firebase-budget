@@ -65,7 +65,7 @@ export default class Select {
     }
 
     empty() {
-        this.element.empty();
+        this.element.find('option').remove();
     }
 
     refresh() {
