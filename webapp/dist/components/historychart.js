@@ -71,17 +71,21 @@ class HistoryChart {
             if ($('#footer_info').css('display') !== 'none') {
                 this.m_chart.dataProvider = [];
                 for (let date in sums) {
-                    this.m_chart.dataProvider.push({
-                        date: date,
-                        amount: Math.roundTo(sums[date], 2),
-                        description: Date.parseFb(date).format("MMM dd") + ": " + sums[date].toCurrency(),
-                        color: (sums[date] < 0 ? "#ff0000" : "#008800")
-                    });
+                    if (left <= date && date <= right) {
+                        this.m_chart.dataProvider.push({
+                            date: date,
+                            amount: Math.roundTo(sums[date], 2),
+                            description: Date.parseFb(date).format("MMM dd") + ": " + sums[date].toCurrency(),
+                            color: (sums[date] < 0 ? "#ff0000" : "#008800")
+                        });
+                    }
                 }
                 let chLeft = Date.parseFb(left);
                 let chRight = Date.parseFb(right);
-                this.m_chart.validateData();
-                this.m_chart.zoomToDates(chLeft, chRight);
+                setImmediate(() => {
+                    this.m_chart.validateData();
+                    this.m_chart.zoomToDates(chLeft, chRight);
+                });
             }
         });
     }

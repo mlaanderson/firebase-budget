@@ -1,7 +1,7 @@
 // weed out old browsers
 try {
     eval("() => { let a = class {} }");
-    $('#oldBrowserWarning').remove();
+    $(function() { $('#oldBrowserWarning').remove(); });
 } catch (err) {
     console.log('This browser does not support the budget');
     $(function() {

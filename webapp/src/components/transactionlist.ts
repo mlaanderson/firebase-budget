@@ -159,7 +159,13 @@ export default class TransactionList extends Renderer implements TransactionView
 
     onRecurringClick(e: JQuery.Event) {
         e.preventDefault();
-        let id = $(e.target).attr('recurring');
+        let target = $(e.target);
+        if (target.is('span.recurring') == false) {
+            target = target.parents('span.recurring');
+        }
+
+        if (target.is('span.recurring') === false) return;
+        let id = target.attr('recurring');
         this.editRecurring(id);
     }
 

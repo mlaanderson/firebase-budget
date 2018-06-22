@@ -45,17 +45,17 @@ export default class Dialog extends Renderer {
 
             input.type = 'hidden';
 
-            let monthSelect = $('<select data-theme="a">', { id: id + '-month' });
+            let monthSelect = $('<select data-theme="a" data-inline="true" data-icon="false">', { id: id + '-month' });
             monthSelect.append(Date.MONTHS.map((name, index) => {
                 return $('<option>', { value: index + 1, selected: (index == date.getUTCMonth()) }).text(name);
             }));
 
-            let daySelect = $('<select data-theme="a">', { id: id + '-day' });
+            let daySelect = $('<select data-theme="a" data-inline="true" data-icon="false">', { id: id + '-day' });
             for (let n = 1; n <= date.daysInMonth(); n++) {
                 daySelect.append($('<option>', { value: n, selected: n == date.getUTCDate() }).text(n));
             }
 
-            let yearSelect = $('<select data-theme="a">', { id: id + '-year' });
+            let yearSelect = $('<select data-theme="a" data-inline="true" data-icon="false">', { id: id + '-year' });
             for (let n = 2016; n <= 2100; n++) {
                 yearSelect.append($('<option>', { value: n, selected: n == date.getUTCFullYear() }).text(n));
             }
@@ -105,9 +105,12 @@ export default class Dialog extends Renderer {
             });
             daySelect.on('change', updateValues);
 
-            monthSelect.insertAfter(input);
-            daySelect.insertAfter(monthSelect);
-            yearSelect.insertAfter(daySelect);
+            $('<div style="min-height: 44px; width: 100%"></div>').append($('<div class="ui-btn-left" data-role="controlgroup" data-theme="a" data-type="horizontal" data-mini="true"></div>').append(
+                monthSelect, daySelect, yearSelect
+            )).insertAfter(input);
+            // monthSelect.insertAfter(input);
+            // daySelect.insertAfter(monthSelect);
+            // yearSelect.insertAfter(daySelect);
         });
     }
 
