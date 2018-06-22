@@ -255,20 +255,17 @@ class Transactions extends records_1.Records {
         }
         return date.getFullYear().toString().padStart(4, '0') + '/' +
             (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
-            date.getDate().toString().padStart(2, '0') + ' ' +
-            date.getHours().toString().padStart(2, '0') + ':' +
-            date.getMinutes().toString().padStart(2, '0') + ':' +
-            date.getSeconds().toString().padStart(2, '0');
+            date.getDate().toString().padStart(2, '0');
     }
     getCsv(start, end) {
         return __awaiter(this, void 0, void 0, function* () {
             let records = this.convertToArray(yield this.loadRecordsByChild('date', start, end));
-            let result = `Category,Name,Date,Amount,Memo`;
+            let result = `Category,Name,Date,Cash,Transfer,Amount,Paid,Memo`;
             records.sort((a, b) => {
                 return Date.parseFb(a.date).getTime() - Date.parseFb(b.date).getTime();
             });
             for (let record of records) {
-                result += `\r\n"${record.category.replace('"', '""')}","${record.name.replace('"', '""')}","${this.Date2Excel(record.date)}",${record.amount},${record.note ? '"' + record.note + '"' : ""}`;
+                result += `\r\n"${record.category.replace('"', '""')}","${record.name.replace('"', '""')}","${this.Date2Excel(record.date)}",${record.cash},${record.transfer},"${record.amount.toCurrency()}",${record.paid},${record.note ? '"' + record.note + '"' : ""}`;
             }
             return result;
         });
