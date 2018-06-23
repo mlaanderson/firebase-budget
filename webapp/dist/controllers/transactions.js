@@ -35,10 +35,9 @@ TransactonEvents.SavedInPeriod = 'savedinperiod';
 TransactonEvents.SavedBeforePeriod = 'savedbeforeperiod';
 TransactonEvents.SavedAfterPeriod = 'savedafterperiod';
 class Transactions extends records_1.Records {
-    constructor(reference, config) {
+    constructor(reference) {
         super(reference);
         this.records = {};
-        this.config = config;
     }
     sanitizeAfterRead(transaction) {
         transaction.cash = transaction.cash || false;
@@ -140,23 +139,12 @@ class Transactions extends records_1.Records {
             }
         });
     }
-    transactionSorter(a, b) {
-        let cat1 = this.config.categories.indexOf(a.category);
-        let cat2 = this.config.categories.indexOf(b.category);
-        if (cat1 != cat2)
-            return cat1 - cat2;
-        if (a.name < b.name)
-            return -1;
-        if (a.name > b.name)
-            return 1;
-        return 0;
-    }
     populateTransactionList() {
         let list = new Array();
         for (let k in this.records) {
             list.push(this.records[k]);
         }
-        this.transactionList = list.sort(this.transactionSorter.bind(this));
+        this.transactionList = list;
     }
     get Records() {
         return this.records || {};
