@@ -231,7 +231,7 @@ class TransactionList extends renderer_1.default {
                     let category = this.m_element.children('tr').first().attr('category');
                     let rows = this.m_element.children('tr').toArray();
                     for (let el of rows) {
-                        if ($(el).attr('transaction') != category) {
+                        if ($(el).attr('category') != category) {
                             n = 1 - n;
                             category = $(el).attr('category');
                         }

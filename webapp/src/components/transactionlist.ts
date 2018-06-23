@@ -277,7 +277,7 @@ export default class TransactionList extends Renderer implements TransactionView
                     let rows = this.m_element.children('tr').toArray();
 
                     for (let el of rows) {
-                        if ($(el).attr('transaction') != category) {
+                        if ($(el).attr('category') != category) {
                             n = 1 - n;
                             category = $(el).attr('category');
                         }
