@@ -1,6 +1,14 @@
+//
+//  RecurringTransaction.swift
+//  Budget
+//
+//  Created by Mike Kari Anderson on 6/23/18.
+//  Copyright © 2018 Mike Kari Anderson. All rights reserved.
+//
+
 import Firebase
 
-class RecurringTransaction: Record {
+class RecurringTransaction: BudgetRecord {
     var amount: Double = 0.0
     var cash: Bool
     var category: String
@@ -10,67 +18,82 @@ class RecurringTransaction: Record {
     var period: String
     var start: String
     var transfer: Bool
-
+    
     var deposit : Bool {
-        get { return value >= 0 }
+        get { return amount >= 0 }
     }
-
-    init(snapshot: DatabaseSnapshot) {
-        super(snapshot)
-        if !self.fromObject(snapshot.value) return nil
+    
+    required init?(_ snapshot: DataSnapshot) {
+        self.category = ""
+        self.end = ""
+        self.period = ""
+        self.start = ""
+        self.name = ""
+        self.cash = false
+        self.transfer = false
+        
+        super.init(snapshot)
+        
+        if !self.fromObject(value: snapshot.value as AnyObject) { return nil }
     }
-
-    init(data: [AnyHashable: Any]) {
-        super(data)
-        if !self.fromObject(data) return nil
+    
+    required init?(data: AnyObject) {
+        self.category = ""
+        self.end = ""
+        self.period = ""
+        self.start = ""
+        self.name = ""
+        self.cash = false
+        self.transfer = false
+        
+        super.init(data: data)
+        
+        if !self.fromObject(value: data) { return nil }
     }
-
-    private func fromObject(value: [AnyHashable: Any]) -> Bool {
-        guard 
+    
+    private func fromObject(value: AnyObject) -> Bool {
+        guard
             let amount = value["amount"] as? Double,
             let category = value["category"] as? String,
             let end = value["end"] as? String,
             let name = value["name"] as? String,
             let period = value["period"] as? String,
             let start = value["start"] as? String
-        else {
-            return false
+            else {
+                return false
         }
-
+        
         self.amount = amount
         self.category = category
         self.end = end
         self.name = name
         self.period = period
         self.start = start
-
+        
         self.cash = value["cash"] as? Bool ?? false
         self.note = value["note"] as? String
         self.transfer = value["transfer"] as? Bool ?? false
-
+        
         return true
     }
-
-    func asObject() -> [AnyHashable: Any] {
-        var result = [:]
-
+    
+    override func asObject() -> [AnyHashable: Any] {
+        var result: [AnyHashable:Any] = [:]
+        
         result["amount"] = self.amount
         result["category"] = self.category
         result["end"] = self.end
         result["name"] = self.name
         result["period"] = self.period
         result["start"] = self.start
-
+        
         // nil values are ignored on the firebase end, just set them
-        result["check"] = self.check
         result["note"] = self.note
-        result["recurring"] = self.recurring
-
+        
         // avoid storing false boolean values since nils are also parsed
         if self.cash { result["cash"] = true }
-        if self.paid { result["paid"] = true }
         if self.transfer { result["transfer"] = true }
-
+        
         return result
     }
 }

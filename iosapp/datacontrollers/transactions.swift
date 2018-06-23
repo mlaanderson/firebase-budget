@@ -1,3 +1,11 @@
+//
+//  Transactions.swift
+//  Budget
+//
+//  Created by Mike Kari Anderson on 6/23/18.
+//  Copyright © 2018 Mike Kari Anderson. All rights reserved.
+//
+
 
 import Firebase
 
@@ -6,160 +14,168 @@ class Transactions : Records<Transaction> {
     private var recordList: [Transaction] = []
     private var periodStart: String?
     private var periodEnd: String?
-
-    init(reference: DatabaseReference) {
-        super(reference)
+    
+    override init(reference: DatabaseReference) {
+        super.init(reference: reference)
     }
-
-    private func inPeriod(date: String) -> Bool {
-        guard self.periodStart, self.periodEnd else {
-            return false
-        }
-        return self.periodStart <= date && date <= self.periodEnd
+    
+    private func inPeriod(_ date: String) -> Bool {
+        guard
+            self.periodStart != nil,
+            self.periodEnd != nil
+            else { return false }
+        return (self.periodStart! <= date) && (date <= self.periodEnd!)
     }
-
+    
     // don't need to sort since the view does that for us
     private func populateTransactionList() {
         self.recordList = Array(self.records.values)
     }
-
-    override func onChildAdded(record: Transaction) {
-        guard self.periodStart, self.periodEnd else {
-            return
-        }
+    
+    override func onChildAdded(_ record: Transaction) {
+        guard
+            self.periodStart != nil,
+            self.periodEnd != nil
+            else { return }
 
         if self.inPeriod(record.date) {
-            self.records[record.id] = record
+            self.records[record.id!] = record
             self.populateTransactionList()
-
+            
             self.emit(.childAddedInPeriod, record, nil)
-        } else if record.date < self.periodStart {
+        } else if record.date < self.periodStart! {
             self.emit(.childAddedBeforePeriod, record, nil)
         }
-
+        
         super.onChildAdded(record)
     }
-
-    override func onChildChanged(record: Transaction) {
-        guard self.periodStart, self.periodEnd else {
-            return
-        }
+    
+    override func onChildChanged(_ record: Transaction) {
+        guard
+            self.periodStart != nil,
+            self.periodEnd != nil
+            else { return }
 
         if self.inPeriod(record.date) {
-            self.records[record.id] = record
+            self.records[record.id!] = record
             self.populateTransactionList()
-
+            
             self.emit(.childChangedInPeriod, record, nil)
         } else {
-            if let rec = self.records.removeValue(forKey: record.id) {
+            if self.records.removeValue(forKey: record.id!) != nil {
                 self.populateTransactionList()
             }
         }
-
-        self.emit(.childChanged, [record])
+        
+        self.emit(.childChanged, record, nil)
     }
+    
+    override func onChildRemoved(_ record: Transaction) {
+        guard
+            self.periodStart != nil,
+            self.periodEnd != nil
+            else { return }
 
-    override func onChildRemoved(record: Transaction) {
-        guard self.periodStart, self.periodEnd else {
-            return
-        }
-
-        if let rec = self.records.removeValue(forKey: record.id) {
+        if self.records.removeValue(forKey: record.id!) != nil {
             self.populateTransactionList();
         }
-
+        
         if self.inPeriod(record.date) {
             self.emit(.childRemovedInPeriod, record, nil)
-        } else if record.date < self.periodStart {
+        } else if record.date < self.periodStart! {
             self.emit(.childRemovedBeforePeriod, record, nil)
         }
-
-        self.emit(.childRemove, record, nil)
+        
+        self.emit(.childRemoved, record, nil)
     }
+    
+    override func onChildSaved(_ current: Transaction, _ original: Transaction?) {
+        guard
+            self.periodStart != nil,
+            self.periodEnd != nil
+            else { return }
 
-    override func onChildSaved(current: Transaction, original: Transaction) {
-        guard self.periodStart, self.periodEnd else {
-            return
-        }
-
-        if self.inPeriod(current.id) {
-            self.records[current.id] = current
+        if self.inPeriod(current.id!) {
+            self.records[current.id!] = current
         } else {
-            self.records.removeValue(forKey: current.id)
+            self.records.removeValue(forKey: current.id!)
         }
     }
-
-    public Records: [String:Transaction] {
+    
+    public var Records: [String:Transaction] {
         get { return self.records }
     }
-
-    public List: [Transaction] {
+    
+    public var List: [Transaction] {
         get { return self.recordList }
     }
-
-    public Start: String {
+    
+    public var Start: String? {
         get { return self.periodStart }
     }
-
-    public End: String {
+    
+    public var End: String? {
         get { return self.periodEnd }
     }
-
-    public Cash: Cash {
+    
+//    public var Cash: Cash {
+//        get {
+//            var result = Cash()
+//            for record in (self.recordList.filter { $0.cash && !$0.paid  && !$0.deposit }) {
+//                result += self.amount
+//            }
+//            return result
+//        }
+//    }
+    
+    
+    public var Transfer: Double {
         get {
-            var result = Cash()
-            for record in (self.recordList.filter { $0.cash && !$0.paid  && !$0.deposit }) {
-                result += self.amount
-            }
-            return result
-        }
-    }
-
-
-    public Transfer: Double {
-        get {
-            var result = 0
+            var result = 0.0
             for record in (self.recordList.filter { $0.transfer && !$0.paid }) {
                 result -= record.amount
             }
             return result
         }
     }
-
+    
     public func getSame(record: Transaction, completion:@escaping ([Transaction]) -> Void) {
-        self.loadRecordsByChild("name", record.name, record.name, with: { records in 
-            let result = Array(records.values).filter { $0.category = record.category }
+        self.loadRecordsByChild(child: "name", startAt: record.name, endAt: record.name) { records in
+            let result = records.values.filter { $0.category == record.category }
             completion(result)
-        })
+        }
     }
-
+    
     public func loadPeriod(start: String, end: String, completion:@escaping ([String:Transaction]) -> Void) {
-        self.loadRecordsByChild("date", start, end, with { records in 
+        self.loadRecordsByChild(child: "date", startAt: start, endAt: end) { records in
             self.records = records
             self.populateTransactionList()
             self.periodStart = start
             self.periodEnd = end
-
+            
             completion(self.records)
             self.emit(.periodLoaded, nil, nil)
-        })
-    }
-
-    public func getRecurring(id: String, completion:@escaping ([String:Transaction]) -> Void) {
-        self.loadRecordsByChild('recurring', id, id, completion)
-    }
-
-    public func getTotal(completion:@escaping (Double) -> Void) {
-        guard self.periodStart, self.periodEnd else {
-            completion(0.0)
-            return
         }
-
-        self.loadRecordsByChild('date', nil, self.periodEnd) { records in
-            let total = Array(records.values).reduce(0.0, +)
+    }
+    
+    public func getRecurring(id: String, completion:@escaping ([String:Transaction]) -> Void) {
+        self.loadRecordsByChild(child: "recurring", startAt: id, endAt: id, completion: completion)
+    }
+    
+    public func getTotal(completion:@escaping (Double) -> Void) {
+        guard
+            self.periodStart != nil,
+            self.periodEnd != nil
+            else {
+                completion(0.0)
+                return
+            }
+        
+        self.loadRecordsByChild(child: "date", startAt: nil, endAt: self.periodEnd) { records in
+            let total = records.values.map({ $0.amount }).reduce(0, +)
             completion(total)
         }
     }
-
+    
     // TODO SEARCH
 }
