@@ -190,9 +190,43 @@ export default class TransactionList extends Renderer implements TransactionView
         this.displayList(list, total);
     }
 
+    updateRows() {
+        // get the rows as an array
+        let rows = this.rows.toArray();
+
+        // empty the table
+        this.m_element.empty();
+
+        // sort the rows
+        rows.sort(this.rowSorter.bind(this));
+
+        // add the rows again
+        this.m_element.append(rows);
+
+        // setup the alternate row classes
+        if (this.m_element.children('tr').length > 0) {
+            let n = 0;
+            let category = this.m_element.children('tr').first().attr('category');
+            let rows = this.m_element.children('tr').toArray();
+
+            for (let el of rows) {
+                if ($(el).attr('category') != category) {
+                    n = 1 - n;
+                    category = $(el).attr('category');
+                }
+                $(el).removeClass('row_0').removeClass('row_1').addClass("row_" + n);
+            };
+        }
+
+        // re-add the listeners
+        this.addListeners();
+
+        this.window_onResize();
+    }
+
     displayList(transactions: Array<Transaction>, total?: number) {
-        transactions = transactions.slice();
-        transactions.sort(this.sorter.bind(this));
+        // transactions = transactions.slice();
+        // transactions.sort(this.sorter.bind(this));
         
         $(() => {
             // prevent races between the constructor and this method
@@ -222,24 +256,7 @@ export default class TransactionList extends Renderer implements TransactionView
 
             Promise.all(promises).then(() => {
                 // setup the alternate row classes
-                if (this.m_element.children('tr').length > 0) {
-                    let n = 0;
-                    let category = this.m_element.children('tr').first().attr('category');
-                    let rows = this.m_element.children('tr').toArray();
-
-                    for (let el of rows) {
-                        if ($(el).attr('category') != category) {
-                            n = 1 - n;
-                            category = $(el).attr('category');
-                        }
-                        $(el).addClass("row_" + n);
-                    };
-                }
-
-                // add the listeners
-                this.addListeners();
-
-                this.window_onResize();
+                this.updateRows()
                 // hide the spinner
                 ModalSpinner.hide();
             });
@@ -257,38 +274,7 @@ export default class TransactionList extends Renderer implements TransactionView
             // add this to the end of the list
             this.render(TEMPLATE, { item: transaction }).then((template) => {
                 this.m_element.append($(template));
-
-                // get the rows as an array
-                let rows = this.rows.toArray();
-
-                // empty the table
-                this.m_element.empty();
-
-                // sort the rows
-                rows.sort(this.rowSorter.bind(this));
-
-                // add the rows again
-                this.m_element.append(rows);
-
-                // setup the alternate row classes
-                if (this.m_element.children('tr').length > 0) {
-                    let n = 0;
-                    let category = this.m_element.children('tr').first().attr('category');
-                    let rows = this.m_element.children('tr').toArray();
-
-                    for (let el of rows) {
-                        if ($(el).attr('category') != category) {
-                            n = 1 - n;
-                            category = $(el).attr('category');
-                        }
-                        $(el).removeClass('row_0').removeClass('row_1').addClass("row_" + n);
-                    };
-                }
-
-                // re-add the listeners
-                this.addListeners();
-
-                this.window_onResize();
+                this.updateRows();                
             });
         });
     }

@@ -28,7 +28,7 @@ class Budget extends events_1.default {
         this.config.read().then(() => {
             this.root.child('accounts').orderByChild('name').startAt('Primary').endAt('Primary').once('child_added').then((snap) => {
                 this.account = snap.ref;
-                this.transactions = new transactions_1.default(this.account.child('transactions'), this.config);
+                this.transactions = new transactions_1.default(this.account.child('transactions'));
                 this.recurring = new recurringtransactions_1.default(this.account.child('recurring'));
                 this.history = new historymanager_1.default(this.transactions, this.recurring);
                 this.history.on('change', () => {

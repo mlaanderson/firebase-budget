@@ -35,11 +35,9 @@ export default class Transactions extends Records<Transaction> {
     private transactionList: Array<Transaction>;
     private periodStart: string;
     private periodEnd: string;
-    private config: Config;
 
-    constructor(reference: firebase.database.Reference, config: Config) {
+    constructor(reference: firebase.database.Reference) {
         super(reference); 
-        this.config = config;
     }
 
     protected sanitizeAfterRead(transaction: Transaction) : Transaction {
@@ -139,17 +137,6 @@ export default class Transactions extends Records<Transaction> {
         }
     }
 
-    private transactionSorter(a: Transaction, b: Transaction) {
-        let cat1 = this.config.categories.indexOf(a.category);
-        let cat2 = this.config.categories.indexOf(b.category);
-
-        if (cat1 != cat2) return cat1 - cat2;
-
-        if (a.name < b.name) return -1;
-        if (a.name > b.name) return 1;
-        return 0;
-    }
-
     private populateTransactionList() {
         let list = new Array<Transaction>();
 
@@ -158,7 +145,7 @@ export default class Transactions extends Records<Transaction> {
             list.push(this.records[k]);
         }
 
-        this.transactionList = list.sort(this.transactionSorter.bind(this));
+        this.transactionList = list;
     }
 
     public get Records() : RecordMap<Transaction> {
