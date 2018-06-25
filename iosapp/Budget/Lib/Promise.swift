@@ -15,10 +15,10 @@ class Promise<T> {
     private var rejectedValue: Any?
 
     init(_ completion:@escaping PromiseHandler) {
-        completion(self.resolver, self.rejecter)
+        completion(self.resolve, self.reject)
     }
 
-    private func resolver(_ value: T?) {
+    func resolve(_ value: T?) {
         isResolved = true
         resolvedValue = value
 
@@ -31,7 +31,7 @@ class Promise<T> {
         }
     }
 
-    private func rejecter(_ error: Any?) {
+    func reject(_ error: Any?) {
         isRejected = true
         rejectedValue = error
 
@@ -75,18 +75,19 @@ class Promise<T> {
         return self
     }
 
-    static func reject<U>(_ reason: Any?) -> Promise<U> {
-        let result = Promise<U>() { resolve, reject in
-            if reject != nil { reject(reason) }
-        }
+
+    static func reject<U>(_ reason: Any? = nil) -> Promise<U> {
+        let result = Promise<U>() { resolve, reject in }
+
+        result.reject(reason)
 
         return result
     }
 
-    static func resolve<U>(_ value: U?) -> Promise<U> {
-        let result = Promise<U>() { resolve, reject in
-            if resolve != nil { resolve(value) }
-        }
+    static func resolve<U>(_ value: U? = nil) -> Promise<U> {
+        let result = Promise<U>() { resolve, reject in }
+
+        result.resolve(value)
 
         return result
     }
