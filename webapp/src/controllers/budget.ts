@@ -17,7 +17,6 @@ interface Period {
 
 
 export default class Budget extends Events {
-    private name: string;
     private root: firebase.database.Reference;
     private account: firebase.database.Reference;
     private transactions: Transactions;
@@ -37,8 +36,7 @@ export default class Budget extends Events {
         this.config = new Config(reference);
 
         this.root.child('name').once('value').then((snap) => {
-            this.name = snap.val().toString();
-            console.log('Running on:', this.name);
+            console.log('Running on:', snap.val().toString());
         });
 
         this.config.read().then(() => {
@@ -52,29 +50,7 @@ export default class Budget extends Events {
                 this.history.on('change', () => {
                     this.emitAsync('history_change');
                 });
-
-
-                // start at the current period
-                // this.gotoDate(Date.today());
-
-                // assign listeners
-                this.ready().then(() => {
-
-                    this.recurring.on('child_saved', this.recurring_OnSave.bind(this));
-                    this.recurring.on('child_before_removed', this.recurring_OnRemove.bind(this));
-
-                    this.transactions.on('added', this.transaction_OnAdded.bind(this));
-                    this.transactions.on('addedinperiod', this.transaction_OnAddedInPeriod.bind(this));
-                    this.transactions.on('addedbeforeperiod', this.transaction_OnAddedBeforePeriod.bind(this));
-                    
-                    this.transactions.on('changed', this.transaction_OnChanged.bind(this));
-
-                    this.transactions.on('removed', this.transaction_OnRemoved.bind(this));
-                    this.transactions.on('removedinperiod', this.transaction_OnRemovedInPeriod.bind(this));
-                    this.transactions.on('removedbeforeperiod', this.transaction_OnRemovedBeforePeriod.bind(this));
-
-                });
-                
+               
                 this.emitAsync("config_read");
             });
         });
@@ -82,42 +58,6 @@ export default class Budget extends Events {
         this.readyPromise = new Promise<boolean>((resolve, reject) => {
             this.readyResolver = resolve;
         });
-    }
-
-    private async transaction_OnAdded(transaction: Transaction) {
-        this.emit('transactionadded', transaction, this);
-    }
-
-    private async transaction_OnAddedInPeriod(transaction: Transaction) {
-        this.emit('transactionaddedinperiod', transaction, this);
-    }
-
-    private async transaction_OnAddedBeforePeriod(transaction: Transaction) {
-        this.emit('transactionaddedbeforeperiod', transaction, this);
-    }
-
-    private async transaction_OnChanged(transaction: Transaction) {
-        this.emit('transactionchanged', transaction, this);
-    }
-
-    private async transaction_OnRemoved(transaction: Transaction) {
-        this.emit('transactionremoved', transaction, this);
-    }
-
-    private async transaction_OnRemovedInPeriod(transaction: Transaction) {
-        this.emit('transactionremovedinperiod', transaction, this);
-    }
-
-    private async transaction_OnRemovedBeforePeriod(transaction: Transaction) {
-        this.emit('transactionremovedbeforeperiod', transaction, this);
-    }
-
-    private async recurring_OnRemove(id: string) {
-        
-    }
-
-    private async recurring_OnSave(transaction: RecurringTransaction) {  
-       
     }
 
     public get CanUndo() : boolean {
