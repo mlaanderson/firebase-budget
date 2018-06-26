@@ -282,6 +282,7 @@ extension Date {
     func add(timespan: String) -> Date {
         return self.add(timespan: Timespan.parse(value: timespan) ?? Timespan())
     }
+
     
     func periodCalc(start: String, length: String) -> Date {
         var result = Date.parseFb(value: start)!
@@ -290,7 +291,7 @@ extension Date {
         }
         return result
     }
-    
+
     func daysInMonth() -> Int {
         let month = self.getMonth()
         let year = self.getYear()
@@ -346,5 +347,25 @@ extension Date {
     
     static func periodCalc(start: String, length: String) -> Date {
         return Date.today().periodCalc(start: start, length: length)
+    }
+
+    static func range(start: Date, end: Date, period: Timespan) -> [Date] {
+        var date = start
+        var result: [Date] = []
+
+        while (date + period) <= end {
+            result.append(date)
+            date = date + period
+        }
+
+        return result
+    }
+
+    static func range(start: String, end; String, period: String) -> [Date] {
+        return Date.range(start: Date.parseFb(start), end: Date.parseFb(end), period: Timespan.parse(period))
+    }
+
+    static func range(start: Date, end; Date, period: String) -> [Date] {
+        return Date.range(start: start, end: end, period: Timespan.parse(period))
     }
 }

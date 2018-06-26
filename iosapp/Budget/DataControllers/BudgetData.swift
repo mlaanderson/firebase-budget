@@ -77,6 +77,52 @@ class BudgetData : Observable<BudgetEvents, AnyObject> {
     }
 
     func saveRecurring(_ transaction: RecurringTransaction) {
+        self.recurrings.save(transaction) { id in 
+            var date = Date.periodCalc(self.config.start, self.config.length).toFbString()
+
+            if date < self.period.start {
+                date = self.period.start
+            }
+
+            self.transactions.getRecurring(id) { transactions in 
+                let toDelete = transactions.values.filter({ $0.date >= date && !$0.paid })
+                for tr in toDelete {
+                    self.transactions.remove(tr)
+                }
+            }
+
+            for tDate in Date.range(start: date, end: transaction.end, period: transaction.length) {
+                if (tDate >= self.period.start) {
+                   var object = [AnyHashable:Any]()
+                   object["amount"] = transaction.amount
+                   object["cash"] = transaction.cash
+                   object["category"] = transaction.category
+                   object["date"] = tDate.toFbString()
+                   object["name"] = transaction.name
+                   object["note"] = transaction.note
+                   object["recurring"] = id
+                   object["transfer"] = transaction.transfer
+                   self.transactions.save(Transaction(object))
+                }
+            }
+        }
+    }
+
+    func removeRecurring(_ transaction: RecurringTransaction) {
+        self.recurrings.save(transaction) { id in 
+            var date = Date.periodCalc(self.config.start, self.config.length).toFbString()
+
+            if date < self.period.start {
+                date = self.period.start
+            }
+
+            self.transactions.getRecurring(id) { transactions in 
+                let toDelete = transactions.values.filter({ $0.date >= date && !$0.paid })
+                for tr in toDelete {
+                    self.transactions.remove(tr)
+                }
+            }
+        }
     }
 }
 
