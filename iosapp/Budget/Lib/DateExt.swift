@@ -44,7 +44,7 @@ class Timespan {
             guard
                 let first = Int(groups["first"].value),
                 let second = Int(groups["second"].value)
-            else { return nil }
+                else { return nil }
             
             days.append(first)
             days.append(second)
@@ -58,12 +58,12 @@ class Timespan {
                 let hours = Int(groups["hours"].value),
                 let minutes = Int(groups["minutes"].value),
                 let seconds = Double(groups["seconds"].value)
-            else { return nil }
+                else { return nil }
             
             sum = Double(hours * 3600) + Double(minutes * 60) + seconds
             return Timespan(years: years, months: months, seconds: sum, days: days)
         }
-
+        
         let phrases = re_phrase.matches(value)
         
         for phrase in phrases {
@@ -147,14 +147,14 @@ extension String {
                     result += (result == "" ? "" : " ") + String(val) + " " + suffix
                 }
             }
-           
+            
             
             format(ts.years, "years")
             format(ts.months, "months")
             format(weeks, "weeks")
             format(days, "days")
             if (hours != 0) || (minutes != 0) || (abs(time) >= 0.001) {
-
+                
                 result += (result == "" ? "" : " ") + String(format: "%d:%02d:%02f", hours, minutes, time)
             }
         }
@@ -255,7 +255,7 @@ extension Date {
                     match = true
                 } else if result.getDay() == result.daysInMonth() && timespan.days.contains { el in
                     return el > result.getDay()
-                } {
+                    } {
                     match = true
                 } else {
                     result = result + "1 day"
@@ -282,7 +282,7 @@ extension Date {
     func add(timespan: String) -> Date {
         return self.add(timespan: Timespan.parse(value: timespan) ?? Timespan())
     }
-
+    
     
     func periodCalc(start: String, length: String) -> Date {
         var result = Date.parseFb(value: start)!
@@ -291,7 +291,7 @@ extension Date {
         }
         return result
     }
-
+    
     func daysInMonth() -> Int {
         let month = self.getMonth()
         let year = self.getYear()
@@ -332,7 +332,7 @@ extension Date {
     static func +(left: String, right: Date) -> Date {
         return right.add(timespan: left)
     }
-
+    
     static func -(left: Date, right: String) -> Date {
         return left.subtract(timespan: right)
     }
@@ -348,24 +348,24 @@ extension Date {
     static func periodCalc(start: String, length: String) -> Date {
         return Date.today().periodCalc(start: start, length: length)
     }
-
+    
     static func range(start: Date, end: Date, period: Timespan) -> [Date] {
         var date = start
         var result: [Date] = []
-
+        
         while (date + period) <= end {
             result.append(date)
             date = date + period
         }
-
+        
         return result
     }
-
-    static func range(start: String, end; String, period: String) -> [Date] {
-        return Date.range(start: Date.parseFb(start), end: Date.parseFb(end), period: Timespan.parse(period))
+    
+    static func range(start: String, end: String, period: String) -> [Date] {
+        return Date.range(start: Date.parseFb(value: start)!, end: Date.parseFb(value: end)!, period: Timespan.parse(value: period)!)
     }
-
-    static func range(start: Date, end; Date, period: String) -> [Date] {
-        return Date.range(start: start, end: end, period: Timespan.parse(period))
+    
+    static func range(start: Date, end: Date, period: String) -> [Date] {
+        return Date.range(start: start, end: end, period: Timespan.parse(value: period)!)
     }
 }

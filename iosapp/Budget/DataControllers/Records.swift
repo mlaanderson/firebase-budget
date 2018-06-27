@@ -24,6 +24,8 @@ enum RecordsEvents: Int {
     periodLoaded
 }
 
+private func emptyString(_: String) {}
+
 class Records<T: BudgetRecord> : ObservableWithData<RecordsEvents, T> {
     let ref: DatabaseReference
     
@@ -103,7 +105,7 @@ class Records<T: BudgetRecord> : ObservableWithData<RecordsEvents, T> {
         })
     }
     
-    func save(record: T, completion:@escaping (String) -> Void) {
+    func save(record: T, completion:@escaping ((String) -> Void) = emptyString) {
         let saveData = record.asObject()
         if record.ref != nil {
             // updating an existing record
@@ -136,7 +138,7 @@ class Records<T: BudgetRecord> : ObservableWithData<RecordsEvents, T> {
         }
     }
     
-    func remove(record: T, completion:@escaping (String) -> Void) {
+    func remove(record: T, completion:@escaping ((String) -> Void) = emptyString) {
         self.onBeforeChildRemoved(record)
         guard
             record.ref != nil

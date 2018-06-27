@@ -10,9 +10,9 @@ import Foundation
 import Firebase
 
 struct Period {
-    start: Date;
-    end: Date;
-
+    var start: Date;
+    var end: Date;
+    
     init(start: Date, end: Date) {
         self.start = start;
         self.end = end;
@@ -59,7 +59,7 @@ class Configuration : BudgetRecord {
         start = ""
         length = ""
         
-
+        
         super.init(data: data)
         if !self.fromObject(value: data) { return nil }
     }
@@ -89,11 +89,11 @@ class Configuration : BudgetRecord {
         
         return result
     }
-
+    
     func calculatePeriod(date: Date) -> Period {
-        let start = date.periodCalc(self.start)
+        let start = date.periodCalc(start: self.start, length: self.length)
         let end = start + self.length
-
+        
         return Period(start: start, end: end)
     }
 }
