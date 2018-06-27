@@ -59,7 +59,7 @@ export default class HistoryChart implements TransactionViewer {
                 "bulletBorderAlpha": 1,
                 "bulletField": "amount",
                 "bulletHitAreaSize": 2,
-                "color": "#000000",
+                "color": "#FFFFFF",
                 "colorField": "color",
                 "columnWidth": 0,
                 "descriptionField": "description",
