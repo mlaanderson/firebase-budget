@@ -82,12 +82,13 @@
                      and (-webkit-device-pixel-ratio: 1)"
               rel="apple-touch-startup-image">
 
-        <link rel="stylesheet" href="/jquery.mobile/css/themes/purple/budget.min.css" />
-        <link rel="stylesheet" href="/jquery.mobile/css/themes/purple/jquery.mobile.icons.min.css" />
+        <link rel="stylesheet" id="theme" href="jquery.mobile/css/themes/default/budget.min.css" />
+        <link rel="stylesheet" id="theme-icons" href="jquery.mobile/css/themes/default/jquery.mobile.icons.min.css" />
+        <link rel="stylesheet" id="theme-extras" href="jquery.mobile/css/themes/default/extras.css" />
         <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile.structure-1.4.5.min.css" />
         <link rel="stylesheet" href="/jquery.mobile/css/themes/default/jqm-icon-pack-fa.css">
         <link rel="stylesheet" href="css/jqm.fontawesome.css">
-        <link rel="stylesheet" href="/css/style.css">
+        <link rel="stylesheet" href="css/style.css">
 
 
         <script src="/jquery.mobile/js/jquery-1.12.4.min.js"></script>
@@ -105,6 +106,17 @@
 
         <!-- <script src="js/html2canvas.min.js"></script>
         <script src="js/screenshot.js"></script> -->
+
+        <script>
+            function setTheme(theme) {
+                theme = theme || "default"
+                $('head').append(
+                    $(`<link rel="stylesheet" href="/jquery.mobile/css/themes/${theme}/budget.min.css">`), 
+                    $(`<link rel="stylesheet" href="/jquery.mobile/css/themes/${theme}/jquery.mobile.icons.min.css">`),
+                    $(`<link rel="stylesheet" href="/jquery.mobile/css/themes/${theme}/extras.css">`)
+                );
+            }
+        </script>
     </head>
     <body>
         <div data-role="page" id="transactions">
@@ -176,7 +188,6 @@
                             </tr>
                         </tfoot>
                     </table>
-                    <span style="display:none; position: absolute; top: 0; left: 0; background-color: rgba(255, 255, 0, 0.95); color: black; border-radius: 5px; padding: 5px;" class="tooltip"></span>
                 </div>
                 <div class="info_div">
                 </div>
@@ -193,7 +204,7 @@
                 <div class="ui-btn-right" data-role="controlgroup" data-theme="a" data-type="horizontal" data-mini="true">
                     <a href="#" title="New Recurring Transaction" class="ui-btn ui-btn-icon-notext ui-corner-all ui-btn-fa" id="btnNewRecurring"><i class="fas fa-recycle"></i>New Recurring</a>
                 </div>
-                <div id="footer_info" style="background-color: #cface9">
+                <div id="footer_info">
                     <div id="chart_div"></div>
                     <div class="info_div"></div>
                 </div>

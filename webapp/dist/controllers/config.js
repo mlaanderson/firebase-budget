@@ -28,7 +28,8 @@ class Configuration {
             periods: {
                 length: "2 weeks",
                 start: "2016-06-24"
-            }
+            },
+            "theme": "default"
         };
         this.ref = reference;
     }
@@ -63,6 +64,12 @@ class Configuration {
     }
     set length(value) {
         this.data.periods.length = value;
+    }
+    get theme() {
+        return this.data.theme || "default";
+    }
+    set theme(value) {
+        this.data.theme = value;
     }
     calculatePeriod(date) {
         if (typeof date === "string") {

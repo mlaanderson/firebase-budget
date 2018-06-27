@@ -212,7 +212,7 @@ class BudgetForm extends renderer_1.default {
         this.pnlMenu.close();
         let configDialog = new configdialog_1.default(this.budget.Config, () => {
             this.budget.Config.write();
-        });
+        }, this.setTheme.bind(this));
         configDialog.open();
     }
     btnReport_onClick(e) {
@@ -277,6 +277,7 @@ class BudgetForm extends renderer_1.default {
     // Configuration
     config_onRead() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.setTheme(this.budget.Config.theme);
             this.periodMenu.empty();
             this.transactionList = new transactionlist_1.default('#tblTransactions', this.budget.Config);
             // wire up the load/save/delete functionality
@@ -305,6 +306,12 @@ class BudgetForm extends renderer_1.default {
             };
             yield this.gotoPeriod(this.periodStart);
         });
+    }
+    setTheme(theme) {
+        theme = theme || "default";
+        $('#theme').attr('href', `/jquery.mobile/css/themes/${theme}/budget.min.css`);
+        $('#theme-icons').attr('href', `/jquery.mobile/css/themes/${theme}/jquery.mobile.icons.min.css`);
+        $('#theme-extras').attr('href', `/jquery.mobile/css/themes/${theme}/extras.css`);
     }
     // Authorization
     firebase_onAuthStateChanged(user) {

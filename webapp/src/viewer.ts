@@ -247,7 +247,7 @@ class BudgetForm extends Renderer {
         this.pnlMenu.close();
         let configDialog = new ConfigDialog(this.budget.Config, () => {
             this.budget.Config.write();
-        });
+        }, this.setTheme.bind(this));
         configDialog.open();
     }
 
@@ -321,6 +321,7 @@ class BudgetForm extends Renderer {
 
     // Configuration
     async config_onRead() {
+        this.setTheme(this.budget.Config.theme);
         this.periodMenu.empty();
 
         this.transactionList = new TransactionList('#tblTransactions', this.budget.Config);
@@ -353,6 +354,13 @@ class BudgetForm extends Renderer {
             return this.transactionList_PreviewTransaction(id);
         }
         await this.gotoPeriod(this.periodStart);
+    }
+
+    setTheme(theme: string) {
+        theme = theme || "default"
+        $('#theme').attr('href', `/jquery.mobile/css/themes/${theme}/budget.min.css`);
+        $('#theme-icons').attr('href', `/jquery.mobile/css/themes/${theme}/jquery.mobile.icons.min.css`);
+        $('#theme-extras').attr('href', `/jquery.mobile/css/themes/${theme}/extras.css`);
     }
 
     // Authorization

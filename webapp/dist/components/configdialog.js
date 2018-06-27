@@ -10,17 +10,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 class ConfigDialog extends dialog_1.default {
-    constructor(config, saveConfig) {
+    constructor(config, saveConfig, setTheme) {
         super("config_v3", config);
+        this.setTheme = () => { };
         this.config = config;
+        this.setTheme = setTheme;
     }
     afterOpen() {
         this.m_dialog.find('#btnSave').on('click', () => __awaiter(this, void 0, void 0, function* () {
             this.config.start = this.m_dialog.find('#date').val();
             this.config.length = this.m_dialog.find('#period_length').val();
+            this.config.theme = this.m_dialog.find('#theme').val();
             yield this.config.write();
             this.close();
         }));
+        this.m_dialog.find('#theme').on('change', () => {
+            console.log(this.m_dialog.find('#theme').val());
+            this.setTheme(this.m_dialog.find('#theme').val());
+        });
+    }
+    afterClose() {
+        super.afterClose();
+        this.setTheme(this.config.theme);
     }
 }
 exports.default = ConfigDialog;

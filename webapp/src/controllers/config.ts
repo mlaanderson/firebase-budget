@@ -3,6 +3,8 @@
  */
 import * as firebase from "firebase";
 
+export type Themes = "default" | "purple" | "brown"
+
 interface ConfigurationPeriod {
     length: string;
     start: string;
@@ -12,6 +14,7 @@ export interface ConfigurationData {
     showWizard?: boolean;
     categories: Array<string>;
     periods: ConfigurationPeriod;
+    theme: Themes
 }
 
 export default class Configuration {
@@ -33,7 +36,8 @@ export default class Configuration {
         periods: {
             length: "2 weeks",
             start: "2016-06-24"
-        }
+        },
+        "theme": "default"
     };
 
     // passed reference should be the current user root
@@ -76,6 +80,14 @@ export default class Configuration {
 
     set length(value: string) {
         this.data.periods.length = value;
+    }
+
+    get theme() : Themes {
+        return this.data.theme || "default";
+    }
+
+    set theme(value: Themes)  {
+        this.data.theme = value;
     }
 
     calculatePeriod(date: string | Date) : { start: string, end: string } {

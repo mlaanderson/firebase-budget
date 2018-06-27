@@ -1,0 +1,8 @@
+#footer_info {
+    background-color: #cface9
+}
+
+#tblTransactions span[aria-label]:hover:after {
+    background-color: rgb(102, 45, 145); 
+    color: white; border-radius: 5px; 
+}
