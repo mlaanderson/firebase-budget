@@ -19,9 +19,9 @@
     <div role="main" class="ui-content">
         <div class="ui-field-contain">
             <label for="date">Date</label>
-            <input type="date" id="date" value="<%= transaction.date %>" data-theme="a">
+            <input type="date" id="date" data-mini="true" value="<%= transaction.date %>" data-theme="a">
             <label for="category">Category</label>
-            <select id="category" data-theme="a">
+            <select id="category" data-mini="true" data-theme="a">
                 <%
                 for (var n = 0; n < categories.length; n++) { 
                     if (categories[n] == transaction.category) {
@@ -37,31 +37,31 @@
                 %>
             </select>
             <label for="name">Name</label>
-            <input type="text" id="name" value="<%= transaction.name %>" data-theme="a">
+            <input type="text" data-mini="true" id="name" value="<%= transaction.name %>" data-theme="a">
             <label for="type">
-                <input type="checkbox" id="type" <% if (Math.sign(transaction.amount) > 0) { %>checked<% } %>>
+                <input type="checkbox" data-mini="true" id="type" <% if (Math.sign(transaction.amount) > 0) { %>checked<% } %>>
                 Deposit
             </label>
             <label for="cash">
-                <input type="checkbox" id="cash" <% if (transaction.cash == true) { %>checked<% } %>>
+                <input type="checkbox" data-mini="true" id="cash" <% if (transaction.cash == true) { %>checked<% } %>>
                 Cash
             </label>
             <label for="transfer">
-                <input type="checkbox" id="transfer" <% if (typeof transaction.transfer !== "undefined" && transaction.transfer === true) { %>checked<% } %>>
+                <input type="checkbox" data-mini="true" id="transfer" <% if (typeof transaction.transfer !== "undefined" && transaction.transfer === true) { %>checked<% } %>>
                 Transfer to Savings
             </label>
             <label for="check">Check#</label>
-            <input type="text" id="checkNumber" value="<%= transaction.check ? transaction.check : "" %>" data-theme="a">
+            <input type="text" id="checkNumber" data-mini="true" value="<%= transaction.check ? transaction.check : "" %>" data-theme="a">
             <label for="amount">Amount</label>
-            <input type="number" id="amount" value="<%= Math.abs(transaction.amount) %>" data-theme="a">
+            <input type="number" id="amount" data-mini="true" value="<%= Math.abs(transaction.amount) %>" data-theme="a">
             <label for="paid">
-                <input type="checkbox" id="paid" <% if (transaction.paid == true) { %>checked<% } %>>
+                <input type="checkbox" data-mini="true" id="paid" <% if (transaction.paid == true) { %>checked<% } %>>
                 Paid
             </label>
             <label for="note">Notes</label>
-            <textarea id="note" data-theme="a"><%= transaction.note %></textarea>
-            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
-            <% if (typeof transaction.id !== "undefined") { %><button type="button" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
+            <textarea id="note" data-theme="a" data-mini="true"><%= transaction.note %></textarea>
+            <button type="button" data-mini="true" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+            <% if (typeof transaction.id !== "undefined") { %><button type="button" data-mini="true" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
         </div>
     </div>
 </div>
