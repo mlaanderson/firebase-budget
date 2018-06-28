@@ -4,7 +4,9 @@
   "description": "Budgetting Web App using Firebase as the back-end.",
   "main": "webpack.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "firebase --only hosting serve -o 0.0.0.0",
+    "deploy": "firebase --only hosting deploy"
   },
   "repository": {
     "type": "git",
