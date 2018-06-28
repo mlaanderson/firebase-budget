@@ -1,0 +1,11 @@
+{
+    "0":{
+        "backDisabled":true,
+        "contents":[
+            "If you find yourself adding a lot of the same transactions, try using recurring transactions.",
+            "Click on the Recurring Transaction button to create a new recurring transaction."
+        ],
+        "nextText":"Close",
+        "title":"Tip: Recurring Transactions"
+    }
+}

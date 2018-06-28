@@ -31,12 +31,19 @@ class Wizard extends dialog_1.default {
         this.pageIndex = n;
         this.title.text(page.title);
         this.content.empty();
-        this.content.append(page.contents.map(block => block.type == "image" ? $(`<img src="${block.data}" style="max-width: 100%;">`) : $(`<p>`).html(block.data)));
+        this.content.append(page.contents.map(block => block.type == "image" ? $(`<img src="${block.data}" style="max-width: 100%;">`) : $(`<p>`).html(ejs.render(block.data, {}))));
         this.backButton.attr('disabled', page.backDisabled);
         this.nextButton.attr('disabled', page.nextDisabled);
         this.backButton.text(page.backText);
         this.nextButton.text(page.nextText);
         this.fixDateFields();
+        this.content.css('max-height', '');
+        if (this.content.height() > 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height()) {
+            this.content.css('overflow-y', 'scroll');
+        }
+        else {
+            this.content.css('overflow-y', '');
+        }
         this.content.css('max-height', 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height());
         this.m_dialog.trigger('create');
         this.position();
@@ -62,6 +69,14 @@ class Wizard extends dialog_1.default {
         });
     }
     afterOpen() {
+        this.content.css('max-height', '');
+        if (this.content.height() > 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height()) {
+            this.content.css('overflow-y', 'scroll');
+        }
+        else {
+            this.content.css('overflow-y', '');
+        }
+        this.content.css('max-height', 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height());
         this.emitAsync('page', this.pages[0].id || this.pages[0].title, 0);
     }
 }

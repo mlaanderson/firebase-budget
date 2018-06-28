@@ -1,0 +1,16 @@
+{
+  "name": "tutorials",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deployIntro": "node ./build.js intro && firebase database:set /tutorials/intro intro.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "commander": "^2.15.1"
+  }
+}

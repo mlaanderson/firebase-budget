@@ -1,0 +1,66 @@
+[
+    {
+        "title": "Welcome to the Budget",
+        "backDisabled": true,
+        "contents": [
+            "Welcome to the online budget. This short wizard will introduce you to the app.",
+            "You can sign into your budget in most browsers by going to \n            <a href=\"https://budget-dacac.firebaseapp.com\">https://budget-dacac.firebaseapp.com</a>. \n            If you are signed in from multiple computers or mobile devices, every login will see \n            changes as they occur. This can be very helpful when two or more people are working \n            on the budget."
+        ]
+    },
+    {
+        "title": "Near Zero Sum Budgetting",
+        "contents": [
+            "This application is geared towards zero sum budgetting. Your money should be working for you,\n                the amount left over at the end of each pay period should be close to zero. Even money to be \n                saved will be accounted for and included in the budget.",
+            "Since many people are not comfortable with their account getting close to zero,\n                we use the \"nearly zero\" method. Aim to have just a comforatble minimum left\n                over at the end of the pay period. Every other dollar will be working for you.",
+            "This application will work even if you don't employ the \"near zero sum\" method\n                of budgetting. As you save, you will see the balance chart at the bottom of the\n                screen continue to grow."
+        ]
+    },
+    {
+        "title": "Getting Started - Navigation",
+        "contents": [
+            "There are a few critical parts of the page to know about before starting your new\n            budget.",
+            "The navigation bar allows you to move between pay periods. You will find it\n            in the bottom right corner of the screen.",
+            {
+                "type": "image",
+                "data": "/images/introWizard/navigationBar.png"
+            },
+            "The button with a \"Clock\" icon will take you to today's pay period. The left arrow \n            will go to the previous pay period, the right arrow will take you to the next pay\n            period. The button with the dates and a calendar icon allows you to select a pay\n            period to go to."
+        ]
+    },
+    {
+        "title": "Getting Started - Transactions",
+        "contents": [
+            "Transactions are the fundamental piece of information in the budget. Every line \n            item is a transaction. You add a new transaction by clicking on the \"Add Transaction\"\n            button in the upper right hand corner of the screen.",
+            {
+                "type": "image",
+                "data": "/images/introWizard/addButton.png"
+            },
+            "Click on the \"Add Transaction\" button to create a new transaction. If you decide not to\n            create a new transaction, just click on the screen outside of the dialog box that pops\n            up."
+        ]
+    },
+    {
+        "title": "Getting Started - Transactions",
+        "contents": [
+            "<div style=\"min-height: 500px\"><img src=\"/images/introWizard/newTransaction.png\" style=\"float: right; margin: 0 0 0 5px; max-height: 500px; max-width: 40%;\">\n            The transaction dialog box is where the details of the transaction are entered. \n            <ul>\n                <li>Enter the date of the transaction.</li>\n                <li>Select a category for the transaction.</li>\n                <li>Give the it a name.</li>\n                <li>Determine if it is a deposit or withdrawal</li>\n                <li>Determine if you will withdraw cash for this expense, or pay it another way.</li>\n                <li>Determine if this is to be a transfer into or out of savings.</li>\n                <li>Enter a check number if needed.</li>\n                <li>Enter the amount of the transaction. Always use a positive number.</li>\n                <li>Check the \"Paid\" box when the transaction has come out of your account.</li>\n                <li>Add any notes you might want.</li>\n                <li>Click \"Save Changes\" to add the transaction.</li>\n            </ul>\n            To edit a transaction, <%= $('#footer_info').css('display') == 'none' ? \"tap on the transaction to select it, then tap the edit transaction button.\" : \"double click on the transaction in the list.\" %>\n            </div>"
+        ]
+    },
+    {
+        "id": "setupScreen",
+        "title": "Setup",
+        "contents": [
+            "In the box below, select the date of the first payday for your budget. That\n            could be your next payday, or your last payday.",
+            "<div class=\"ui-field-contain\"><input type=\"date\" name=\"budgetStart\" value=\"<%= Date.next(Date.WeekDays.Friday).toFbString() %>\" data-theme=\"a\"></div>",
+            "Next, enter in the time between your paychecks. Common periods will be \"1 week\", \n            \"2 weeks\", \"1 month\", \"1st and 15th\". The input box will indicate an error if you enter an invalid period.",
+            "<div class=\"ui-field-contain\"><input type=\"text\" name=\"budgetPeriod\" data-role=\"timespan\" value=\"2 weeks\" data-theme=\"a\"></div>"
+        ],
+        "nextText": "Save"
+    },
+    {
+        "title": "Done!",
+        "contents": [
+            "Your budget is ready to start!",
+            "Thank you for using the Budget app."
+        ],
+        "nextText": "Done"
+    }
+]
