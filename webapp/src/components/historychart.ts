@@ -166,8 +166,26 @@ export default class HistoryChart implements TransactionViewer {
 
     draw(sums: { [date : string] : number }, left: string, right: string) {
         $(() => {
-            if ($('#footer_info').css('display') !== 'none') {
+            if (($('#footer_info').css('display') !== 'none') && (Object.keys(sums).length > 0)) {
                 this.m_chart.dataProvider = [];
+
+                let initialValue = 0;
+
+                if (left in sums) {
+                    initialValue = sums[left];
+                } else {
+                    for (let date = Date.parseFb(Object.keys(sums)[0]); date.le(left); date = date.add('1 day')) {
+                        if (date.toFbString() in sums) initialValue = sums[date.toFbString()];
+                    }
+                }
+
+                for (let date = Date.parseFb(left); date.le(right); date = date.add('1 day')) {
+                    if (date.toFbString() in sums === false) {
+                        sums[date.toFbString()] = initialValue;
+                    } else {
+                        initialValue = sums[date.toFbString()];
+                    }
+                }                
 
                 for (let date in sums) {
                     if (left <= date && date <= right) {
@@ -179,6 +197,12 @@ export default class HistoryChart implements TransactionViewer {
                         });
                     }
                 }
+
+                this.m_chart.dataProvider.sort((a, b) => {
+                    if (a.date < b.date) return -1;
+                    if (a.date > b.date) return 1;
+                    return 0;
+                })
 
                 let chLeft = Date.parseFb(left);
                 let chRight = Date.parseFb(right);
