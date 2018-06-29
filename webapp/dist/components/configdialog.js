@@ -15,13 +15,14 @@ class ConfigDialog extends dialog_1.default {
         this.setTheme = () => { };
         this.config = config;
         this.setTheme = setTheme;
+        this.saveConfig = saveConfig;
     }
     afterOpen() {
         this.m_dialog.find('#btnSave').on('click', () => __awaiter(this, void 0, void 0, function* () {
             this.config.start = this.m_dialog.find('#date').val();
             this.config.length = this.m_dialog.find('#period_length').val();
             this.config.theme = this.m_dialog.find('#theme').val();
-            yield this.config.write();
+            this.saveConfig();
             this.close();
         }));
         this.m_dialog.find('#theme').on('change', () => {

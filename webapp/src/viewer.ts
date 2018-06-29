@@ -247,6 +247,9 @@ class BudgetForm extends Renderer {
         this.pnlMenu.close();
         let configDialog = new ConfigDialog(this.budget.Config, () => {
             this.budget.Config.write();
+            // reload the periods
+            console.log(this.budget.Config);
+            this.config_onRead();
         }, this.setTheme.bind(this));
         configDialog.open();
     }
@@ -459,10 +462,4 @@ class BudgetForm extends Renderer {
     }
 }
 
-declare global {
-    interface Window {
-        viewer: BudgetForm;
-    }
-}
-
-window.viewer = new BudgetForm();
+new BudgetForm();

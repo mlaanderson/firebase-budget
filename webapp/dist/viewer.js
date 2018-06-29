@@ -212,6 +212,9 @@ class BudgetForm extends renderer_1.default {
         this.pnlMenu.close();
         let configDialog = new configdialog_1.default(this.budget.Config, () => {
             this.budget.Config.write();
+            // reload the periods
+            console.log(this.budget.Config);
+            this.config_onRead();
         }, this.setTheme.bind(this));
         configDialog.open();
     }
@@ -405,4 +408,4 @@ class BudgetForm extends renderer_1.default {
         $(() => { firebase.auth().signOut(); });
     }
 }
-window.viewer = new BudgetForm();
+new BudgetForm();
