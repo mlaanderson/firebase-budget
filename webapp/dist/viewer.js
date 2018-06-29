@@ -105,11 +105,22 @@ class BudgetForm extends renderer_1.default {
             else {
                 period = period;
             }
+            // limit us to the start of the budget
+            if (period.toFbString() < this.budget.Config.start) {
+                period = Date.parseFb(this.budget.Config.start);
+            }
             let end = period.add(this.budget.Config.length).subtract("1 day");
             this.periodStart = period.toFbString();
             this.periodEnd = end.toFbString();
             this.periodMenu.val(this.periodStart);
             this.periodMenu.refresh();
+            if (this.periodStart <= this.budget.Config.start) {
+                // disable the previus button
+                this.btnPrev.disabled = true;
+            }
+            else {
+                this.btnPrev.disabled = false;
+            }
             $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
             yield this.budget.gotoDate(this.periodStart);
         });
@@ -179,7 +190,9 @@ class BudgetForm extends renderer_1.default {
     btnPrev_onClick(e) {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
-            yield this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+            if (this.periodStart > this.budget.Config.start) {
+                yield this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+            }
         });
     }
     periodMenu_onChange(e) {
