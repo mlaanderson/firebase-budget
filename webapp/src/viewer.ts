@@ -459,10 +459,10 @@ class BudgetForm extends Renderer {
     }
 }
 
-let m_viewer = new BudgetForm();
-
-Object.defineProperty(window, 'viewer', {
-    get: () => {
-        return m_viewer;
+declare global {
+    interface Window {
+        viewer: BudgetForm;
     }
-});
+}
+
+window.viewer = new BudgetForm();

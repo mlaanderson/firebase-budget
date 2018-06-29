@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const wizard_1 = require("./components/wizard");
 require("firebase/database");
 function ShowIntroWizard(config) {
-    ['navigationBar.png', 'addButton.png', 'newTransaction.png', 'newRecurring.png'].map(img => $(`<img src="/images/introWizard/${img}/>"`));
+    ['navigationBar.png', 'addButton.png', 'newTransaction.png', 'newRecurring.png', 'workspace_overview_mobile.png', 'workspace_overview_desktop.png'].map(img => $(`<img src="/images/introWizard/${img}/>"`));
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
         let pages = yield config.root.child('tutorials/intro').once('value');
         let wizard = new wizard_1.default(pages.val());

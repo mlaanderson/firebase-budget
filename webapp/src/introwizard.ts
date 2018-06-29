@@ -3,7 +3,7 @@ import * as firebase from "firebase/app";
 import "firebase/database";
 
 export default function ShowIntroWizard(config: firebase.database.Reference) {
-    ['navigationBar.png', 'addButton.png', 'newTransaction.png', 'newRecurring.png'].map(img => $(`<img src="/images/introWizard/${img}/>"`));
+    ['navigationBar.png', 'addButton.png', 'newTransaction.png', 'newRecurring.png', 'workspace_overview_mobile.png', 'workspace_overview_desktop.png'].map(img => $(`<img src="/images/introWizard/${img}/>"`));
     return new Promise(async (resolve, reject) => {
         let pages = await config.root.child('tutorials/intro').once('value');
         let wizard = new Wizard(pages.val());

@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
+window.mobile = function () {
+    return $("#footer_info").css("display") == "none";
+};
 function sanitizePage(page) {
     page.backDisabled = page.backDisabled || false;
     page.nextDisabled = page.nextDisabled || false;
@@ -31,29 +34,54 @@ class Wizard extends dialog_1.default {
         this.pageIndex = n;
         this.title.text(page.title);
         this.content.empty();
-        this.content.append(page.contents.map(block => block.type == "image" ? $(`<img src="${block.data}" style="max-width: 100%;">`) : $(`<p>`).html(ejs.render(block.data, {}))));
+        this.content.append(page.contents.map((block) => {
+            if (block.type == "image") {
+                return $(`<img src="${ejs.render(block.data, {})}" style="max-width: 100%; display: block; margin: 0 auto; max-height: 350px;">`);
+            }
+            else {
+                return $(`<p>`).html(ejs.render(block.data, {}));
+            }
+        }));
         this.backButton.attr('disabled', page.backDisabled);
         this.nextButton.attr('disabled', page.nextDisabled);
         this.backButton.text(page.backText);
         this.nextButton.text(page.nextText);
         this.fixDateFields();
         this.content.css('max-height', '');
-        if (this.content.height() > 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height()) {
-            this.content.css('overflow-y', 'scroll');
-        }
-        else {
-            this.content.css('overflow-y', '');
-        }
-        this.content.css('max-height', 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height());
-        this.m_dialog.trigger('create');
-        this.position();
-        this.emitAsync('page', page.id || page.title, this.pageIndex);
+        this.content.find('*').ready(() => {
+            this.m_dialog.trigger('create');
+            this.content.scrollTop(0);
+            this.content_OnScroll();
+            this.emitAsync('page', page.id || page.title, this.pageIndex);
+        });
     }
     afterRender() {
         this.title = this.m_dialog.find('.wizardTitle');
         this.content = this.m_dialog.find('.wizardContent');
         this.backButton = this.m_dialog.find('.wizardBackButton');
         this.nextButton = this.m_dialog.find('.wizardNextButton');
+        this.scrollUp = this.m_dialog.find('.wizardScrollUp');
+        this.scrollDown = this.m_dialog.find('.wizardScrollDown');
+        // set the scroll background colors
+        let color = this.m_dialog.css('background-color');
+        let reHex6 = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/i;
+        let reHex3 = /^#([a-f0-9])([a-f0-9])([a-f0-9])/i;
+        let reRgb = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i;
+        let bgColor = color;
+        if (reHex6.test(color)) {
+            let groups = reHex6.exec(color);
+            bgColor = `rgba(${parseInt(groups[1], 16)}, ${parseInt(groups[2], 16)}, ${parseInt(groups[3], 16)}, 0.5)`;
+        }
+        else if (reHex3.test(color)) {
+            let groups = reHex3.exec(color);
+            bgColor = `rgba(${parseInt(groups[1] + groups[1], 16)}, ${parseInt(groups[2] + groups[2], 16)}, ${parseInt(groups[3] + groups[3], 16)}, 0.5)`;
+        }
+        else if (reRgb.test(color)) {
+            let groups = reRgb.exec(color);
+            bgColor = `rgba(${groups[1]}, ${groups[2]}, ${groups[3]}, 0.5)`;
+        }
+        this.scrollDown.css('background-color', bgColor);
+        this.scrollUp.css('background-color', bgColor);
         this.backButton.on('click', () => {
             this.gotoPage(this.pageIndex - 1);
         });
@@ -67,17 +95,47 @@ class Wizard extends dialog_1.default {
                 this.gotoPage(this.pageIndex + 1);
             }
         });
+        this.scrollDown.on('click', () => {
+            this.content.scrollTop(this.content.scrollTop() + this.content.height() / 2);
+        });
+        this.scrollUp.on('click', () => {
+            this.content.scrollTop(this.content.scrollTop() - this.content.height() / 2);
+        });
     }
-    afterOpen() {
-        this.content.css('max-height', '');
-        if (this.content.height() > 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height()) {
-            this.content.css('overflow-y', 'scroll');
+    content_OnScroll() {
+        if (this.content.scrollTop() > 5) {
+            this.scrollUp.css('display', 'block');
         }
         else {
-            this.content.css('overflow-y', '');
+            this.scrollUp.css('display', 'none');
         }
-        this.content.css('max-height', 0.8 * $(window).innerHeight() - this.m_dialog.find('[data-role=header]').height() - this.backButton.height());
-        this.emitAsync('page', this.pages[0].id || this.pages[0].title, 0);
+        if ((this.content.scrollTop() + this.content.outerHeight(true)) < (this.content[0].scrollHeight - 5)) {
+            this.scrollDown.css('display', 'block');
+        }
+        else {
+            this.scrollDown.css('display', 'none');
+        }
+    }
+    window_OnResize() {
+        let dialogHeight = 0.9 * $(window).innerHeight();
+        let mainPadding = this.m_dialog.find("[role=main]").outerHeight(true) - this.m_dialog.find("[role=main]").height();
+        this.m_dialog.css('height', dialogHeight);
+        this.m_dialog.css('width', Math.min(0.9 * $(window).innerWidth(), 600));
+        this.content.css('height', dialogHeight - this.m_dialog.find('[data-role=header]').outerHeight(true) - this.backButton.outerHeight(true) - mainPadding);
+        this.scrollUp.css('width', this.content.css('width'));
+        this.scrollDown.css('width', this.content.css('width'));
+        this.scrollUp.css('left', this.content.position().left);
+        this.scrollDown.css('left', this.content.position().left);
+        this.scrollDown.css('top', this.content.innerHeight() - this.scrollDown.outerHeight(true) + this.content.position().top);
+    }
+    afterOpen() {
+        $(window).on('resize', this.window_OnResize.bind(this));
+        this.content.on('scroll', this.content_OnScroll.bind(this));
+        this.window_OnResize();
+        this.m_dialog.trigger('create');
+        this.position();
+        this.gotoPage(0);
+        // this.emitAsync('page', this.pages[0].id || this.pages[0].title, 0);
     }
 }
 exports.default = Wizard;

@@ -5,65 +5,27 @@ module.exports = [
         "contents": [
             `Welcome to the online budget. This short wizard will introduce you to the app.`,
 
-            `You can sign into your budget in most browsers by going to 
-            <a href="https://budget-dacac.firebaseapp.com">https://budget-dacac.firebaseapp.com</a>. 
-            If you are signed in from multiple computers or mobile devices, every login will see 
-            changes as they occur. This can be very helpful when two or more people are working 
-            on the budget.`
+            `<h4>Budget Workspace</h4>`,
+
+            { type: 'image', data: '/images/introWizard/workspace_overview_<%= mobile() ? "mobile" : "desktop" %>.png' },
+
+            `The navigation bar at the bottom left allows you to move between pay periods.`,
+            
+            `The <%= mobile() ? "Edit Transaction and" : "" %> Add Transaction button<%= mobile() ? "s" : "" %> 
+            manage individual transaction editing.`,
+            
+            `The Add Recurring button allows recurring transactions to be created.`,
+
+            `The Menu button brings up a menu to the left for searching, getting cash and transfer reports, undoing or 
+            redoing changes, viewing charts, changing settings, downloading your data, and logging out.`
         ]
     },
+
     {
-        title: "Near Zero Sum Budgetting",
-        contents: [
-                `This application is geared towards zero sum budgetting. Your money should be working for you,
-                the amount left over at the end of each pay period should be close to zero. Even money to be 
-                saved will be accounted for and included in the budget.`,
-
-                `Since many people are not comfortable with their account getting close to zero,
-                we use the "nearly zero" method. Aim to have just a comforatble minimum left
-                over at the end of the pay period. Every other dollar will be working for you.`,
-
-                `This application will work even if you don't employ the "near zero sum" method
-                of budgetting. As you save, you will see the balance chart at the bottom of the
-                screen continue to grow.`
-        ]
-    },
-    {
-        title: "Getting Started - Navigation",
-        contents: [
-            `There are a few critical parts of the page to know about before starting your new
-            budget.`,
-
-            `The navigation bar allows you to move between pay periods. You will find it
-            in the bottom right corner of the screen.`,
-
-            { type: 'image', data: '/images/introWizard/navigationBar.png'},
-
-            `The button with a "Clock" icon will take you to today's pay period. The left arrow 
-            will go to the previous pay period, the right arrow will take you to the next pay
-            period. The button with the dates and a calendar icon allows you to select a pay
-            period to go to.`
-        ]
-    },
-    {
-        title: "Getting Started - Transactions",
-        contents: [
-            `Transactions are the fundamental piece of information in the budget. Every line 
-            item is a transaction. You add a new transaction by clicking on the "Add Transaction"
-            button in the upper right hand corner of the screen.`,
-
-            { type: 'image', data: '/images/introWizard/addButton.png' },
-
-            `Click on the "Add Transaction" button to create a new transaction. If you decide not to
-            create a new transaction, just click on the screen outside of the dialog box that pops
-            up.`
-        ]
-    },
-    {
-        title: "Getting Started - Transactions",
+        title: "Transactions",
         contents: [
             `<div style="min-height: 500px"><img src="/images/introWizard/newTransaction.png" style="float: right; margin: 0 0 0 5px; max-height: 500px; max-width: 40%;">
-            The transaction dialog box is where the details of the transaction are entered. 
+            Transactions are the line items in your budget. The transaction dialog box is where the details of the transaction are entered. 
             <ul>
                 <li>Enter the date of the transaction.</li>
                 <li>Select a category for the transaction.</li>
@@ -77,11 +39,38 @@ module.exports = [
                 <li>Add any notes you might want.</li>
                 <li>Click "Save Changes" to add the transaction.</li>
             </ul>
-            To edit a transaction, <%= $('#footer_info').css('display') == 'none' ? "tap on the transaction to select it, then tap the edit transaction button." : "double click on the transaction in the list." %>
+            To edit a transaction, <%= mobile() ? "tap on the transaction to select it, then tap the edit transaction button." : "double click on the transaction in the list." %>
             </div>`
         ]
     },
 
+    {
+        title: "Recurring Transactions",
+        contents: [
+            `Recurring Transactions help with the entry of transactions that are usually the same. The
+            recurring transaction dialog is very similar to the regular transaction dialog. The differences
+            are shown below:`,
+            
+            { type: 'image', data: '/images/introWizard/newRecurring.png' },
+
+            `A recurring transaction has a period, a start date, and an end date. If you buy groceries every 
+            two weeks, you would enter "2 weeks" into the period. Then pick the next time you will buy groceries
+            as the starting date. Finally, pick a point in the future when you might adjust that budget as the 
+            end. The end will default to one year from today.`,
+
+            `To edit a recurring transaction, <%= mobile() ? "tap" : "click" %> on the recurring transaction
+            icon next to the transaction name in the list. Changes will only apply from today's date or
+            the current pay period, whichever is later.`
+        ]
+    },
+
+    {
+        title: "Dialogs",
+        contents: [
+            `The dialogs for editing transactions, changing settings, viewing reports and charts can all be
+            dismissed without making changes by <%= mobile() ? 'tapping' : 'clicking' %> outside of the dialog.`
+        ]
+    },
 
     // Have the user pick their start date and period
     {

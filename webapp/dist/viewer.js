@@ -405,9 +405,4 @@ class BudgetForm extends renderer_1.default {
         $(() => { firebase.auth().signOut(); });
     }
 }
-let m_viewer = new BudgetForm();
-Object.defineProperty(window, 'viewer', {
-    get: () => {
-        return m_viewer;
-    }
-});
+window.viewer = new BudgetForm();
