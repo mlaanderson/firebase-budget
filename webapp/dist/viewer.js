@@ -37,6 +37,7 @@ const forgotpassworddialog_1 = require("./components/forgotpassworddialog");
 const messagebox_1 = require("./components/messagebox");
 const signupdialog_1 = require("./components/signupdialog");
 const introwizard_1 = require("./introwizard");
+const emergencyfundwizard_1 = require("./emergencyfundwizard");
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -68,10 +69,13 @@ class BudgetForm extends renderer_1.default {
             this.btnRedo = new button_1.default('#btnRedo').on('click', this.btnRedo_onClick.bind(this));
             this.pnlMenu = new panel_1.default('#menu_panel');
             this.previewer = new previewer_1.default('.info_div');
+            this.btnWizardEmergencyFund = new button_1.default("#btnWizardEmergencyFund").on('click', this.btnWizardEmergencyFund_Click.bind(this));
             this.btnUndo.disabled = true;
             this.btnRedo.disabled = true;
             this.chart = new historychart_1.default('chart_div');
-            this.previewer.GotoTransaction = this.gotoDate.bind(this);
+            this.previewer.GotoTransaction = (date) => {
+                this.budget.gotoDate(date);
+            };
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
         // try to bind the ctrl/command keys
@@ -97,38 +101,19 @@ class BudgetForm extends renderer_1.default {
             }
         });
     }
-    gotoPeriod(period) {
+    periodLoaded() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (typeof period == "string") {
-                period = Date.parseFb(period);
-            }
-            else {
-                period = period;
-            }
-            // limit us to the start of the budget
-            if (period.toFbString() < this.budget.Config.start) {
-                period = Date.parseFb(this.budget.Config.start);
-            }
-            let end = period.add(this.budget.Config.length).subtract("1 day");
-            this.periodStart = period.toFbString();
-            this.periodEnd = end.toFbString();
+            this.periodStart = this.budget.Start;
+            this.periodEnd = this.budget.End;
             this.periodMenu.val(this.periodStart);
             this.periodMenu.refresh();
             if (this.periodStart <= this.budget.Config.start) {
-                // disable the previus button
                 this.btnPrev.disabled = true;
             }
             else {
                 this.btnPrev.disabled = false;
             }
-            $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
-            yield this.budget.gotoDate(this.periodStart);
-        });
-    }
-    gotoDate(date) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let { start } = this.budget.Config.calculatePeriod(date);
-            yield this.gotoPeriod(start);
+            $('[data-role=header] h1').text(`${Date.parseFb(this.periodStart).format("MMM d")} - ${Date.parseFb(this.periodEnd).format("MMM d")}`);
         });
     }
     download(data, filename, type) {
@@ -145,6 +130,12 @@ class BudgetForm extends renderer_1.default {
             elem.click();
             document.body.removeChild(elem);
         }
+    }
+    // Wizards
+    btnWizardEmergencyFund_Click(e) {
+        e.preventDefault();
+        this.pnlMenu.close();
+        emergencyfundwizard_1.default(this);
     }
     // UI Events
     btnUndo_onClick(e) {
@@ -176,35 +167,34 @@ class BudgetForm extends renderer_1.default {
         let searchForm = new searchdialog_1.default(this.budget.Transactions);
         searchForm.GotoPeriod = (date) => __awaiter(this, void 0, void 0, function* () {
             searchForm.close();
-            yield this.gotoDate(date);
+            yield this.budget.gotoDate(date);
         });
         searchForm.open();
     }
     btnToday_onClick(e) {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
-            let { start } = this.budget.Config.calculatePeriod(Date.today());
-            yield this.gotoPeriod(start);
+            yield this.budget.gotoDate(Date.today());
         });
     }
     btnPrev_onClick(e) {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
             if (this.periodStart > this.budget.Config.start) {
-                yield this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+                yield this.budget.gotoDate(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
             }
         });
     }
     periodMenu_onChange(e) {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
-            yield this.gotoPeriod(this.periodMenu.val().toString());
+            yield this.budget.gotoDate(this.periodMenu.val().toString());
         });
     }
     btnNext_onClick(e) {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
-            yield this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+            yield this.budget.gotoDate(Date.parseFb(this.periodStart).add(this.budget.Config.length));
         });
     }
     btnEditTransaction_onClick(e) {
@@ -320,7 +310,7 @@ class BudgetForm extends renderer_1.default {
             this.transactionList.PreviewTransaction = (id) => {
                 return this.transactionList_PreviewTransaction(id);
             };
-            yield this.gotoPeriod(this.periodStart);
+            yield this.budget.gotoDate(this.periodStart);
         });
     }
     setTheme(theme) {
@@ -362,7 +352,9 @@ class BudgetForm extends renderer_1.default {
                     this.previewer.listenToTransactions(this.budget.Transactions);
                     this.transactionList.listenToTransactions(this.budget.Transactions);
                     this.chart.listenToTransactions(this.budget.Transactions);
-                    this.gotoDate(Date.today());
+                    this.budget.on('loadperiod', this.periodLoaded.bind(this));
+                    // this.gotoDate(Date.today());
+                    this.budget.gotoDate(Date.today());
                 });
             }
         }));
@@ -420,5 +412,16 @@ class BudgetForm extends renderer_1.default {
         this.periodStart = null;
         $(() => { firebase.auth().signOut(); });
     }
+    turnOffUpdates() {
+        this.transactionList.turnOffUpdates();
+        this.chart.turnOffUpdates();
+        this.previewer.turnOffUpdates();
+    }
+    turnOnUpdates() {
+        this.transactionList.turnOnUpdates();
+        this.chart.turnOnUpdates();
+        this.previewer.turnOnUpdates();
+    }
 }
+exports.default = BudgetForm;
 new BudgetForm();

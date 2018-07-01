@@ -34,9 +34,9 @@ import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/mess
 import SignUpDialog from "./components/signupdialog";
 import { ConfigurationData } from "./controllers/config";
 import ShowIntroWizard from "./introwizard";
+import showEmergencyFundWizard from "./emergencyfundwizard"
 
-
-class BudgetForm extends Renderer {
+export default class BudgetForm extends Renderer {
     private btnSearch : Button;
     private btnUndo: Button;
     private btnRedo: Button;
@@ -56,16 +56,18 @@ class BudgetForm extends Renderer {
     private btnYtdReport : Button;
     private btnCash : Button;
     private btnTransfer : Button;
+    private btnWizardEmergencyFund: Button;
     private pnlMenu: Panel;
 
     private transactionList: TransactionList;
     private previewer : Previewer;
     private chart : HistoryChart;
     private app: firebase.app.App;
-    private budget: Budget;
 
     private periodStart : string;
     private periodEnd : string;
+
+    budget: Budget;
 
     constructor() {
         super();
@@ -100,12 +102,16 @@ class BudgetForm extends Renderer {
             this.pnlMenu = new Panel('#menu_panel');
             this.previewer = new Previewer('.info_div');
 
+            this.btnWizardEmergencyFund = new Button("#btnWizardEmergencyFund").on('click', this.btnWizardEmergencyFund_Click.bind(this));
+
             this.btnUndo.disabled = true;
             this.btnRedo.disabled = true;
 
             this.chart = new HistoryChart('chart_div');
             
-            this.previewer.GotoTransaction = this.gotoDate.bind(this);
+            this.previewer.GotoTransaction = (date: Date | string) => {
+                this.budget.gotoDate(date);
+            };
 
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
         });
@@ -134,40 +140,19 @@ class BudgetForm extends Renderer {
         });
     }
 
-    private async gotoPeriod(period: string | Date | Timespan) {
-        if (typeof period == "string") {
-            period = Date.parseFb(period);
-        } else {
-            period = period as Date;
-        }
-
-        // limit us to the start of the budget
-        if (period.toFbString() < this.budget.Config.start) {
-            period = Date.parseFb(this.budget.Config.start);
-        }
-
-        let end = period.add(this.budget.Config.length).subtract("1 day") as Date;
-
-        this.periodStart = period.toFbString();
-        this.periodEnd = end.toFbString();
+    private async periodLoaded() {
+        this.periodStart = this.budget.Start;
+        this.periodEnd = this.budget.End;
         this.periodMenu.val(this.periodStart);
         this.periodMenu.refresh();
 
         if (this.periodStart <= this.budget.Config.start) {
-            // disable the previus button
             this.btnPrev.disabled = true;
         } else {
             this.btnPrev.disabled = false;
         }
 
-        $('[data-role=header] h1').text(`${period.format("MMM d")} - ${end.format("MMM d")}`);
-
-        await this.budget.gotoDate(this.periodStart);
-    }
-
-    private async gotoDate(date: string | Date) {
-        let { start } = this.budget.Config.calculatePeriod(date);
-        await this.gotoPeriod(start);
+        $('[data-role=header] h1').text(`${Date.parseFb(this.periodStart).format("MMM d")} - ${Date.parseFb(this.periodEnd).format("MMM d")}`);
     }
 
     private download(data: any, filename: string, type: string) {
@@ -184,6 +169,13 @@ class BudgetForm extends Renderer {
             elem.click();
             document.body.removeChild(elem);
         }
+    }
+
+    // Wizards
+    btnWizardEmergencyFund_Click(e: JQuery.Event) {
+        e.preventDefault();
+        this.pnlMenu.close();
+        showEmergencyFundWizard(this);
     }
 
     // UI Events
@@ -211,32 +203,31 @@ class BudgetForm extends Renderer {
         let searchForm = new SearchDialog(this.budget.Transactions);
         searchForm.GotoPeriod = async (date: string) => {
             searchForm.close();
-            await this.gotoDate(date);
+            await this.budget.gotoDate(date);
         }
         searchForm.open();
     }
 
     async btnToday_onClick(e: JQuery.Event) {
         e.preventDefault();
-        let { start } = this.budget.Config.calculatePeriod(Date.today());
-        await this.gotoPeriod(start);
+        await this.budget.gotoDate(Date.today());
     }
 
     async btnPrev_onClick(e: JQuery.Event) {
         e.preventDefault();
         if (this.periodStart > this.budget.Config.start) {
-            await this.gotoPeriod(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+            await this.budget.gotoDate(Date.parseFb(this.periodStart).subtract(this.budget.Config.length) as Date);
         }
     }
 
     async periodMenu_onChange(e: JQuery.Event) {
         e.preventDefault();
-        await this.gotoPeriod(this.periodMenu.val().toString())
+        await this.budget.gotoDate(this.periodMenu.val().toString())
     }
 
     async btnNext_onClick(e: JQuery.Event) {
         e.preventDefault();
-        await this.gotoPeriod(Date.parseFb(this.periodStart).add(this.budget.Config.length));
+        await this.budget.gotoDate(Date.parseFb(this.periodStart).add(this.budget.Config.length));
     }
 
     btnEditTransaction_onClick(e: JQuery.Event) : void {
@@ -370,7 +361,7 @@ class BudgetForm extends Renderer {
         this.transactionList.PreviewTransaction = (id: string) => {
             return this.transactionList_PreviewTransaction(id);
         }
-        await this.gotoPeriod(this.periodStart);
+        await this.budget.gotoDate(this.periodStart);
     }
 
     setTheme(theme: string) {
@@ -416,7 +407,10 @@ class BudgetForm extends Renderer {
                     this.previewer.listenToTransactions(this.budget.Transactions);
                     this.transactionList.listenToTransactions(this.budget.Transactions);
                     this.chart.listenToTransactions(this.budget.Transactions);
-                    this.gotoDate(Date.today());
+                    this.budget.on('loadperiod', this.periodLoaded.bind(this));
+                    // this.gotoDate(Date.today());
+                    this.budget.gotoDate(Date.today());
+
                 });
             }
         });
@@ -473,6 +467,18 @@ class BudgetForm extends Renderer {
     logout() {
         this.periodStart = null;
         $(() => { firebase.auth().signOut(); });
+    }
+
+    turnOffUpdates(){
+        this.transactionList.turnOffUpdates();
+        this.chart.turnOffUpdates();
+        this.previewer.turnOffUpdates();
+    }
+
+    turnOnUpdates(){
+        this.transactionList.turnOnUpdates();
+        this.chart.turnOnUpdates();
+        this.previewer.turnOnUpdates();
     }
 }
 

@@ -88,6 +88,14 @@ export default class Budget extends Events {
         return this.config;
     }
 
+    public get Start() : string {
+        return this.transactions.Start;
+    }
+
+    public get End() : string {
+        return this.transactions.End;
+    }
+
     public ready() {
         return this.readyPromise;
     }
@@ -96,12 +104,12 @@ export default class Budget extends Events {
         this.period = this.config.calculatePeriod(date);
         await this.transactions.loadPeriod(this.period.start, this.period.end);
 
-        this.emitAsync('loadperiod', this.transactions.Records, this);
-
         if (this.isReady === false) {
             this.isReady = true;
             this.readyResolver(true);
         }
+
+        this.emitAsync('loadperiod', this.transactions.Records, this);
     }
 
     public async getBackup() : Promise<Object> {

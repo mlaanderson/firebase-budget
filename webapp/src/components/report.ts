@@ -19,4 +19,7 @@ export default abstract class Report extends Dialog implements TransactionViewer
     abstract clear() : void;
 
     abstract listenToTransactions(transactions: Transactions) : void;
+
+    turnOffUpdates(){}
+    turnOnUpdates(){}
 }

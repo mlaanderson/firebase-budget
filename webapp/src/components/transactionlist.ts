@@ -21,6 +21,7 @@ export default class TransactionList extends Renderer implements TransactionView
     private m_config: Config;
     private m_active_id: string;
     private m_tooltip: JQuery<HTMLElement>;
+    private m_update: Boolean = true;
     
     SaveTransaction : (transaction: Transaction) => Promise<string> = async (transaction) => { console.log("SAVETRANSACTION", transaction); return null; };
     LoadTransaction : (id: string) => Promise<Transaction> = async (id) => { console.log("LOADTRANSACTION:", id); return null; }
@@ -315,16 +316,19 @@ export default class TransactionList extends Renderer implements TransactionView
 
     listenToTransactions(transactions: Transactions) {
         transactions.on('addedinperiod', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             let total = await transactions.getTotal();
             this.update(transaction, total);
         });
 
         transactions.on('addedbeforeperiod', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             let total = await transactions.getTotal();
             this.setTotal(total);
         });
 
         transactions.on('changed', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             let total = await transactions.getTotal();
             if (transactions.Start <= transaction.date && transaction.date <= transactions.End) {
                 this.update(transaction, total);
@@ -335,19 +339,30 @@ export default class TransactionList extends Renderer implements TransactionView
         });
 
         transactions.on('removedinperiod', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             let total = await transactions.getTotal();
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
         });
 
         transactions.on('removedbeforeperiod', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             let total = await transactions.getTotal();
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
         });
 
         transactions.on('periodloaded', async (transactionList: Array<Transaction>, total: number) => {
+            if (this.m_update == false) return;
             this.displayList(transactionList, total);
         });
+    }
+
+    turnOffUpdates() {
+        this.m_update = false;
+    }
+
+    turnOnUpdates() {
+        this.m_update = true;
     }
 }

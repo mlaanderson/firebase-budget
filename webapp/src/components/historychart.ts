@@ -100,6 +100,7 @@ export default class HistoryChart implements TransactionViewer {
     private m_transactions: RecordMap<Transaction>;
     private m_left: string;
     private m_right: string;
+    private m_update: boolean = true;
 
     constructor(element: JQuery<HTMLElement> | string) {
         $(() => {
@@ -221,22 +222,34 @@ export default class HistoryChart implements TransactionViewer {
 
     listenToTransactions(transactions: Transactions) {
         transactions.on('added', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             this.update(transaction);
         });
 
         transactions.on('changed', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             this.update(transaction);
         });
 
         transactions.on('removed', async (transaction: Transaction) => {
+            if (this.m_update == false) return;
             this.remove(transaction);
         });
 
         transactions.on('periodloaded', async (transactionList: Array<Transaction>) => {
+            if (this.m_update == false) return;
             let left = (Date.parseFb(transactions.Start).subtract("3 weeks") as Date).toFbString();
             let right = Date.parseFb(transactions.End).add('3 months').toFbString();
             let allTransactions = await transactions.loadRecords();
             this.display(allTransactions, left, right);
         });
+    }
+
+    turnOffUpdates() {
+        this.m_update = false;
+    }
+
+    turnOnUpdates() {
+        this.m_update = true;
     }
 }

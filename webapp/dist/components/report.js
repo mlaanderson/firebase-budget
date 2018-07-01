@@ -5,5 +5,7 @@ class Report extends dialog_1.default {
     constructor(filename, data) {
         super(filename, data);
     }
+    turnOffUpdates() { }
+    turnOnUpdates() { }
 }
 exports.default = Report;

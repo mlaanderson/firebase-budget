@@ -21,6 +21,7 @@ export default class Previewer extends Renderer implements TransactionViewer {
     private m_element: JQuery<HTMLElement>;
     private m_transaction: Transaction = null;
     private m_transactions: Transactions = null;
+    private m_update: boolean = false;
 
     GotoTransaction: (date: string) => void = (date) => { console.log("GOTOTRANSACTION", date); };
     
@@ -132,25 +133,36 @@ export default class Previewer extends Renderer implements TransactionViewer {
 
         // add the listeners
         this.m_transactions.on('added', (transaction : Transaction) => {
+            if (this.m_update == false) return;
             if (this.m_transaction && this.m_transaction.category == transaction.category && this.m_transaction.name == transaction.name) {
                 this.update(transaction);
             }
         });
 
         this.m_transactions.on('changed', (transaction : Transaction) => {
+            if (this.m_update == false) return;
             if (this.m_transaction && this.m_transaction.category == transaction.category && this.m_transaction.name == transaction.name) {
                 this.update(transaction);
             }
         });
 
         this.m_transactions.on('removed', (transaction : Transaction) => {
+            if (this.m_update == false) return;
             this.m_element.find(`#info_${transaction.id}`).remove();
             this.update();
         });
 
         // if we have a transaction, filter to it
-        if (this.m_transaction) {
+        if (this.m_transaction && this.m_update) {
             this.loadFromTransaction();
         }
+    }
+
+    turnOffUpdates() {
+        this.m_update = false;
+    }
+
+    turnOnUpdates() {
+        this.m_update = true;
     }
 }

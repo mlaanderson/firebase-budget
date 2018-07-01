@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const amchart_1 = require("../amchart/amchart");
 class HistoryChart {
     constructor(element) {
+        this.m_update = true;
         $(() => {
             if (typeof element !== "string") {
                 if (element.attr('id') === undefined) {
@@ -119,20 +120,34 @@ class HistoryChart {
     }
     listenToTransactions(transactions) {
         transactions.on('added', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             this.update(transaction);
         }));
         transactions.on('changed', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             this.update(transaction);
         }));
         transactions.on('removed', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             this.remove(transaction);
         }));
         transactions.on('periodloaded', (transactionList) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             let left = Date.parseFb(transactions.Start).subtract("3 weeks").toFbString();
             let right = Date.parseFb(transactions.End).add('3 months').toFbString();
             let allTransactions = yield transactions.loadRecords();
             this.display(allTransactions, left, right);
         }));
+    }
+    turnOffUpdates() {
+        this.m_update = false;
+    }
+    turnOnUpdates() {
+        this.m_update = true;
     }
 }
 HistoryChart.chart_config = {

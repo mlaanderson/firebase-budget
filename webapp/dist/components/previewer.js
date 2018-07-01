@@ -26,6 +26,7 @@ class Previewer extends renderer_1.default {
         super();
         this.m_transaction = null;
         this.m_transactions = null;
+        this.m_update = false;
         this.GotoTransaction = (date) => { console.log("GOTOTRANSACTION", date); };
         $(() => {
             this.m_element = $(element);
@@ -120,23 +121,35 @@ class Previewer extends renderer_1.default {
         this.m_transactions = transactions;
         // add the listeners
         this.m_transactions.on('added', (transaction) => {
+            if (this.m_update == false)
+                return;
             if (this.m_transaction && this.m_transaction.category == transaction.category && this.m_transaction.name == transaction.name) {
                 this.update(transaction);
             }
         });
         this.m_transactions.on('changed', (transaction) => {
+            if (this.m_update == false)
+                return;
             if (this.m_transaction && this.m_transaction.category == transaction.category && this.m_transaction.name == transaction.name) {
                 this.update(transaction);
             }
         });
         this.m_transactions.on('removed', (transaction) => {
+            if (this.m_update == false)
+                return;
             this.m_element.find(`#info_${transaction.id}`).remove();
             this.update();
         });
         // if we have a transaction, filter to it
-        if (this.m_transaction) {
+        if (this.m_transaction && this.m_update) {
             this.loadFromTransaction();
         }
+    }
+    turnOffUpdates() {
+        this.m_update = false;
+    }
+    turnOnUpdates() {
+        this.m_update = true;
     }
 }
 exports.default = Previewer;

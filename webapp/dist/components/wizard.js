@@ -4,11 +4,12 @@ const dialog_1 = require("./dialog");
 window.mobile = function () {
     return $("#footer_info").css("display") == "none";
 };
-function sanitizePage(page) {
+function sanitizePage(page, dismissible = false) {
     page.backDisabled = page.backDisabled || false;
     page.nextDisabled = page.nextDisabled || false;
     page.backText = page.backText || 'Back';
     page.nextText = page.nextText || 'Next';
+    page.dismissible = dismissible;
     for (let n = 0; n < page.contents.length; n++) {
         if (typeof page.contents[n] === "string") {
             let block = {
@@ -21,16 +22,29 @@ function sanitizePage(page) {
     return page;
 }
 class Wizard extends dialog_1.default {
-    constructor(data) {
+    constructor(data, dismissible = false) {
         if (data.length <= 0)
             throw "No pages passed";
-        super('wizard', sanitizePage(data[0]));
+        super('wizard', sanitizePage(data[0], dismissible));
         this.pages = data;
         this.pageIndex = 0;
+        this.dismissible = dismissible;
+    }
+    get NextEnabled() {
+        return !this.nextButton.attr('disabled');
+    }
+    set NextEnabled(value) {
+        this.nextButton.attr('disabled', !value);
+    }
+    get BackEnabled() {
+        return !this.backButton.attr('disabled');
+    }
+    set BackEnabled(value) {
+        this.backButton.attr('disabled', !value);
     }
     gotoPage(n) {
         n = Math.min(this.pages.length - 1, Math.max(0, n));
-        let page = sanitizePage(this.pages[n]);
+        let page = sanitizePage(this.pages[n], this.dismissible);
         this.pageIndex = n;
         this.title.text(page.title);
         this.content.empty();

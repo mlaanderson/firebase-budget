@@ -65,6 +65,12 @@ class Budget extends events_1.default {
     get Config() {
         return this.config;
     }
+    get Start() {
+        return this.transactions.Start;
+    }
+    get End() {
+        return this.transactions.End;
+    }
     ready() {
         return this.readyPromise;
     }
@@ -72,11 +78,11 @@ class Budget extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             this.period = this.config.calculatePeriod(date);
             yield this.transactions.loadPeriod(this.period.start, this.period.end);
-            this.emitAsync('loadperiod', this.transactions.Records, this);
             if (this.isReady === false) {
                 this.isReady = true;
                 this.readyResolver(true);
             }
+            this.emitAsync('loadperiod', this.transactions.Records, this);
         });
     }
     getBackup() {

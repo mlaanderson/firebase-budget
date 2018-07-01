@@ -9,4 +9,6 @@ export default interface TransactionViewer {
     update(transaction: Transaction, total?: number) : void;
     clear() : void;
     listenToTransactions(transactions: Transactions) : void;
+    turnOffUpdates() : void;
+    turnOnUpdates() : void;
 }

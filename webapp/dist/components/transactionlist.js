@@ -19,6 +19,7 @@ const TEMPLATE = "singletransaction";
 class TransactionList extends renderer_1.default {
     constructor(element, config) {
         super();
+        this.m_update = true;
         this.SaveTransaction = (transaction) => __awaiter(this, void 0, void 0, function* () { console.log("SAVETRANSACTION", transaction); return null; });
         this.LoadTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADTRANSACTION:", id); return null; });
         this.DeleteTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("DELETETRANSACTION", id); return null; });
@@ -263,14 +264,20 @@ class TransactionList extends renderer_1.default {
     }
     listenToTransactions(transactions) {
         transactions.on('addedinperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             let total = yield transactions.getTotal();
             this.update(transaction, total);
         }));
         transactions.on('addedbeforeperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             let total = yield transactions.getTotal();
             this.setTotal(total);
         }));
         transactions.on('changed', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             let total = yield transactions.getTotal();
             if (transactions.Start <= transaction.date && transaction.date <= transactions.End) {
                 this.update(transaction, total);
@@ -281,18 +288,30 @@ class TransactionList extends renderer_1.default {
             }
         }));
         transactions.on('removedinperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             let total = yield transactions.getTotal();
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
         }));
         transactions.on('removedbeforeperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             let total = yield transactions.getTotal();
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
         }));
         transactions.on('periodloaded', (transactionList, total) => __awaiter(this, void 0, void 0, function* () {
+            if (this.m_update == false)
+                return;
             this.displayList(transactionList, total);
         }));
+    }
+    turnOffUpdates() {
+        this.m_update = false;
+    }
+    turnOnUpdates() {
+        this.m_update = true;
     }
 }
 exports.default = TransactionList;
