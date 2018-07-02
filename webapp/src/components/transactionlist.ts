@@ -44,7 +44,7 @@ export default class TransactionList extends Renderer implements TransactionView
         });
     }
 
-    private window_onResize() {
+    window_onResize() {
         $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
     }
@@ -139,11 +139,14 @@ export default class TransactionList extends Renderer implements TransactionView
     // events
     onMouseOver(e: JQuery.Event) {
         this.rows.css('background-color', '');
+        this.rows.children('td').css('background-color', '');
         this.getRow(e).css('background-color', '#eef');
+        this.getRow(e).children('td').css('background-color', '#eef');
     }
 
     onMouseOut() {
         this.rows.css('background-color', '');
+        this.rows.children('td').css('background-color', '');
     }
 
     onDoubleClick(e: JQuery.Event) {
@@ -155,6 +158,7 @@ export default class TransactionList extends Renderer implements TransactionView
     onClick(e: JQuery.Event) {
         e.preventDefault();
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
+        this.getRow(e).children('td').css('background-color', '#eef');
         this.PreviewTransaction(this.m_active_id);
     }
 

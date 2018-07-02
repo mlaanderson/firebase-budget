@@ -8,3 +8,10 @@
     color: black;
 }
 
+#tblTransactions tr, #tblTransactions tr.row_1 td { 
+    background-color: rgb(255, 255, 255);
+}
+
+#tblTransactions tr.row_0, #tblTransactions tr.row_0 td {
+    background-color: #f1ebe5;
+}

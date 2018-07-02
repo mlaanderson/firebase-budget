@@ -216,7 +216,6 @@ class BudgetForm extends renderer_1.default {
         let configDialog = new configdialog_1.default(this.budget.Config, () => {
             this.budget.Config.write();
             // reload the periods
-            console.log(this.budget.Config);
             this.config_onRead();
         }, this.setTheme.bind(this));
         configDialog.open();

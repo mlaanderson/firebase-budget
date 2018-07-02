@@ -119,10 +119,13 @@ class TransactionList extends renderer_1.default {
     // events
     onMouseOver(e) {
         this.rows.css('background-color', '');
+        this.rows.children('td').css('background-color', '');
         this.getRow(e).css('background-color', '#eef');
+        this.getRow(e).children('td').css('background-color', '#eef');
     }
     onMouseOut() {
         this.rows.css('background-color', '');
+        this.rows.children('td').css('background-color', '');
     }
     onDoubleClick(e) {
         e.preventDefault();
@@ -132,6 +135,7 @@ class TransactionList extends renderer_1.default {
     onClick(e) {
         e.preventDefault();
         this.m_active_id = this.getRow(e).css('background-color', '#eef').attr('id');
+        this.getRow(e).children('td').css('background-color', '#eef');
         this.PreviewTransaction(this.m_active_id);
     }
     onRecurringClick(e) {

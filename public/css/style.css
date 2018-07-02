@@ -14,13 +14,7 @@ td {
     cursor: pointer;
 }
 
-#tblTransactions tr { 
-    background-color: #fff;
-}
 
-#tblTransactions tr.row_0, #tblTransactions tr.row_0 td { 
-    background-color: inherit;
-}
 
 th, td {
     text-align: left;
