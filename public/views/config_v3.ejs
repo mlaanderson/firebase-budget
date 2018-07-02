@@ -2,19 +2,54 @@
     <div data-role="header" role="banner" data-theme="a" class="ui-header ui-bar-a">
         <h3>Settings</h3>
     </div>
-    <div role="main" class="ui-content">
-        <div class="ui-field-contain">
-            <label for="date">Start Date</label>
-            <input type="date" id="date" value="<%= start %>" data-theme="a">
-            <label for="period_length">Period</label>
-            <input type="text" id="period_length" data-role="timespan" value="<%= length %>" data-theme="a">
-            <label for="theme">Theme</label>
-            <select id="theme">
-                <option value="default"<%= theme == 'default' ? " selected" : "" %>>Default - Grey</option>
-                <option value="purple"<%= theme == 'purple' ? " selected" : "" %>>Purple</option>
-                <option value="brown"<%= theme == 'brown' ? " selected" : "" %>>Brown</option>
-            </select>
-            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+    <div data-role="tabs">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#periods" data-theme="a" data-ajax="false" class="ui-btn-active">Periods</a></li>
+                <li><a href="#categories" data-theme="a" data-ajax="false">Categories</a></li>
+            </ul>
+        </div>
+        <div id="periods" class="ui-content">
+            <div class="ui-field-contain">
+                <label for="date">Start Date</label>
+                <input type="date" id="date" value="<%= start %>" data-theme="a">
+                <label for="period_length">Period</label>
+                <input type="text" id="period_length" data-role="timespan" value="<%= length %>" data-theme="a">
+                <label for="theme">Theme</label>
+                <select id="theme">
+                    <option value="default"<%= theme == 'default' ? " selected" : "" %>>Default - Grey</option>
+                    <option value="purple"<%= theme == 'purple' ? " selected" : "" %>>Purple</option>
+                    <option value="brown"<%= theme == 'brown' ? " selected" : "" %>>Brown</option>
+                </select>
+                <p></p>
+                <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+            </div>
+        </div>
+        <div id="categories" class="ui-content">
+            <div class="ui-field-contain" data-mini="true">
+                <label for="newCategory">Add:</label>
+                <input type="text" id="newCategory" value="" data-theme="a">
+                <button type="button" id="btnAddCategory" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-plus">Add</button>
+                <p></p>
+            </div>
+            <div class="ui-field-contain" data-mini="true" style="max-height: 500px; overflow-y: auto; overflow-x: hidden">
+                <ul data-role="listview" data-mini="true" id="categoriesList">
+                    <% for (var category of categories) { %>
+                        <li category="<%= category %>">
+                            <%= category %>
+                            <div class="split-custom-wrapper">
+                                <a href="#" data-role="button" data-mini="true" class="category-delete split-custom-button" data-icon="delete" data-iconpos="notext"></a>
+                                <a href="#" data-role="button" data-mini="true" class="category-movedown split-custom-button" data-icon="carat-d" data-iconpos="notext"></a>
+                                <a href="#" data-role="button" data-mini="true" class="category-moveup split-custom-button" data-icon="carat-u" data-iconpos="notext"></a>
+                            </div>
+                        </li>
+                    <% } %>
+                </ul>
+                <p></p>
+            </div>
+            <div class="ui-field-contain" data-mini="true">
+                <button type="button" onclick="$('#btnSave').click()" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
