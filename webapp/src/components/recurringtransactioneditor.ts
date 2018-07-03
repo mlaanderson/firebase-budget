@@ -41,6 +41,11 @@ export default class RecurringTransactionEditor extends Dialog {
             this.close();
         });
 
+        // wire up the cancel button
+        this.m_dialog.find('#btnCancel').on('click', () => {
+            this.close();
+        });
+
         // wire up the delete button
         this.m_dialog.find('#btnDelete').on('click', async() => {
             Spinner.show();
@@ -56,5 +61,14 @@ export default class RecurringTransactionEditor extends Dialog {
                 this.m_dialog.find('#btnSave').click();
             }
         });
+
+        // fix the height of the ui-field-contain div
+        let windowHeight = 1 * $(window).innerHeight();
+        let dialogHeight = this.m_dialog.outerHeight(true);
+        if (dialogHeight > windowHeight) {
+            let adjust = dialogHeight - windowHeight;
+            this.m_dialog.find('.ui-field-contain').height(this.m_dialog.find('.ui-field-contain').height() - adjust);
+            this.m_dialog.popup('reposition', { positionTo: 'window' });
+        }
     }
 }

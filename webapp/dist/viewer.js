@@ -38,6 +38,7 @@ const introwizard_1 = require("./introwizard");
 const emergencyfundwizard_1 = require("./emergencyfundwizard");
 const setupwizard_1 = require("./components/setupwizard");
 window.setup = setupwizard_1.default;
+window.MessageBox = messagebox_1.default;
 class BudgetForm extends renderer_1.default {
     constructor() {
         super();
@@ -77,6 +78,20 @@ class BudgetForm extends renderer_1.default {
                 this.budget.gotoDate(date);
             };
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
+            $(window).on('resize', () => {
+                if ('ontouchstart' in document.documentElement == false) {
+                    $('#btnEditTransaction').hide();
+                }
+                else {
+                    $('#btnEditTransaction').show();
+                }
+            });
+            if ('ontouchstart' in document.documentElement == false) {
+                $('#btnEditTransaction').hide();
+            }
+            else {
+                $('#btnEditTransaction').show();
+            }
         });
         // try to bind the ctrl/command keys
         $(document).on('keydown', (e) => {

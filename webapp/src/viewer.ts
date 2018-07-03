@@ -39,10 +39,12 @@ import SetupDialog from "./components/setupwizard";
 declare global {
     interface Window {
         setup: typeof SetupDialog;
+        MessageBox: typeof MessageBox;
     }
 }
 
 window.setup = SetupDialog;
+window.MessageBox = MessageBox;
 
 export default class BudgetForm extends Renderer {
     private btnSearch : Button;
@@ -122,6 +124,20 @@ export default class BudgetForm extends Renderer {
             };
 
             firebase.auth().onAuthStateChanged(this.firebase_onAuthStateChanged.bind(this));
+
+            $(window).on('resize', () => {
+                if ('ontouchstart' in document.documentElement == false) {
+                    $('#btnEditTransaction').hide();
+                } else {
+                    $('#btnEditTransaction').show();
+                }
+            });
+            if ('ontouchstart' in document.documentElement == false) {
+                $('#btnEditTransaction').hide();
+            } else {
+                $('#btnEditTransaction').show();
+            }
+
         });
 
         // try to bind the ctrl/command keys

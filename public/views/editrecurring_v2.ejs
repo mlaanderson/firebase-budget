@@ -3,7 +3,7 @@
         <h3>Edit Recurring</h3>
     </div>
     <div role="main" class="ui-content">
-        <div class="ui-field-contain" data-mini="true">
+        <div class="ui-field-contain" data-mini="true" style="overflow-y: auto; overflow-x: hidden;">
             <label for="period">Every</label>
             <input type="text" data-role="timespan" data-mini="true" id="period" value="<%= transaction.period %>" data-theme="a">
             <label for="start">From</label>
@@ -44,8 +44,11 @@
             <input type="number" id="amount" data-mini="true" value="<%= Math.abs(transaction.amount) %>" data-theme="a">
             <label for="note">Notes</label>
             <textarea id="note" data-theme="a"><%= typeof transaction.note === "undefined" ? "" : transaction.note %></textarea>
-            <button type="button" id="btnSave" data-mini="true" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
-            <% if (typeof transaction.id !== "undefined") { %><button type="button" id="btnDelete" data-mini="true" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete Recurring</button><% } %>
+        </div>
+        <div data-role="footer">
+            <button type="button" id="btnSave" data-mini="true" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save</button>
+            <button type="button" id="btnCancel" data-mini="true" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left">Cancel</button>
+            <% if (typeof transaction.id !== "undefined") { %><button type="button" id="btnDelete" data-mini="true" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
         </div>
     </div>
 </div>

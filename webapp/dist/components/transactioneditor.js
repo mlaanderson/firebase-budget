@@ -19,7 +19,7 @@ class TransactionEditor extends dialog_1.default {
         this.categories = categories;
     }
     afterOpen() {
-        // wire up the close button
+        // wire up the save button
         this.m_dialog.find('#btnSave').on('click', () => __awaiter(this, void 0, void 0, function* () {
             let isDeposit = $("#type").prop('checked');
             this.transaction.date = $('#date').val().toString();
@@ -36,6 +36,10 @@ class TransactionEditor extends dialog_1.default {
             spinner_1.default.hide();
             this.close();
         }));
+        // wire up the cancel button
+        this.m_dialog.find('#btnCancel').on('click', () => {
+            this.close();
+        });
         // wire up the delete button
         this.m_dialog.find('#btnDelete').on('click', () => __awaiter(this, void 0, void 0, function* () {
             spinner_1.default.show();
@@ -50,6 +54,14 @@ class TransactionEditor extends dialog_1.default {
                 this.m_dialog.find('#btnSave').click();
             }
         });
+        // fix the height of the ui-field-contain div
+        let windowHeight = 1 * $(window).innerHeight();
+        let dialogHeight = this.m_dialog.outerHeight(true);
+        if (dialogHeight > windowHeight) {
+            let adjust = dialogHeight - windowHeight;
+            this.m_dialog.find('.ui-field-contain').height(this.m_dialog.find('.ui-field-contain').height() - adjust);
+            this.m_dialog.popup('reposition', { positionTo: 'window' });
+        }
     }
 }
 exports.default = TransactionEditor;

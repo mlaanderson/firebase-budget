@@ -104,8 +104,8 @@ body { background-color: #e9e9e9; }
     padding-right: 7px;
 }
 
-/* Most desktops */
-@media only screen and (min-device-width: 1281px) {
+/* Most desktops - hover: hover means browsers with mice */
+@media only screen and (hover: hover) {
     #btnEditTransaction {
         display: none;
     }

@@ -17,7 +17,7 @@
         <h3>Edit Transaction</h3>
     </div>
     <div role="main" class="ui-content">
-        <div class="ui-field-contain">
+        <div class="ui-field-contain" style="overflow-y: auto; overflow-x: hidden;">
             <label for="date">Date</label>
             <input type="date" id="date" data-mini="true" value="<%= transaction.date %>" data-theme="a">
             <label for="category">Category</label>
@@ -60,7 +60,10 @@
             </label>
             <label for="note">Notes</label>
             <textarea id="note" data-theme="a" data-mini="true"><%= transaction.note %></textarea>
-            <button type="button" data-mini="true" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
+        </div>
+        <div data-role="footer">
+            <button type="button" data-mini="true" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save</button>
+            <button type="button" data-mini="true" id="btnCancel" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left">Cancel</button>
             <% if (typeof transaction.id !== "undefined") { %><button type="button" data-mini="true" id="btnDelete" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-delete">Delete</button><% } %>
         </div>
     </div>
