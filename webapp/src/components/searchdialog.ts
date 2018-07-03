@@ -13,6 +13,7 @@ export default class SearchDialog extends Dialog {
     }
 
     afterRender() {
+        super.afterRender();
         this.m_dialog.css('height', $(window).innerHeight() * 0.7).css('width', $(window).innerWidth() * 0.8);
     }
 

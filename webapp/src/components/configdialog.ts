@@ -65,6 +65,7 @@ export default class ConfigDialog extends Dialog {
     }
 
     afterRender() {
+        super.afterRender();
         this.m_dialog.find('#btnSave').on('click', async () => {
             this.config.start = this.m_dialog.find('#date').val() as string;
             this.config.length = this.m_dialog.find('#period_length').val() as string;

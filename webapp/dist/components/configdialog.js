@@ -55,6 +55,7 @@ class ConfigDialog extends dialog_1.default {
         return this.m_dialog.find('[data-role=listview]').children('li').toArray().map(li => $(li).attr('category'));
     }
     afterRender() {
+        super.afterRender();
         this.m_dialog.find('#btnSave').on('click', () => __awaiter(this, void 0, void 0, function* () {
             this.config.start = this.m_dialog.find('#date').val();
             this.config.length = this.m_dialog.find('#period_length').val();

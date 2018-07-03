@@ -21,8 +21,6 @@
                     <option value="purple"<%= theme == 'purple' ? " selected" : "" %>>Purple</option>
                     <option value="brown"<%= theme == 'brown' ? " selected" : "" %>>Brown</option>
                 </select>
-                <p></p>
-                <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
             </div>
         </div>
         <div id="categories" class="ui-content">
@@ -47,9 +45,9 @@
                 </ul>
                 <p></p>
             </div>
-            <div class="ui-field-contain" data-mini="true">
-                <button type="button" onclick="$('#btnSave').click()" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
-            </div>
+        </div>
+        <div data-role="footer">
+            <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>
         </div>
     </div>
 </div>

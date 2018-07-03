@@ -78,6 +78,7 @@ class CanvasReport extends report_1.default {
      * Be sure to call super.afterRender() if you override this
      */
     afterRender() {
+        super.afterRender();
         // attach to the canvas
         this.canvas = this.m_dialog.find('canvas');
         this.context = this.canvas[0].getContext('2d');

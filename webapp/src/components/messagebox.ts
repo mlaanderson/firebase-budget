@@ -1,15 +1,15 @@
 import Dialog from "./dialog";
 
 export enum MessageBoxIcon {
-    Asterisk = 'ui-icon-asterisk',
-    Error = 'ui-icon-exclamation-circle',
-    Exclamation = 'ui-icon-exclamation-circle',
-    Hand = 'ui-icon-forbidden',
-    Information = 'ui-icon-info-circle',
+    Asterisk = 'asterisk',
+    Error = 'exclamation-triangle',
+    Exclamation = 'exclamation-circle',
+    Hand = 'ban',
+    Information = 'info-circle',
     None = '',
-    Question = 'ui-icon-question-circle',
-    Stop = 'ui-icon-forbidden',
-    Warning = 'ui-icon-exclamation-circle'
+    Question = 'question-circle',
+    Stop = 'ban',
+    Warning = 'exclamation-circle'
 }
 
 export enum DialogResult {
@@ -81,7 +81,7 @@ export default class MessageBox extends Dialog {
         $(() => {
             this.m_dialog.find('button').on('click', (e) => {
                 this.close();
-                this.resolver(parseInt($(e.target).attr('result')) as DialogResult);
+                if (this.resolver) this.resolver(parseInt($(e.target).attr('result')) as DialogResult);
             });
         });
     }

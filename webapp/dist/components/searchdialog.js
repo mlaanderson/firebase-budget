@@ -16,6 +16,7 @@ class SearchDialog extends dialog_1.default {
         this.transactions = transactions;
     }
     afterRender() {
+        super.afterRender();
         this.m_dialog.css('height', $(window).innerHeight() * 0.7).css('width', $(window).innerWidth() * 0.8);
     }
     afterOpen() {

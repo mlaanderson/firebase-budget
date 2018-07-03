@@ -101,6 +101,7 @@ export default abstract class CanvasReport extends Report {
      * Be sure to call super.afterRender() if you override this
      */
     protected afterRender() {
+        super.afterRender();
         // attach to the canvas
         this.canvas = this.m_dialog.find('canvas') as JQuery<HTMLCanvasElement>;
         this.context = (this.canvas[0] as HTMLCanvasElement).getContext('2d');

@@ -116,6 +116,7 @@ export default class Wizard extends Dialog {
     }
 
     afterRender() {
+        super.afterRender();
         this.title = this.m_dialog.find('.wizardTitle');
         this.content = this.m_dialog.find('.wizardContent');
         this.backButton = this.m_dialog.find('.wizardBackButton');

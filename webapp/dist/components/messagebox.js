@@ -3,15 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 var MessageBoxIcon;
 (function (MessageBoxIcon) {
-    MessageBoxIcon["Asterisk"] = "ui-icon-asterisk";
-    MessageBoxIcon["Error"] = "ui-icon-exclamation-circle";
-    MessageBoxIcon["Exclamation"] = "ui-icon-exclamation-circle";
-    MessageBoxIcon["Hand"] = "ui-icon-forbidden";
-    MessageBoxIcon["Information"] = "ui-icon-info-circle";
+    MessageBoxIcon["Asterisk"] = "asterisk";
+    MessageBoxIcon["Error"] = "exclamation-triangle";
+    MessageBoxIcon["Exclamation"] = "exclamation-circle";
+    MessageBoxIcon["Hand"] = "ban";
+    MessageBoxIcon["Information"] = "info-circle";
     MessageBoxIcon["None"] = "";
-    MessageBoxIcon["Question"] = "ui-icon-question-circle";
-    MessageBoxIcon["Stop"] = "ui-icon-forbidden";
-    MessageBoxIcon["Warning"] = "ui-icon-exclamation-circle";
+    MessageBoxIcon["Question"] = "question-circle";
+    MessageBoxIcon["Stop"] = "ban";
+    MessageBoxIcon["Warning"] = "exclamation-circle";
 })(MessageBoxIcon = exports.MessageBoxIcon || (exports.MessageBoxIcon = {}));
 var DialogResult;
 (function (DialogResult) {
@@ -71,7 +71,8 @@ class MessageBox extends dialog_1.default {
         $(() => {
             this.m_dialog.find('button').on('click', (e) => {
                 this.close();
-                this.resolver(parseInt($(e.target).attr('result')));
+                if (this.resolver)
+                    this.resolver(parseInt($(e.target).attr('result')));
             });
         });
     }

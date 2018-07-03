@@ -22,8 +22,6 @@ import Transaction from "./models/transaction";
 import SearchDialog from "./components/searchdialog";
 import RecurringTransaction from "./models/recurringtransaction";
 import Panel from "./components/panel";
-import CashDialog from "./components/cashdialog";
-import TransferDialog from "./components/transferdialog";
 import ConfigDialog from "./components/configdialog";
 import LoginDialog from "./components/logindialog";
 import HistoryChart from "./components/historychart";
@@ -33,8 +31,18 @@ import ForgotPasswordDialog from "./components/forgotpassworddialog";
 import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/messagebox";
 import SignUpDialog from "./components/signupdialog";
 import { ConfigurationData } from "./controllers/config";
+
 import ShowIntroWizard from "./introwizard";
-import showEmergencyFundWizard from "./emergencyfundwizard"
+import showEmergencyFundWizard from "./emergencyfundwizard";
+import SetupDialog from "./components/setupwizard";
+
+declare global {
+    interface Window {
+        setup: typeof SetupDialog;
+    }
+}
+
+window.setup = SetupDialog;
 
 export default class BudgetForm extends Renderer {
     private btnSearch : Button;
@@ -303,16 +311,58 @@ export default class BudgetForm extends Renderer {
         e.preventDefault();
         this.pnlMenu.close();
 
-        let cashDialog = new CashDialog(this.budget.Transactions.Cash);
-        cashDialog.open();
+        let message = "";
+        let cash = this.budget.Transactions.Cash;
+        if (cash.hundreds) {
+            message += `${ cash.hundreds } x $100 Bills (${ (cash.hundreds * 100.0).toCurrency() })<br/>`
+        }
+        if (cash.fifties) {
+            message += `${ cash.fifties } x $50 Bills (${ (cash.fifties * 50.0).toCurrency() })<br/>`
+        }
+        if (cash.twenties) {
+            message += `${ cash.twenties } x $20 Bills (${ (cash.twenties * 20.0).toCurrency() })<br/>`
+        }
+        if (cash.tens) {
+            message += `${ cash.tens } x $10 Bills (${ (cash.tens * 10.0).toCurrency() })<br/>`
+        }
+        if (cash.fives) {
+            message += `${ cash.fives } x $5 Bills (${ (cash.fives * 5.0).toCurrency() })<br/>`
+        }
+        if (cash.ones) {
+            message += `${ cash.ones } x $1 Bills (${ (cash.ones * 1.0).toCurrency() })<br/>`
+        }
+        if (cash.cent25) {
+            message += `${ cash.cent25 } x Quarters (${ (cash.cent25 * 0.25).toCurrency() })<br/>`
+        }
+        if (cash.cent10) {
+            message += `${ cash.cent10 } x Dimes (${ (cash.cent25 * 0.1).toCurrency() })<br/>`
+        }
+        if (cash.cent5) {
+            message += `${ cash.cent5 } x Nickels (${ (cash.cent5 * 0.05).toCurrency() })<br/>`
+        }
+        if (cash.cent1) {
+            message += `${ cash.cent1 } x Pennies (${ (cash.cent1 * 0.01).toCurrency() })<br/>`
+        }
+
+        if (message == "") {
+            message = "No Cash Withdrawals";
+        } else {
+            message += `TOTAL: ${cash.getTotal().toCurrency()}`;
+        }
+        MessageBox.show(message, "Cash Withdrawal", MessageBox.Buttons.OK, MessageBoxIcon.Information);
     }
 
     btnTransfer_onClick(e: JQuery.Event) : void {
         e.preventDefault();
         this.pnlMenu.close();
 
-        let transferDialog = new TransferDialog(this.budget.Transactions.Transfer);
-        transferDialog.open();
+        // let transferDialog = new TransferDialog(this.budget.Transactions.Transfer);
+        // transferDialog.open();
+        let transfer = this.budget.Transactions.Transfer;
+        let title = "No Transfers";
+        if (transfer < 0) title = "Transfer from Savings";
+        if (transfer > 0) title = "Transfer into Savings";
+        MessageBox.show(`Total: ${Math.abs(transfer).toCurrency()}`, title, MessageBox.Buttons.OK, MessageBox.Icon.Information);
     }
 
     async transactionList_PreviewTransaction(id: string) : Promise<Array<Transaction>> {

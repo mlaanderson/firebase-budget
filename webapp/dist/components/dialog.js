@@ -100,6 +100,9 @@ class Dialog extends renderer_1.default {
         });
     }
     afterRender() {
+        if (this.m_dialog.parent().next().is('.ui-footer')) {
+            this.m_dialog.append(this.m_dialog.parent().next()).enhanceWithin();
+        }
     }
     afterClose() {
         this.m_dialog.empty().remove();

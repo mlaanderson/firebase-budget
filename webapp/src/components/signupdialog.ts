@@ -1,6 +1,5 @@
 import Dialog from "./dialog";
 import Spinner from "./spinner";
-import MessageBox from "./messagebox";
 
 type SignupMethod = (username: string, password: string) => void;
 

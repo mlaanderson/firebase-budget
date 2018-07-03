@@ -99,6 +99,11 @@ body { background-color: #e9e9e9; }
     height:40%; /* stay within boundaries of list item */
 }
 
+.ui-popup-container .ui-footer {
+    padding-left: 7px;
+    padding-right: 7px;
+}
+
 /* Most desktops */
 @media only screen and (min-device-width: 1281px) {
     #btnEditTransaction {

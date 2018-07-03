@@ -115,7 +115,9 @@ export default class Dialog extends Renderer {
     }
 
     protected afterRender() : void {
-
+        if (this.m_dialog.parent().next().is('.ui-footer')) {
+            this.m_dialog.append(this.m_dialog.parent().next()).enhanceWithin();
+        }
     }
 
     protected afterClose() : void {
