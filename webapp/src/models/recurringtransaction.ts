@@ -10,4 +10,6 @@ export default interface RecurringTransaction extends Record {
     period : string;
     start : string;
     transfer? : boolean;
+    active?: string;
+    delete?: string;
 }

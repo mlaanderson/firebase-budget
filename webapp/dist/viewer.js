@@ -488,4 +488,4 @@ class BudgetForm extends renderer_1.default {
     }
 }
 exports.default = BudgetForm;
-new BudgetForm();
+window.viewer = new BudgetForm();

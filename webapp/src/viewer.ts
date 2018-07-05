@@ -554,5 +554,9 @@ export default class BudgetForm extends Renderer {
         this.previewer.turnOnUpdates();
     }
 }
-
-new BudgetForm();
+declare global {
+    interface Window {
+        viewer: BudgetForm;
+    }
+}
+window.viewer = new BudgetForm();
