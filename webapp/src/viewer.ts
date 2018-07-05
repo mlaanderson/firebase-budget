@@ -67,6 +67,7 @@ export default class BudgetForm extends Renderer {
     private btnCash : Button;
     private btnTransfer : Button;
     private btnWizardEmergencyFund: Button;
+    private btnWizardSetup: Button;
     private pnlMenu: Panel;
 
     private transactionList: TransactionList;
@@ -113,6 +114,7 @@ export default class BudgetForm extends Renderer {
             this.previewer = new Previewer('.info_div');
 
             this.btnWizardEmergencyFund = new Button("#btnWizardEmergencyFund").on('click', this.btnWizardEmergencyFund_Click.bind(this));
+            this.btnWizardSetup = new Button('#btnWizardSetup').on('click', this.btnWizardSetup_Click.bind(this));
 
             this.btnUndo.disabled = true;
             this.btnRedo.disabled = true;
@@ -196,6 +198,12 @@ export default class BudgetForm extends Renderer {
     }
 
     // Wizards
+    btnWizardSetup_Click(e: JQuery.Event) {
+        e.preventDefault();
+        this.pnlMenu.close();
+        (new SetupDialog(this.budget.Config.categories, this.budget.saveRecurring.bind(this.budget))).open();
+    }
+
     btnWizardEmergencyFund_Click(e: JQuery.Event) {
         e.preventDefault();
         this.pnlMenu.close();

@@ -1,4 +1,4 @@
-<div data-dismissible="true" data-theme="b" class="ui-corner-all" style="min-width: 350px;">
+<div data-dismissible="true" data-theme="a" class="ui-corner-all" style="min-width: 350px;">
     <div data-role="header" role="banner" data-theme="a" class="ui-header ui-bar-a">
         <h3>Setup Wizard</h3>
     </div>
@@ -8,17 +8,44 @@
                 <ul>
                     <li><a href="#income" data-theme="a" data-ajax="false" class="ui-btn-active">Income</a></li>
                     <li><a href="#housing" data-theme="a" data-ajax="false">Housing</a></li>
+                    <li><a href="#utilities" data-theme="a" data-ajax="false">Utilities</a></li>
+                    <li><a href="#transportation" data-theme="a" data-ajax="false">Transportation</a></li>
+                    <li><a href="#food" data-theme="a" data-ajax="false">Food</a></li>
+                    <li><a href="#other" data-theme="a" data-ajax="false">Other</a></li>
                 </ul>
             </div>
-            <div id="income" class="ui-content">
-                <div class=""
+            <% 
+                var tabs = {income: "Income Source", housing: "Housing Expense", utilities: "Utility", transportation: "Transportation Expense", food: "Food Expense", other: "Other Expense"};
+                for (var tab in tabs) {
+            %>
+            <div id="<%= tab %>" class="ui-content" style="overflow-y: auto; overflow-x: hidden;">
+                <div class="ui-field-contain">
+                    <label for="<%= tab %>Name"><%= tabs[tab] %></label>
+                    <input type="text" id="<%= tab %>Name" value="" data-mini="true">
+                    <% if (tab == "other") { %>
+                    <label for="<%= tab %>Category">Category</label>
+                    <select data-mini="true" id="<%= tab %>Category">
+                        <% categories.map(cat => {
+                            %><option value="<%= cat %>"><%= cat %></option><%
+                        }) %>
+                    </select>
+                    <% } %>
+                    <label for="<%= tab %>Amount">Amount</label>
+                    <input type="number" id="<%= tab %>Amount" value="" data-mini="true">
+                    <label for="<%= tab %>Period">Every:</label>
+                    <input type="text" data-role="timespan" id="<%= tab %>Period" data-mini="true">
+                    <label for="<%= tab %>Start">Starting On:</label>
+                    <input type="date" id="<%= tab %>Start" value="<%= Date.today().toFbString() %>" data-mini="true">
+                    <button type="button" id="<%= tab %>Add">Add</button>
+                    <ul data-role="listview" data-inset="true" id="<%= tab %>List">
+                    </ul>
+                </div>
             </div>
-            <div id="housing" class="ui-content">
-                Enter housing here
-            </div>
+            <% } %>
         </div>
     </div>
     <div data-role="footer">
         <button type="button" data-mini="true" id="btnSaveSetup" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Create Entries</button>
+        <button type="button" data-mini="true" id="btnCancelSetup" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left">Cancel</button>
     </div>
 </div>

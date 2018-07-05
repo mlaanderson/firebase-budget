@@ -71,6 +71,7 @@ class BudgetForm extends renderer_1.default {
             this.pnlMenu = new panel_1.default('#menu_panel');
             this.previewer = new previewer_1.default('.info_div');
             this.btnWizardEmergencyFund = new button_1.default("#btnWizardEmergencyFund").on('click', this.btnWizardEmergencyFund_Click.bind(this));
+            this.btnWizardSetup = new button_1.default('#btnWizardSetup').on('click', this.btnWizardSetup_Click.bind(this));
             this.btnUndo.disabled = true;
             this.btnRedo.disabled = true;
             this.chart = new historychart_1.default('chart_div');
@@ -147,6 +148,11 @@ class BudgetForm extends renderer_1.default {
         }
     }
     // Wizards
+    btnWizardSetup_Click(e) {
+        e.preventDefault();
+        this.pnlMenu.close();
+        (new setupwizard_1.default(this.budget.Config.categories, this.budget.saveRecurring.bind(this.budget))).open();
+    }
     btnWizardEmergencyFund_Click(e) {
         e.preventDefault();
         this.pnlMenu.close();
