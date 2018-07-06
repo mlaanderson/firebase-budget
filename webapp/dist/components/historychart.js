@@ -58,14 +58,24 @@ class HistoryChart {
     update(transaction) {
         if (!this.m_transactions)
             this.m_transactions = {};
-        this.m_transactions[transaction.id] = transaction;
-        this.display(this.m_transactions, this.m_left, this.m_right);
+        if (this.m_right > transaction.date) {
+            this.m_transactions[transaction.id] = transaction;
+            clearTimeout(this.m_waiter);
+            this.m_waiter = setTimeout(() => {
+                this.display(this.m_transactions, this.m_left, this.m_right);
+            }, 500);
+        }
     }
     remove(transaction) {
         if (!this.m_transactions)
             this.m_transactions = {};
-        delete this.m_transactions[transaction.id];
-        this.display(this.m_transactions, this.m_left, this.m_right);
+        if (transaction.id in this.m_transactions) {
+            delete this.m_transactions[transaction.id];
+            clearTimeout(this.m_waiter);
+            this.m_waiter = setTimeout(() => {
+                this.display(this.m_transactions, this.m_left, this.m_right);
+            }, 500);
+        }
     }
     draw(sums, left, right) {
         $(() => {
@@ -108,10 +118,8 @@ class HistoryChart {
                 });
                 let chLeft = Date.parseFb(left);
                 let chRight = Date.parseFb(right);
-                setImmediate(() => {
-                    this.m_chart.validateData();
-                    this.m_chart.zoomToDates(chLeft, chRight);
-                });
+                this.m_chart.validateData();
+                this.m_chart.zoomToDates(chLeft, chRight);
             }
         });
     }

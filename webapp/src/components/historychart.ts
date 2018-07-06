@@ -101,6 +101,7 @@ export default class HistoryChart implements TransactionViewer {
     private m_left: string;
     private m_right: string;
     private m_update: boolean = true;
+    private m_waiter: number;
 
     constructor(element: JQuery<HTMLElement> | string) {
         $(() => {
@@ -155,14 +156,26 @@ export default class HistoryChart implements TransactionViewer {
 
     update(transaction: Transaction) {
         if (!this.m_transactions) this.m_transactions = {};
-        this.m_transactions[transaction.id] = transaction;
-        this.display(this.m_transactions, this.m_left, this.m_right);
+
+        if (this.m_right > transaction.date) {
+            this.m_transactions[transaction.id] = transaction;
+            clearTimeout(this.m_waiter);
+            this.m_waiter = setTimeout(() => {
+                this.display(this.m_transactions, this.m_left, this.m_right);
+            }, 500);
+        }
     }
 
     remove(transaction: Transaction) {
         if (!this.m_transactions) this.m_transactions = {};
-        delete this.m_transactions[transaction.id];
-        this.display(this.m_transactions, this.m_left, this.m_right);
+
+        if (transaction.id in this.m_transactions) {
+            delete this.m_transactions[transaction.id];
+            clearTimeout(this.m_waiter);
+            this.m_waiter = setTimeout(() => {
+                this.display(this.m_transactions, this.m_left, this.m_right);
+            }, 500);
+        }
     }
 
     draw(sums: { [date : string] : number }, left: string, right: string) {
@@ -208,10 +221,8 @@ export default class HistoryChart implements TransactionViewer {
                 let chLeft = Date.parseFb(left);
                 let chRight = Date.parseFb(right);
 
-                setImmediate(() => {
-                    this.m_chart.validateData();
-                    this.m_chart.zoomToDates(chLeft, chRight);
-                });
+                this.m_chart.validateData();
+                this.m_chart.zoomToDates(chLeft, chRight);
             }
         });
     }
