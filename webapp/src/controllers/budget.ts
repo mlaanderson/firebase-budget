@@ -159,6 +159,17 @@ export default class Budget extends Events {
         let changes: EditHistory;
         let initial: RecurringTransaction = null;
 
+        let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
+         
+        if (date < this.transactions.Start) {
+            date = this.transactions.Start;
+        }
+
+        if (transaction.id) {
+            initial = await this.Recurrings.load(transaction.id);
+            initial.active = date;
+        }
+
         // prepare the changes
         changes = {
             items: [{
@@ -168,30 +179,6 @@ export default class Budget extends Events {
                 final: transaction
             }]
         };
-
-        let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
-         
-        if (date < this.transactions.Start) {
-            date = this.transactions.Start;
-        }
-
-        if (transaction.id) {
-            initial = await this.Recurrings.load(transaction.id);
-            //  update the existing transactions which depend on this
-            let recurrings = await this.transactions.getRecurring(transaction.id);
-
-            // push the transactions which will be deleted into the change history
-            // whichever is newer
-            for (let k in recurrings) {
-                if (recurrings[k].date >= date) {
-                    changes.items.push({
-                        action: "delete",
-                        type: "Transaction",
-                        final: recurrings[k]
-                    });
-                }
-            }
-        }
 
         // Update the transaction - setting the active key makes 
         // all the linked creating/deleting happen on the server
@@ -219,22 +206,9 @@ export default class Budget extends Events {
 
         if (transaction.id) {
             let date = Date.periodCalc(this.config.start, this.config.length).toFbString();
-            let recurrings = await this.transactions.getRecurring(transaction.id);
 
             if (date < this.transactions.Start) {
                 date = this.transactions.Start;
-            }
-
-            // setup the history to show linked transactions after this period or today's period
-            // whichever is newer being deleted
-            for (let k in recurrings) {
-                if (recurrings[k].date >= date) {
-                    changes.items.push({
-                        action: "delete",
-                        type: "Transaction",
-                        final: recurrings[k]
-                    });
-                }
             }
 
             transaction.delete = date;

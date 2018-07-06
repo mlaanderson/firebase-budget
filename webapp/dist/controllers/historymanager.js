@@ -76,7 +76,7 @@ class HistoryManager extends events_1.default {
     }
     redoChange(change) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (change.initial) {
+            if (change.final) {
                 switch (change.type) {
                     case 'Recurring':
                         yield this.recurring.save(change.final);
@@ -92,7 +92,20 @@ class HistoryManager extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             switch (change.type) {
                 case 'Recurring':
-                    yield this.recurring.remove(change.final);
+                    let reverted = {
+                        amount: change.final.amount,
+                        cash: change.final.cash,
+                        category: change.final.category,
+                        end: change.final.end,
+                        id: change.final.id,
+                        name: change.final.name,
+                        note: change.final.note,
+                        period: change.final.period,
+                        start: change.final.start,
+                        transfer: change.final.transfer,
+                        delete: change.final.active
+                    };
+                    yield this.recurring.save(reverted);
                     break;
                 case 'Transaction':
                     yield this.transactions.remove(change.final);
@@ -116,7 +129,20 @@ class HistoryManager extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             switch (change.type) {
                 case 'Recurring':
-                    yield this.recurring.save(change.final);
+                    let reverted = {
+                        amount: change.final.amount,
+                        cash: change.final.cash,
+                        category: change.final.category,
+                        end: change.final.end,
+                        id: change.final.id,
+                        name: change.final.name,
+                        note: change.final.note,
+                        period: change.final.period,
+                        start: change.final.start,
+                        transfer: change.final.transfer,
+                        active: change.final.delete
+                    };
+                    yield this.recurring.save(reverted);
                     break;
                 case 'Transaction':
                     yield this.transactions.save(change.final);
@@ -128,7 +154,7 @@ class HistoryManager extends events_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             switch (change.type) {
                 case 'Recurring':
-                    yield this.recurring.remove(change.final);
+                    yield this.recurring.save(change.final);
                     break;
                 case 'Transaction':
                     yield this.transactions.remove(change.final);

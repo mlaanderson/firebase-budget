@@ -88,7 +88,7 @@ export default class HistoryManager extends Events {
     }
 
     private async redoChange(change: HistoryItem) {
-        if (change.initial) {
+        if (change.final) {
             switch(change.type) {
                 case 'Recurring':
                     await this.recurring.save(change.final as RecurringTransaction);
@@ -103,7 +103,20 @@ export default class HistoryManager extends Events {
     private async revertCreate(change: HistoryItem) {
         switch(change.type) {
             case 'Recurring':
-                await this.recurring.remove(change.final as RecurringTransaction);
+                let reverted: RecurringTransaction = {
+                    amount: change.final.amount,
+                    cash: change.final.cash,
+                    category: change.final.category,
+                    end: (change.final as RecurringTransaction).end,
+                    id: change.final.id,
+                    name: change.final.name,
+                    note: change.final.note,
+                    period: (change.final as RecurringTransaction).period,
+                    start: (change.final as RecurringTransaction).start,
+                    transfer: change.final.transfer,
+                    delete: (change.final as RecurringTransaction).active
+                };
+                await this.recurring.save(reverted);
             break
             case 'Transaction':
                 await this.transactions.remove(change.final as Transaction);
@@ -125,7 +138,20 @@ export default class HistoryManager extends Events {
     private async revertDelete(change: HistoryItem) {
         switch(change.type) {
             case 'Recurring':
-                await this.recurring.save(change.final as RecurringTransaction);
+                let reverted: RecurringTransaction = {
+                    amount: change.final.amount,
+                    cash: change.final.cash,
+                    category: change.final.category,
+                    end: (change.final as RecurringTransaction).end,
+                    id: change.final.id,
+                    name: change.final.name,
+                    note: change.final.note,
+                    period: (change.final as RecurringTransaction).period,
+                    start: (change.final as RecurringTransaction).start,
+                    transfer: change.final.transfer,
+                    active: (change.final as RecurringTransaction).delete
+                };
+                await this.recurring.save(reverted);
             break
             case 'Transaction':
                 await this.transactions.save(change.final as Transaction);
@@ -136,7 +162,7 @@ export default class HistoryManager extends Events {
     private async redoDelete(change: HistoryItem) {
         switch(change.type) {
             case 'Recurring':
-                await this.recurring.remove(change.final as RecurringTransaction);
+                await this.recurring.save(change.final as RecurringTransaction);
             break
             case 'Transaction':
                 await this.transactions.remove(change.final as Transaction);
