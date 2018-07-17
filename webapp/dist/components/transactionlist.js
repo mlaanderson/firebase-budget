@@ -24,6 +24,7 @@ class TransactionList extends renderer_1.default {
         this.LoadTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADTRANSACTION:", id); return null; });
         this.DeleteTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("DELETETRANSACTION", id); return null; });
         this.PreviewTransaction = (id) => __awaiter(this, void 0, void 0, function* () { console.log("PREVIEWTRANSACTION", id); return null; });
+        this.LoadNames = () => __awaiter(this, void 0, void 0, function* () { console.log("LOADNAMES"); return []; });
         this.SaveRecurring = (transaction) => __awaiter(this, void 0, void 0, function* () { console.log("SAVERECURRING", transaction); return null; });
         this.LoadRecurring = (id) => __awaiter(this, void 0, void 0, function* () { console.log("LOADRECURRING:", id); return null; });
         this.DeleteRecurring = (id) => __awaiter(this, void 0, void 0, function* () { console.log("DELETERECURRING", id); return null; });
@@ -95,8 +96,9 @@ class TransactionList extends renderer_1.default {
     editTransaction(id) {
         return __awaiter(this, void 0, void 0, function* () {
             let transaction = yield this.LoadTransaction(id);
+            let names = yield this.LoadNames();
             if (transaction != null) {
-                let editor = new transactioneditor_1.default(transaction, this.SaveTransaction, this.DeleteTransaction, this.m_config.categories);
+                let editor = new transactioneditor_1.default(transaction, this.SaveTransaction, this.DeleteTransaction, this.m_config.categories, names);
                 editor.open();
             }
         });
@@ -104,8 +106,9 @@ class TransactionList extends renderer_1.default {
     editRecurring(id) {
         return __awaiter(this, void 0, void 0, function* () {
             let transaction = yield this.LoadRecurring(id);
+            let names = yield this.LoadNames();
             if (transaction != null) {
-                let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, this.DeleteRecurring, this.m_config.categories);
+                let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, this.DeleteRecurring, this.m_config.categories, names);
                 editor.open();
             }
         });
@@ -242,29 +245,35 @@ class TransactionList extends renderer_1.default {
         this.m_element.empty();
     }
     addTransaction(date) {
-        let transaction = {
-            amount: 0,
-            category: this.m_config.categories[0],
-            date: date,
-            name: "",
-        };
-        // delete is not allowed since this is a new transaction
-        let editor = new transactioneditor_1.default(transaction, this.SaveTransaction, () => { }, this.m_config.categories);
-        editor.open();
+        return __awaiter(this, void 0, void 0, function* () {
+            let transaction = {
+                amount: 0,
+                category: this.m_config.categories[0],
+                date: date,
+                name: "",
+            };
+            let names = yield this.LoadNames();
+            // delete is not allowed since this is a new transaction
+            let editor = new transactioneditor_1.default(transaction, this.SaveTransaction, () => { }, this.m_config.categories, names);
+            editor.open();
+        });
     }
     addRecurring(date) {
-        let start = date;
-        let end = Date.parseFb(start).add("1 year").toFbString();
-        let transaction = {
-            amount: 0,
-            category: this.m_config.categories[0],
-            end: end,
-            name: "",
-            period: "1 month",
-            start: start
-        };
-        let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, () => { }, this.m_config.categories);
-        editor.open();
+        return __awaiter(this, void 0, void 0, function* () {
+            let start = date;
+            let end = Date.parseFb(start).add("1 year").toFbString();
+            let transaction = {
+                amount: 0,
+                category: this.m_config.categories[0],
+                end: end,
+                name: "",
+                period: "1 month",
+                start: start
+            };
+            let names = yield this.LoadNames();
+            let editor = new recurringtransactioneditor_1.default(transaction, this.SaveRecurring, () => { }, this.m_config.categories, names);
+            editor.open();
+        });
     }
     listenToTransactions(transactions) {
         transactions.on('addedinperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {

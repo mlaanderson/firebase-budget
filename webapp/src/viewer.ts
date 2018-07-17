@@ -35,6 +35,7 @@ import { ConfigurationData } from "./controllers/config";
 import ShowIntroWizard from "./introwizard";
 import showEmergencyFundWizard from "./emergencyfundwizard";
 import SetupDialog from "./components/setupwizard";
+import { async } from "../node_modules/@firebase/util";
 
 declare global {
     interface Window {
@@ -410,6 +411,7 @@ export default class BudgetForm extends Renderer {
         this.transactionList.LoadTransaction = (key: string) => { return this.budget.Transactions.load(key); }
         this.transactionList.SaveTransaction = (transaction: Transaction) => { return this.budget.saveTransaction(transaction); }
         this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.removeTransaction(key); }
+        this.transactionList.LoadNames = async () => { return this. budget.Transactions.LoadNames(); }
 
         this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
         this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.saveRecurring(transaction); }

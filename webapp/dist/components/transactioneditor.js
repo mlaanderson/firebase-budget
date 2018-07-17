@@ -11,8 +11,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dialog_1 = require("./dialog");
 const spinner_1 = require("./spinner");
 class TransactionEditor extends dialog_1.default {
-    constructor(transaction, saveTransaction, deleteTransaction, categories) {
-        super('edittransaction_v2', { transaction: transaction, categories: categories });
+    constructor(transaction, saveTransaction, deleteTransaction, categories, names) {
+        super('edittransaction_v2', { transaction: transaction, categories: categories, names: names });
         this.transaction = transaction;
         this.saveTransaction = saveTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));
         this.deleteTransaction = deleteTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));

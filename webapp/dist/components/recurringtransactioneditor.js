@@ -12,8 +12,8 @@ const dialog_1 = require("./dialog");
 require("../lib/jquery.ext");
 const spinner_1 = require("./spinner");
 class RecurringTransactionEditor extends dialog_1.default {
-    constructor(transaction, saveTransaction, deleteTransaction, categories) {
-        super('editrecurring_v2', { transaction: transaction, categories: categories });
+    constructor(transaction, saveTransaction, deleteTransaction, categories, names) {
+        super('editrecurring_v2', { transaction: transaction, categories: categories, names: names });
         this.transaction = transaction;
         this.categories = categories;
         this.saveTransaction = saveTransaction || (() => __awaiter(this, void 0, void 0, function* () { }));

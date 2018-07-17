@@ -9,8 +9,8 @@ export default class TransactionEditor extends Dialog {
     private deleteTransaction: (id: string) => void;
     private categories: Array<string>
 
-    constructor(transaction: Transaction, saveTransaction: (transaction: Transaction) => void, deleteTransaction: (id: string) => void, categories: Array<string>) {
-        super('edittransaction_v2', { transaction: transaction, categories: categories });
+    constructor(transaction: Transaction, saveTransaction: (transaction: Transaction) => void, deleteTransaction: (id: string) => void, categories: Array<string>, names: Array<string>) {
+        super('edittransaction_v2', { transaction: transaction, categories: categories, names: names });
         this.transaction = transaction;
         this.saveTransaction = saveTransaction || (async () => {});
         this.deleteTransaction = deleteTransaction || (async () => {});

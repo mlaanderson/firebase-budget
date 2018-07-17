@@ -243,7 +243,13 @@ export default class Transactions extends Records<Transaction> {
         });
 
         return result;
+    }
 
+    public async LoadNames() :  Promise<Array<string>> {
+        let records = Object.values(await this.loadRecords());
+        let names = Array.from(new Set(records.map(tr => tr.name)));
+        names.sort();
+        return names;
     }
 
     private Date2Excel(value: Date | string) : string {

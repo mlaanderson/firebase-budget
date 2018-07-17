@@ -27,6 +27,7 @@ export default class TransactionList extends Renderer implements TransactionView
     LoadTransaction : (id: string) => Promise<Transaction> = async (id) => { console.log("LOADTRANSACTION:", id); return null; }
     DeleteTransaction : (id: string) => Promise<string> = async (id) => { console.log("DELETETRANSACTION", id); return null; }
     PreviewTransaction : (id: string) => Promise<Array<Transaction>> = async (id) => { console.log("PREVIEWTRANSACTION", id); return null; }
+    LoadNames: () => Promise<Array<string>> = async () => { console.log("LOADNAMES"); return []; }
 
     SaveRecurring: (transaction: RecurringTransaction) => Promise<string> = async (transaction) => { console.log("SAVERECURRING", transaction); return null; };
     LoadRecurring : (id: string) => Promise<RecurringTransaction> = async (id) => { console.log("LOADRECURRING:", id); return null; }
@@ -112,18 +113,20 @@ export default class TransactionList extends Renderer implements TransactionView
 
     private async editTransaction(id: string) {
         let transaction = await this.LoadTransaction(id);
+        let names = await this.LoadNames();
 
         if (transaction != null) {
-            let editor = new TransactionEditor(transaction, this.SaveTransaction, this.DeleteTransaction, this.m_config.categories);
+            let editor = new TransactionEditor(transaction, this.SaveTransaction, this.DeleteTransaction, this.m_config.categories, names);
             editor.open();
         }
     }
 
     private async editRecurring(id: string) {
         let transaction = await this.LoadRecurring(id);
+        let names = await this.LoadNames();
 
         if (transaction != null) {
-            let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, this.DeleteRecurring, this.m_config.categories);
+            let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, this.DeleteRecurring, this.m_config.categories, names);
             editor.open();
         }
     }
@@ -288,7 +291,7 @@ export default class TransactionList extends Renderer implements TransactionView
         this.m_element.empty();
     }
 
-    addTransaction(date: string) {
+    async addTransaction(date: string) {
         let transaction: Transaction = {
             amount: 0,
             category: this.m_config.categories[0],
@@ -296,12 +299,14 @@ export default class TransactionList extends Renderer implements TransactionView
             name: "",
         };
 
+        let names = await this.LoadNames();
+
         // delete is not allowed since this is a new transaction
-        let editor = new TransactionEditor(transaction, this.SaveTransaction, () => {}, this.m_config.categories);
+        let editor = new TransactionEditor(transaction, this.SaveTransaction, () => {}, this.m_config.categories, names);
         editor.open();
     }
 
-    addRecurring(date: string) {
+    async addRecurring(date: string) {
         let start = date;
         let end = Date.parseFb(start).add("1 year").toFbString();
 
@@ -314,7 +319,8 @@ export default class TransactionList extends Renderer implements TransactionView
             start: start    
         }
 
-        let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, () => {}, this.m_config.categories);
+        let names = await this.LoadNames();
+        let editor = new RecurringTransactionEditor(transaction, this.SaveRecurring, () => {}, this.m_config.categories, names);
         editor.open();
     } 
 

@@ -354,6 +354,7 @@ class BudgetForm extends renderer_1.default {
             this.transactionList.LoadTransaction = (key) => { return this.budget.Transactions.load(key); };
             this.transactionList.SaveTransaction = (transaction) => { return this.budget.saveTransaction(transaction); };
             this.transactionList.DeleteTransaction = (key) => __awaiter(this, void 0, void 0, function* () { return this.budget.removeTransaction(key); });
+            this.transactionList.LoadNames = () => __awaiter(this, void 0, void 0, function* () { return this.budget.Transactions.LoadNames(); });
             this.transactionList.LoadRecurring = (key) => { return this.budget.Recurrings.load(key); };
             this.transactionList.SaveRecurring = (transaction) => { return this.budget.saveRecurring(transaction); };
             this.transactionList.DeleteRecurring = (key) => { return this.budget.removeRecurring(key); };

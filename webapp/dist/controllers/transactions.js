@@ -232,6 +232,14 @@ class Transactions extends records_1.Records {
             return result;
         });
     }
+    LoadNames() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let records = Object.values(yield this.loadRecords());
+            let names = Array.from(new Set(records.map(tr => tr.name)));
+            names.sort();
+            return names;
+        });
+    }
     Date2Excel(value) {
         // format for excel
         let date;

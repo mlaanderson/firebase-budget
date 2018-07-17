@@ -18,6 +18,11 @@
     </div>
     <div role="main" class="ui-content">
         <div class="ui-field-contain" style="overflow-y: auto; overflow-x: hidden;">
+            <datalist id="nameList">
+                <% for (let name of names) {
+                    %><option value="<%= name %>"></option><%
+                } %>
+            </datalist>
             <label for="date">Date</label>
             <input type="date" id="date" data-mini="true" value="<%= transaction.date %>" data-theme="a">
             <label for="category">Category</label>
@@ -37,7 +42,7 @@
                 %>
             </select>
             <label for="name">Name</label>
-            <input type="text" data-mini="true" id="name" value="<%= transaction.name %>" data-theme="a">
+            <input type="text" data-mini="true" id="name" list="nameList" value="<%= transaction.name %>" data-theme="a">
             <label for="type">
                 <input type="checkbox" data-mini="true" id="type" <% if (Math.sign(transaction.amount) > 0) { %>checked<% } %>>
                 Deposit
