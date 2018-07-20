@@ -558,7 +558,7 @@ export default class BudgetForm extends Renderer {
 }
 declare global {
     interface Window {
-        viewer: BudgetForm;
+        BudgetForm: typeof BudgetForm;
     }
 }
-window.viewer = new BudgetForm();
+window.BudgetForm = BudgetForm;
