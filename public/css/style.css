@@ -167,7 +167,7 @@ body { background-color: #e9e9e9; }
 }
 
 /* Large Mobile Devices  */
-@media only screen and (min-device-width: 768px) and (max-device-width: 1023px) and (min-device-height: 768px) {
+@media only screen and (min-device-width: 768px) and (max-device-width: 1023px) and (min-device-height: 897px) {
     #footer_info {
         display: flex;
         flex-direction: row;
@@ -212,7 +212,7 @@ body { background-color: #e9e9e9; }
 }
 
 /* Small Mobile Devices */
-@media only screen and (max-device-width: 812px) and (max-device-height: 767px) {
+@media only screen and (max-device-width: 812px) and (max-device-height: 896px) {
     #footer_info {
         display: none;
     }
