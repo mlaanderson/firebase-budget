@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/mlaanderson/firebase-budget#readme",
   "dependencies": {
+    "firebase-admin": "^6.0.0",
+    "firebase-functions": "^2.1.0"
   },
   "devDependencies": {
     "uglifyjs-webpack-plugin": "^1.2.5",

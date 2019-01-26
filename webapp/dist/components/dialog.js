@@ -106,6 +106,7 @@ class Dialog extends renderer_1.default {
     }
     afterClose() {
         this.m_dialog.empty().remove();
+        $('#main').focus();
     }
     afterOpen() { }
     close() {

@@ -122,6 +122,7 @@ export default class Dialog extends Renderer {
 
     protected afterClose() : void {
         this.m_dialog.empty().remove();
+        $('#main').focus();
     }
 
     protected afterOpen() : void {}
