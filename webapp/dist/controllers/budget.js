@@ -15,6 +15,7 @@ const config_1 = require("./config");
 const transactions_1 = require("./transactions");
 const recurringtransactions_1 = require("./recurringtransactions");
 const historymanager_1 = require("./historymanager");
+require("../lib/date.ext");
 class Budget extends events_1.default {
     constructor(reference) {
         super();
@@ -177,6 +178,40 @@ class Budget extends events_1.default {
             }
             return transaction.id;
         });
+    }
+    rollUpTo(date) {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            let oldTransactions = (yield this.account.child('transactions').orderByChild('date').startAt(this.config.start).endAt(date).once('value')).val();
+            let rolledTransactions = {};
+            for (let key in oldTransactions) {
+                let old = oldTransactions[key];
+                if (rolledTransactions[old.category] == null) {
+                    rolledTransactions[old.category] = {};
+                }
+                if (rolledTransactions[old.category][old.name] == null) {
+                    rolledTransactions[old.category][old.name] = old;
+                    rolledTransactions[old.category][old.name].date = date;
+                }
+                else {
+                    rolledTransactions[old.category][old.name].amount += old.amount;
+                }
+            }
+            let promises = [];
+            for (let key in oldTransactions) {
+                promises.push(this.account.child('transactions').child(key).remove());
+            }
+            for (let category in rolledTransactions) {
+                for (let name in rolledTransactions[category]) {
+                    promises.push(new Promise((resolve, reject) => {
+                        this.account.child('transactions').push(rolledTransactions[category][name]).then(() => {
+                            resolve();
+                        });
+                    }));
+                }
+            }
+            yield Promise.all(promises);
+            resolve();
+        }));
     }
 }
 exports.default = Budget;

@@ -24,12 +24,13 @@ class ModalSpinner {
         });
     }
     show(text) {
-        $(() => {
+        return new Promise((resolve) => {
             $('.ui-loader-background').css('display', 'block');
             $.mobile.loading('show', {
                 text: text || "",
                 textVisible: !!text
             });
+            resolve();
         });
     }
     hide() {
@@ -41,7 +42,7 @@ class ModalSpinner {
     static show(text) {
         if (!ModalSpinner.staticSpinner)
             ModalSpinner.staticSpinner = new ModalSpinner();
-        ModalSpinner.staticSpinner.show(text);
+        return ModalSpinner.staticSpinner.show(text);
     }
     static hide() {
         if (!ModalSpinner.staticSpinner)

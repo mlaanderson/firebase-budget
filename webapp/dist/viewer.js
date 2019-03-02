@@ -445,6 +445,15 @@ class BudgetForm extends renderer_1.default {
             }));
         });
     }
+    rollUp(date) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield modalspinner_1.default.show(`Archiving transactions before ${date}`);
+            setImmediate(() => __awaiter(this, void 0, void 0, function* () {
+                yield this.budget.rollUpTo(date);
+                modalspinner_1.default.hide();
+            }));
+        });
+    }
     signup() {
         $(() => {
             let dialog = new signupdialog_1.default(this.registerAccount.bind(this));
@@ -490,3 +499,4 @@ class BudgetForm extends renderer_1.default {
 }
 exports.default = BudgetForm;
 window.viewer = new BudgetForm();
+window.ModalSpinner = modalspinner_1.default;

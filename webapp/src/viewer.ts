@@ -510,6 +510,14 @@ export default class BudgetForm extends Renderer {
         });
     }
 
+    async rollUp(date : string) {
+        await ModalSpinner.show(`Archiving transactions before ${date}`);
+        setImmediate(async () => {
+            await this.budget.rollUpTo(date);
+            ModalSpinner.hide();
+        });
+    }
+
     signup() {
         $(() => {
             let dialog = new SignUpDialog(this.registerAccount.bind(this));
@@ -559,6 +567,8 @@ export default class BudgetForm extends Renderer {
 declare global {
     interface Window {
         viewer: BudgetForm;
+        ModalSpinner : ModalSpinner;
     }
 }
 window.viewer = new BudgetForm();
+window.ModalSpinner = ModalSpinner;

@@ -24,13 +24,14 @@ export default class ModalSpinner {
         });
     }
 
-    show(text?: string) {
-        $(() => {
+    show(text?: string) : Promise<any> {
+        return new Promise((resolve) => {
             $('.ui-loader-background').css('display', 'block');
             $.mobile.loading('show', {
                 text: text || "",
                 textVisible: !!text
             });
+            resolve();
         });
     }
 
@@ -43,9 +44,9 @@ export default class ModalSpinner {
 
     private static staticSpinner: ModalSpinner;
 
-    static show(text?: string) {
+    static show(text?: string) : Promise<any> {
         if (!ModalSpinner.staticSpinner) ModalSpinner.staticSpinner = new ModalSpinner();
-        ModalSpinner.staticSpinner.show(text);
+        return ModalSpinner.staticSpinner.show(text);
     }
 
     static hide() {

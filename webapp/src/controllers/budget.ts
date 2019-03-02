@@ -3,12 +3,15 @@ import "firebase/auth";
 import "firebase/database";
 import Events from "./events";
 import Config from "./config";
+import { RecordMap } from "../models/record";
 import Transaction from "../models/transaction";
 import RecurringTransaction from "../models/recurringtransaction";
 import Transactions from "./transactions";
 import RecurringTransactions from "./recurringtransactions";
 import EditHistory from "../models/history";
 import HistoryManager from "./historymanager";
+
+import "../lib/date.ext";
 
 interface Period {
     start: string;
@@ -217,5 +220,47 @@ export default class Budget extends Events {
             this.history.push(changes);
         }
         return transaction.id;
+    }
+
+    public rollUpTo(date: string) : Promise<any> {
+        return new Promise(async (resolve, reject) => {
+
+            let oldTransactions = (await this.account.child('transactions').orderByChild('date').startAt(this.config.start).endAt(date).once('value')).val() as RecordMap<Transaction>;
+
+            let rolledTransactions : RecordMap<RecordMap<Transaction>> = {};
+            for (let key in oldTransactions) {
+                let old = oldTransactions[key];
+
+                if (rolledTransactions[old.category] == null) {
+                    rolledTransactions[old.category] = {};
+                }
+
+                if (rolledTransactions[old.category][old.name] == null) {
+                    rolledTransactions[old.category][old.name] = old;
+                    rolledTransactions[old.category][old.name].date = date;
+                } else {
+                    rolledTransactions[old.category][old.name].amount += old.amount;
+                }
+            }
+
+            let promises: Array<Promise<any>> = [];
+
+            for (let key in oldTransactions) {
+                promises.push(this.account.child('transactions').child(key).remove());
+            }
+
+            for (let category in rolledTransactions) {
+                for (let name in rolledTransactions[category]) {
+                    promises.push(new Promise((resolve, reject) => {
+                        this.account.child('transactions').push(rolledTransactions[category][name]).then(() => {
+                            resolve();
+                        });
+                    }));
+                }
+            }
+
+            await Promise.all(promises);
+            resolve();
+        });
     }
 }
