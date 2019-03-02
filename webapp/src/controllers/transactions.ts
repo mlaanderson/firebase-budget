@@ -135,6 +135,8 @@ export default class Transactions extends Records<Transaction> {
         } else {
             delete this.records[current.id];
         }
+
+        this.populateTransactionList();
     }
 
     private populateTransactionList() {
@@ -168,7 +170,7 @@ export default class Transactions extends Records<Transaction> {
         let result = Cash.default();
 
         for (let transaction of this.transactionList) {
-            if (transaction.cash === true && transaction.paid === false && transaction.amount < 0) {
+            if (transaction.cash === true && transaction.paid !== true && transaction.amount < 0) {
                 result.add(Math.abs(transaction.amount).toCash());
             }
         }

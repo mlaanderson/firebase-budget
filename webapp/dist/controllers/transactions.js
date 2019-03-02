@@ -137,6 +137,7 @@ class Transactions extends records_1.Records {
             else {
                 delete this.records[current.id];
             }
+            this.populateTransactionList();
         });
     }
     populateTransactionList() {
@@ -161,7 +162,7 @@ class Transactions extends records_1.Records {
     get Cash() {
         let result = cash_1.default.default();
         for (let transaction of this.transactionList) {
-            if (transaction.cash === true && transaction.paid === false && transaction.amount < 0) {
+            if (transaction.cash === true && transaction.paid !== true && transaction.amount < 0) {
                 result.add(Math.abs(transaction.amount).toCash());
             }
         }

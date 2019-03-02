@@ -160,7 +160,7 @@ export default class HistoryChart implements TransactionViewer {
         if (this.m_right > transaction.date) {
             this.m_transactions[transaction.id] = transaction;
             clearTimeout(this.m_waiter);
-            this.m_waiter = setTimeout(() => {
+            this.m_waiter = window.setTimeout(() => {
                 this.display(this.m_transactions, this.m_left, this.m_right);
             }, 500);
         }
@@ -172,7 +172,7 @@ export default class HistoryChart implements TransactionViewer {
         if (transaction.id in this.m_transactions) {
             delete this.m_transactions[transaction.id];
             clearTimeout(this.m_waiter);
-            this.m_waiter = setTimeout(() => {
+            this.m_waiter = window.setTimeout(() => {
                 this.display(this.m_transactions, this.m_left, this.m_right);
             }, 500);
         }
