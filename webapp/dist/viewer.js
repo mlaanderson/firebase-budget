@@ -202,7 +202,7 @@ class BudgetForm extends renderer_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
             if (this.periodStart > this.budget.Config.start) {
-                yield this.budget.gotoDate(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
+                yield this.budget.gotoDate(Date.parseFb(this.periodStart).add("1 day").subtract(this.budget.Config.length));
             }
         });
     }

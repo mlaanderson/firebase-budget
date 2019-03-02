@@ -249,7 +249,7 @@ export default class BudgetForm extends Renderer {
     async btnPrev_onClick(e: JQuery.Event) {
         e.preventDefault();
         if (this.periodStart > this.budget.Config.start) {
-            await this.budget.gotoDate(Date.parseFb(this.periodStart).subtract(this.budget.Config.length) as Date);
+            await this.budget.gotoDate(Date.parseFb(this.periodStart).add("1 day").subtract(this.budget.Config.length) as Date);
         }
     }
 

@@ -100,7 +100,7 @@ export default class Budget extends Events {
         return this.readyPromise;
     }
 
-    public async gotoDate(date: string | Date) {
+    public async gotoDate(date: string | Date) {  
         this.period = this.config.calculatePeriod(date);
         await this.transactions.loadPeriod(this.period.start, this.period.end);
 
