@@ -191,7 +191,8 @@ class Transactions extends records_1.Records {
             this.records = yield this.loadRecordsByChild('date', start, end);
             this.populateTransactionList();
             let total = yield this.getTotal();
-            this.emitAsync('periodloaded', this.transactionList, total);
+            let balance = yield this.getBalance(total);
+            this.emitAsync('periodloaded', this.transactionList, total, balance);
             return this.records;
         });
     }
@@ -211,6 +212,26 @@ class Transactions extends records_1.Records {
                 periodTotal += records[key].amount;
             }
             return periodTotal;
+        });
+    }
+    getBalance(total) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.periodStart || !this.periodEnd)
+                return Number.NaN;
+            total = total || (yield this.getTotal());
+            let balance = total;
+            if (this.transactionList === undefined || this.transactionList.length == 0) {
+                this.records = yield this.loadRecordsByChild('date', this.periodStart, this.periodEnd);
+                this.populateTransactionList();
+            }
+            for (let transaction of this.transactionList) {
+                if (transaction.paid !== true) {
+                    console.log({ before: balance.toFixed(2), name: transaction.name, paid: transaction.paid, amount: transaction.amount.toFixed(2), after: (balance - transaction.amount).toFixed(2) });
+                    balance -= transaction.amount;
+                }
+            }
+            console.log("Bank:", balance.toCurrency());
+            return balance;
         });
     }
     search(search, searchName = true, searchCategory = false) {

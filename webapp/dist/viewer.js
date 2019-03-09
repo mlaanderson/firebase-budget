@@ -498,5 +498,10 @@ class BudgetForm extends renderer_1.default {
     }
 }
 exports.default = BudgetForm;
-window.viewer = new BudgetForm();
-window.ModalSpinner = modalspinner_1.default;
+// declare global {
+//     interface Window {
+//         viewer: BudgetForm;
+//     }
+// }
+// window.viewer = new BudgetForm();
+new BudgetForm();

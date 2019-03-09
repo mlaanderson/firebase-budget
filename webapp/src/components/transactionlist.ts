@@ -132,7 +132,11 @@ export default class TransactionList extends Renderer implements TransactionView
     }
 
     private get totalElement() : JQuery<HTMLElement> {
-        return $(this.m_element).parent().find('tfoot th');
+        return $(this.m_element).parent().find('tfoot th#total_calc');
+    }
+
+    private get balanceElement() : JQuery<HTMLElement> {
+        return $(this.m_element).parent().find('tfoot th#balance_calc');
     }
 
     private get rows() : JQuery<HTMLElement> {
@@ -180,7 +184,13 @@ export default class TransactionList extends Renderer implements TransactionView
     // methods
     setTotal(total: number) {
         $(() => {
-            this.totalElement.text(total.toCurrency());
+            this.totalElement.text("Budget Balance: " + total.toCurrency());
+        });
+    }
+
+    setBalance(balance: number) {
+        $(() => {
+            this.balanceElement.text("Bank Balance: " + balance.toCurrency());
         });
     }
 
@@ -190,12 +200,12 @@ export default class TransactionList extends Renderer implements TransactionView
         }
     }
 
-    display(transactions: RecordMap<Transaction>, total?: number) {
+    display(transactions: RecordMap<Transaction>, total?: number, balance?: number) {
         let list: Array<Transaction> = [];
         for (let id in transactions) {
             list.push(transactions[id]);
         }
-        this.displayList(list, total);
+        this.displayList(list, total, balance);
     }
 
     updateRows() {
@@ -232,7 +242,7 @@ export default class TransactionList extends Renderer implements TransactionView
         this.window_onResize();
     }
 
-    displayList(transactions: Array<Transaction>, total?: number) {
+    displayList(transactions: Array<Transaction>, total?: number, balance?: number) {
         // transactions = transactions.slice();
         // transactions.sort(this.sorter.bind(this));
         
@@ -249,6 +259,10 @@ export default class TransactionList extends Renderer implements TransactionView
 
             if (total) {
                 this.setTotal(total);
+            }
+
+            if (balance) {
+                this.setBalance(balance);
             }
 
             let promises = new Array<Promise<void>>();
@@ -271,10 +285,14 @@ export default class TransactionList extends Renderer implements TransactionView
         });
     }
 
-    update(transaction: Transaction, total?: number) {
+    update(transaction: Transaction, total?: number, balance?: number) {
         $(() => {
             if (total) {
                 this.setTotal(total);
+            }
+
+            if (balance) {
+                this.setBalance(balance);
             }
 
             this.m_element.children('#' + transaction.id).remove();
@@ -328,43 +346,53 @@ export default class TransactionList extends Renderer implements TransactionView
         transactions.on('addedinperiod', async (transaction: Transaction) => {
             if (this.m_update == false) return;
             let total = await transactions.getTotal();
-            this.update(transaction, total);
+            let balance = await transactions.getBalance(total);
+            this.update(transaction, total, balance);
         });
 
         transactions.on('addedbeforeperiod', async (transaction: Transaction) => {
             if (this.m_update == false) return;
             let total = await transactions.getTotal();
+            let balance = await transactions.getBalance(total);
             this.setTotal(total);
+            this.setBalance(balance);
         });
 
         transactions.on('changed', async (transaction: Transaction) => {
             if (this.m_update == false) return;
             let total = await transactions.getTotal();
+            let balance = await transactions.getBalance(total);
+
             if (transactions.Start <= transaction.date && transaction.date <= transactions.End) {
-                this.update(transaction, total);
+                this.update(transaction, total, balance);
             } else {
                 this.m_element.children('#' + transaction.id).remove();
                 this.setTotal(total);
+                this.setBalance(balance);
             }
         });
 
         transactions.on('removedinperiod', async (transaction: Transaction) => {
             if (this.m_update == false) return;
             let total = await transactions.getTotal();
+            let balance = await transactions.getBalance(total);
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
+            this.setBalance(balance);
         });
 
         transactions.on('removedbeforeperiod', async (transaction: Transaction) => {
             if (this.m_update == false) return;
             let total = await transactions.getTotal();
+            let balance = await transactions.getBalance(total);
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
+            this.setBalance(balance);
         });
 
-        transactions.on('periodloaded', async (transactionList: Array<Transaction>, total: number) => {
+        transactions.on('periodloaded', async (transactionList: Array<Transaction>, total: number, balance: number) => {
             if (this.m_update == false) return;
-            this.displayList(transactionList, total);
+            this.displayList(transactionList, total, balance);
         });
     }
 

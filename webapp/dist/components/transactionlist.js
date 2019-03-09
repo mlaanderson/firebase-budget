@@ -114,7 +114,10 @@ class TransactionList extends renderer_1.default {
         });
     }
     get totalElement() {
-        return $(this.m_element).parent().find('tfoot th');
+        return $(this.m_element).parent().find('tfoot th#total_calc');
+    }
+    get balanceElement() {
+        return $(this.m_element).parent().find('tfoot th#balance_calc');
     }
     get rows() {
         return this.m_element.children('tr');
@@ -155,7 +158,12 @@ class TransactionList extends renderer_1.default {
     // methods
     setTotal(total) {
         $(() => {
-            this.totalElement.text(total.toCurrency());
+            this.totalElement.text("Budget Balance: " + total.toCurrency());
+        });
+    }
+    setBalance(balance) {
+        $(() => {
+            this.balanceElement.text("Bank Balance: " + balance.toCurrency());
         });
     }
     editSelected() {
@@ -163,12 +171,12 @@ class TransactionList extends renderer_1.default {
             this.editTransaction(this.m_active_id);
         }
     }
-    display(transactions, total) {
+    display(transactions, total, balance) {
         let list = [];
         for (let id in transactions) {
             list.push(transactions[id]);
         }
-        this.displayList(list, total);
+        this.displayList(list, total, balance);
     }
     updateRows() {
         // get the rows as an array
@@ -197,7 +205,7 @@ class TransactionList extends renderer_1.default {
         this.addListeners();
         this.window_onResize();
     }
-    displayList(transactions, total) {
+    displayList(transactions, total, balance) {
         // transactions = transactions.slice();
         // transactions.sort(this.sorter.bind(this));
         $(() => {
@@ -211,6 +219,9 @@ class TransactionList extends renderer_1.default {
             spinner_1.default.show();
             if (total) {
                 this.setTotal(total);
+            }
+            if (balance) {
+                this.setBalance(balance);
             }
             let promises = new Array();
             this.m_element.empty();
@@ -228,10 +239,13 @@ class TransactionList extends renderer_1.default {
             });
         });
     }
-    update(transaction, total) {
+    update(transaction, total, balance) {
         $(() => {
             if (total) {
                 this.setTotal(total);
+            }
+            if (balance) {
+                this.setBalance(balance);
             }
             this.m_element.children('#' + transaction.id).remove();
             // add this to the end of the list
@@ -280,44 +294,53 @@ class TransactionList extends renderer_1.default {
             if (this.m_update == false)
                 return;
             let total = yield transactions.getTotal();
-            this.update(transaction, total);
+            let balance = yield transactions.getBalance(total);
+            this.update(transaction, total, balance);
         }));
         transactions.on('addedbeforeperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
             if (this.m_update == false)
                 return;
             let total = yield transactions.getTotal();
+            let balance = yield transactions.getBalance(total);
             this.setTotal(total);
+            this.setBalance(balance);
         }));
         transactions.on('changed', (transaction) => __awaiter(this, void 0, void 0, function* () {
             if (this.m_update == false)
                 return;
             let total = yield transactions.getTotal();
+            let balance = yield transactions.getBalance(total);
             if (transactions.Start <= transaction.date && transaction.date <= transactions.End) {
-                this.update(transaction, total);
+                this.update(transaction, total, balance);
             }
             else {
                 this.m_element.children('#' + transaction.id).remove();
                 this.setTotal(total);
+                this.setBalance(balance);
             }
         }));
         transactions.on('removedinperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
             if (this.m_update == false)
                 return;
             let total = yield transactions.getTotal();
+            let balance = yield transactions.getBalance(total);
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
+            this.setBalance(balance);
         }));
         transactions.on('removedbeforeperiod', (transaction) => __awaiter(this, void 0, void 0, function* () {
             if (this.m_update == false)
                 return;
             let total = yield transactions.getTotal();
+            let balance = yield transactions.getBalance(total);
             this.m_element.children('#' + transaction.id).remove();
             this.setTotal(total);
+            this.setBalance(balance);
         }));
-        transactions.on('periodloaded', (transactionList, total) => __awaiter(this, void 0, void 0, function* () {
+        transactions.on('periodloaded', (transactionList, total, balance) => __awaiter(this, void 0, void 0, function* () {
             if (this.m_update == false)
                 return;
-            this.displayList(transactionList, total);
+            this.displayList(transactionList, total, balance);
         }));
     }
     turnOffUpdates() {

@@ -564,11 +564,10 @@ export default class BudgetForm extends Renderer {
         this.previewer.turnOnUpdates();
     }
 }
-declare global {
-    interface Window {
-        viewer: BudgetForm;
-        ModalSpinner : ModalSpinner;
-    }
-}
-window.viewer = new BudgetForm();
-window.ModalSpinner = ModalSpinner;
+// declare global {
+//     interface Window {
+//         viewer: BudgetForm;
+//     }
+// }
+// window.viewer = new BudgetForm();
+new BudgetForm();

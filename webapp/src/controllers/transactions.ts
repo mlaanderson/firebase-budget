@@ -10,6 +10,7 @@ import Cash from "../models/cash";
 import "../lib/number.ext";
 import "../lib/math.ext";
 import "../lib/string.ext";
+import { totalmem } from "os";
 
 class TransactonEvents {
     static Added = 'added';
@@ -204,8 +205,9 @@ export default class Transactions extends Records<Transaction> {
         this.records = await this.loadRecordsByChild('date', start, end);
         this.populateTransactionList();
         let total = await this.getTotal();
+        let balance = await this.getBalance(total);
 
-        this.emitAsync('periodloaded', this.transactionList, total);
+        this.emitAsync('periodloaded', this.transactionList, total, balance);
 
         return this.records;
     }
@@ -226,6 +228,28 @@ export default class Transactions extends Records<Transaction> {
         }
 
         return periodTotal;
+    }
+
+    public async getBalance(total? : number) : Promise<number> {
+        if (!this.periodStart || !this.periodEnd) return Number.NaN;
+
+        total = total || await this.getTotal();
+        let balance = total;
+
+        if (this.transactionList === undefined || this.transactionList.length == 0) {
+            this.records = await this.loadRecordsByChild('date', this.periodStart, this.periodEnd);
+            this.populateTransactionList();
+        }
+
+        for (let transaction of this.transactionList) {
+            if (transaction.paid !== true) {
+                balance -= transaction.amount;
+            }
+        }
+
+        console.log("Bank:", balance.toCurrency());
+
+        return balance;
     }
 
     public async search(search: string | RegExp, searchName: boolean = true, searchCategory: boolean = false) : Promise<Transaction[]> {
