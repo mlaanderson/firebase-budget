@@ -105,7 +105,7 @@ export default class Dialog extends Renderer {
             });
             daySelect.on('change', updateValues);
 
-            $('<div style="min-height: 44px; width: 100%"></div>').append($('<div class="ui-btn-left" data-role="controlgroup" data-theme="a" data-type="horizontal" data-mini="true"></div>').append(
+            $('<div style="min-height: 44px; width: 100%; position: relative"></div>').append($('<div class="ui-btn-left" data-role="controlgroup" data-theme="a" data-type="horizontal" data-mini="true"></div>').append(
                 monthSelect, daySelect, yearSelect
             )).insertAfter(input);
             // monthSelect.insertAfter(input);
