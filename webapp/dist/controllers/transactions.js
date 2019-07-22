@@ -226,7 +226,6 @@ class Transactions extends records_1.Records {
             }
             for (let transaction of this.transactionList) {
                 if (transaction.paid !== true) {
-                    console.log({ before: balance.toFixed(2), name: transaction.name, paid: transaction.paid, amount: transaction.amount.toFixed(2), after: (balance - transaction.amount).toFixed(2) });
                     balance -= transaction.amount;
                 }
             }

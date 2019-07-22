@@ -113,6 +113,18 @@ class BudgetForm extends renderer_1.default {
                         e.preventDefault();
                         this.btnRedo.click();
                         break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        this.btnNext.click();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        this.btnPrev.click();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        this.btnToday.click();
+                        break;
                 }
             }
         });
