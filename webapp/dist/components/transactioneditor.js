@@ -29,6 +29,7 @@ class TransactionEditor extends dialog_1.default {
             this.transaction.cash = $('#cash').prop('checked') && (isDeposit == false);
             this.transaction.transfer = $('#transfer').prop('checked');
             this.transaction.paid = $('#paid').prop('checked');
+            this.transaction.scheduled = $('#scheduled').prop('checked');
             this.transaction.note = $('#note').val().toString();
             this.transaction.check = $('#checkNumber').val().toString();
             spinner_1.default.show();

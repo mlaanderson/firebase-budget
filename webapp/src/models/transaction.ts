@@ -9,6 +9,7 @@ export default interface Transaction extends Record {
     name : string;
     note? : string;
     paid?: boolean;
+    scheduled?: boolean;
     recurring? : string;
     transfer? : boolean;
 }

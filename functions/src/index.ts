@@ -69,7 +69,8 @@ async function handleRecurring(change: Change<database.DataSnapshot>, context: E
                         name: transaction.name,
                         note: transaction.note || null,
                         recurring: change.after.key,
-                        transfer: transaction.transfer || null
+                        transfer: transaction.transfer || null,
+                        scheduled: transaction.scheduled || null
                     });
                 }
                 date = date.add(transaction.period);

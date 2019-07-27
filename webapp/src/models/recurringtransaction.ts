@@ -12,4 +12,5 @@ export default interface RecurringTransaction extends Record {
     transfer? : boolean;
     active?: string;
     delete?: string;
+    scheduled?: boolean;
 }

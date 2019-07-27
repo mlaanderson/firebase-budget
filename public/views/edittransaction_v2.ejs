@@ -63,6 +63,10 @@
                 <input type="checkbox" data-mini="true" id="paid" <% if (transaction.paid == true) { %>checked<% } %>>
                 Paid
             </label>
+            <label for="scheduled">
+                <input type="checkbox" data-mini="true" id="scheduled" <% if (transaction.scheduled == true) { %>checked<% } %>>
+                Scheduled
+            </label>
             <label for="note">Notes</label>
             <textarea id="note" data-theme="a" data-mini="true"><%= transaction.note %></textarea>
         </div>
