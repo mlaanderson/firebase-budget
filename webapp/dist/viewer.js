@@ -61,6 +61,7 @@ class BudgetForm extends renderer_1.default {
             this.btnDownload = new button_1.default('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
             this.btnDownloadAsCsv = new button_1.default('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
             this.btnDowloadPeriodAsCsv = new button_1.default('#btnDowloadPeriodAsCsv').on('click', this.btnDowloadPeriodAsCsv_onClick.bind(this));
+            this.btnUpload = new button_1.default("#btnUpload").on('click', this.btnUpload_onClick.bind(this));
             this.btnNewRecurring = new button_1.default('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
             this.btnReport = new button_1.default('#btnReport').on('click', this.btnReport_onClick.bind(this));
             this.btnYtdReport = new button_1.default('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
@@ -291,6 +292,38 @@ class BudgetForm extends renderer_1.default {
             this.pnlMenu.close();
         });
     }
+    btnUpload_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let input = $('<input type="file" accept="text/json,.json">');
+            this.pnlMenu.close();
+            input.on("change", () => {
+                let file = input[0].files[0];
+                let reader = new FileReader();
+                reader.onload = () => __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        let restoreData = JSON.parse(reader.result);
+                        if (!restoreData.accounts || !restoreData.accounts.budget || (typeof restoreData.accounts.budget !== "object"))
+                            throw "Invalid Data";
+                        let choice = yield messagebox_1.default.show("Restore the data from " + input[0].files[0].name + "?<br/>Any changes will be lost.", "Restore Backup?", messagebox_1.MessageBoxButtons.YesNo, messagebox_1.MessageBoxIcon.Question);
+                        if (choice == messagebox_1.DialogResult.Yes) {
+                            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                                spinner_1.default.show("Loading...");
+                                setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                                    yield this.budget.setBackup(restoreData.accounts.budget);
+                                    document.location.reload();
+                                }), 100);
+                            }), 0);
+                        }
+                    }
+                    catch (err) {
+                        messagebox_1.default.show("The file " + input[0].files[0].name + " is not a valid backup.", "Error", messagebox_1.MessageBoxButtons.OK, messagebox_1.MessageBoxIcon.Error);
+                    }
+                });
+                reader.readAsText(file);
+            });
+            input.click();
+        });
+    }
     btnCash_onClick(e) {
         e.preventDefault();
         this.pnlMenu.close();
@@ -511,10 +544,5 @@ class BudgetForm extends renderer_1.default {
     }
 }
 exports.default = BudgetForm;
-// declare global {
-//     interface Window {
-//         viewer: BudgetForm;
-//     }
-// }
-// window.viewer = new BudgetForm();
-new BudgetForm();
+window.viewer = new BudgetForm();
+// new BudgetForm();

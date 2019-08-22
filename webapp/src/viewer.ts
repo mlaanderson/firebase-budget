@@ -28,7 +28,7 @@ import HistoryChart from "./components/historychart";
 import PeriodReport from "./components/periodreport";
 import YtdReport from "./components/ytdreport";
 import ForgotPasswordDialog from "./components/forgotpassworddialog";
-import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/messagebox";
+import MessageBox, { MessageBoxButtons, MessageBoxIcon, DialogResult } from "./components/messagebox";
 import SignUpDialog from "./components/signupdialog";
 import { ConfigurationData } from "./controllers/config";
 
@@ -60,6 +60,7 @@ export default class BudgetForm extends Renderer {
     private btnLogout : Button;
     private btnConfig : Button;
     private btnDownload : Button;
+    private btnUpload : Button;
     private btnDownloadAsCsv : Button;
     private btnDowloadPeriodAsCsv : Button;
     private btnNewRecurring : Button;
@@ -104,6 +105,7 @@ export default class BudgetForm extends Renderer {
             this.btnDownload = new Button('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
             this.btnDownloadAsCsv = new Button('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
             this.btnDowloadPeriodAsCsv = new Button('#btnDowloadPeriodAsCsv').on('click', this.btnDowloadPeriodAsCsv_onClick.bind(this));
+            this.btnUpload = new Button("#btnUpload").on('click', this.btnUpload_onClick.bind(this));
             this.btnNewRecurring = new Button('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
             this.btnReport = new Button('#btnReport').on('click', this.btnReport_onClick.bind(this));
             this.btnYtdReport = new Button('#btnYtdReport').on('click', this.btnYtdReport_onClick.bind(this));
@@ -345,6 +347,37 @@ export default class BudgetForm extends Renderer {
         this.pnlMenu.close();
     }
 
+    async btnUpload_onClick(e: JQuery.Event) {
+        let input = $('<input type="file" accept="text/json,.json">');
+        this.pnlMenu.close();
+        input.on("change", () => {
+            let file = (input[0] as HTMLInputElement).files[0];
+            let reader = new FileReader();
+            reader.onload = async () => {
+                try {
+                    let restoreData = JSON.parse(reader.result as string);
+                    if (!restoreData.accounts || !restoreData.accounts.budget || (typeof restoreData.accounts.budget !== "object")) throw "Invalid Data";
+                    
+                    let choice = await MessageBox.show("Restore the data from " + (input[0] as HTMLInputElement).files[0].name + "?<br/>Any changes will be lost.", "Restore Backup?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (choice == DialogResult.Yes) {
+                        setTimeout(async () => {
+                            Spinner.show("Loading...");
+                            setTimeout(async () => {
+                                await this.budget.setBackup(restoreData.accounts.budget);
+                                document.location.reload();
+                            }, 100);
+                        }, 0);
+                    }
+                } catch (err) {
+                    MessageBox.show("The file " + (input[0] as HTMLInputElement).files[0].name + " is not a valid backup.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+    }
+
     btnCash_onClick(e: JQuery.Event) : void {
         e.preventDefault();
         this.pnlMenu.close();
@@ -577,10 +610,10 @@ export default class BudgetForm extends Renderer {
         this.previewer.turnOnUpdates();
     }
 }
-// declare global {
-//     interface Window {
-//         viewer: BudgetForm;
-//     }
-// }
-// window.viewer = new BudgetForm();
-new BudgetForm();
+declare global {
+    interface Window {
+        viewer: BudgetForm;
+    }
+}
+window.viewer = new BudgetForm();
+// new BudgetForm();
