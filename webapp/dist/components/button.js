@@ -64,5 +64,8 @@ class Button {
             }
         });
     }
+    get visible() {
+        return this.element.css('display') !== 'none';
+    }
 }
 exports.default = Button;

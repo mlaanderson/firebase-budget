@@ -6,8 +6,8 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
 
-import "./lib/date.ext"
-import "./lib/number.ext"
+import "./lib/date.ext";
+import "./lib/number.ext";
 
 import Budget from "./controllers/budget";
 
@@ -30,6 +30,7 @@ import YtdReport from "./components/ytdreport";
 import ForgotPasswordDialog from "./components/forgotpassworddialog";
 import MessageBox, { MessageBoxButtons, MessageBoxIcon, DialogResult } from "./components/messagebox";
 import SignUpDialog from "./components/signupdialog";
+import CalenderDialog from "./components/calenderdialog";
 import { ConfigurationData } from "./controllers/config";
 
 import ShowIntroWizard from "./introwizard";
@@ -53,7 +54,7 @@ export default class BudgetForm extends Renderer {
     private btnRedo: Button;
     private btnToday : Button;
     private btnPrev : Button;
-    private periodMenu : Select;
+    private periodMenu : Button;
     private btnNext : Button;
     private btnEditTransaction : Button;
     private btnAddTransaction: Button;
@@ -96,7 +97,7 @@ export default class BudgetForm extends Renderer {
             this.btnSearch = new Button('#btnSearch').on('click', this.btnSearch_onClick.bind(this));
             this.btnToday = new Button('#btnToday').on('click', this.btnToday_onClick.bind(this));
             this.btnPrev = new Button('#btnPrev').on('click', this.btnPrev_onClick.bind(this));
-            this.periodMenu = new Select('#periodMenu').on('change', this.periodMenu_onChange.bind(this));
+            this.periodMenu = new Button('#periodMenu').on('click', this.periodMenu_onClick.bind(this)); //new Select('#periodMenu').on('change', this.periodMenu_onChange.bind(this));
             this.btnNext = new Button('#btnNext').on('click', this.btnNext_onClick.bind(this));
             this.btnEditTransaction = new Button('#btnEditTransaction').on('click', this.btnEditTransaction_onClick.bind(this));
             this.btnAddTransaction = new Button('#btnAddTransaction').on('click', this.btnAddTransaction_onClick.bind(this));
@@ -184,8 +185,10 @@ export default class BudgetForm extends Renderer {
     private async periodLoaded() {
         this.periodStart = this.budget.Start;
         this.periodEnd = this.budget.End;
-        this.periodMenu.val(this.periodStart);
-        this.periodMenu.refresh();
+        // this.periodMenu.val(this.periodStart);
+        // this.periodMenu.refresh();
+
+        $('#periodMenu').text(`${Date.parseFb(this.periodStart).format("MMM d")} - ${Date.parseFb(this.periodEnd).format("MMM d, yyyy")}`);
 
         if (this.periodStart <= this.budget.Config.start) {
             this.btnPrev.disabled = true;
@@ -270,7 +273,15 @@ export default class BudgetForm extends Renderer {
 
     async periodMenu_onChange(e: JQuery.Event) {
         e.preventDefault();
-        await this.budget.gotoDate(this.periodMenu.val().toString())
+        // await this.budget.gotoDate(this.periodMenu.val().toString())
+    }
+
+    async periodMenu_onClick(e: JQuery.Event) {
+        e.preventDefault();
+        let calender = new CalenderDialog(Date.parseFb(this.budget.Start), async (date) => {
+            await this.budget.gotoDate(date);
+        }, { select: "period", start: this.budget.Config.start, period: this.budget.Config.length });
+        calender.open();
     }
 
     async btnNext_onClick(e: JQuery.Event) {
@@ -450,7 +461,7 @@ export default class BudgetForm extends Renderer {
     // Configuration
     async config_onRead() {
         this.setTheme(this.budget.Config.theme);
-        this.periodMenu.empty();
+        // this.periodMenu.empty();
 
         this.transactionList = new TransactionList('#tblTransactions', this.budget.Config);
         // wire up the load/save/delete functionality
@@ -464,10 +475,10 @@ export default class BudgetForm extends Renderer {
         this.transactionList.DeleteRecurring = (key: string) => { return this.budget.removeRecurring(key); }
 
 
-        for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
-            let label = date.format("MMM d") + " - " + (date.add(this.budget.Config.length).subtract("1 day") as Date).format("MMM d, yyyy");
-            this.periodMenu.append(date.toFbString(), label);
-        }
+        // for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
+        //     let label = date.format("MMM d") + " - " + (date.add(this.budget.Config.length).subtract("1 day") as Date).format("MMM d, yyyy");
+        //     this.periodMenu.append(date.toFbString(), label);
+        // }
 
         if (this.periodStart) {
             let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
@@ -610,10 +621,10 @@ export default class BudgetForm extends Renderer {
         this.previewer.turnOnUpdates();
     }
 }
-declare global {
-    interface Window {
-        viewer: BudgetForm;
-    }
-}
-window.viewer = new BudgetForm();
-// new BudgetForm();
+// declare global {
+//     interface Window {
+//         viewer: BudgetForm;
+//     }
+// }
+// window.viewer = new BudgetForm();
+new BudgetForm();

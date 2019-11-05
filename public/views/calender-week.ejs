@@ -1,0 +1,5 @@
+<tr id="calendar_week<%= week %>">
+    <% for (let day = 0, dt = start; day < 7; day++, dt = dt.add('1 day')) { %>
+        <td class="calender-wk<%= week %> calender-day<%= day %> <%= dt.getUTCMonth() == date.getUTCMonth() ? 'calendar-selected-month' : '' %> <%= dt.toFbString() == date.toFbString() ? 'calendar-selected-day' : '' %>" value="<%= dt.toFbString() %>"><%= dt.getDate() %></td>
+    <% } %>
+</tr>

@@ -18,7 +18,6 @@ require("./lib/date.ext");
 require("./lib/number.ext");
 const budget_1 = require("./controllers/budget");
 const button_1 = require("./components/button");
-const select_1 = require("./components/select");
 const renderer_1 = require("./components/renderer");
 const transactionlist_1 = require("./components/transactionlist");
 const previewer_1 = require("./components/previewer");
@@ -34,6 +33,7 @@ const ytdreport_1 = require("./components/ytdreport");
 const forgotpassworddialog_1 = require("./components/forgotpassworddialog");
 const messagebox_1 = require("./components/messagebox");
 const signupdialog_1 = require("./components/signupdialog");
+const calenderdialog_1 = require("./components/calenderdialog");
 const introwizard_1 = require("./introwizard");
 const emergencyfundwizard_1 = require("./emergencyfundwizard");
 const setupwizard_1 = require("./components/setupwizard");
@@ -52,7 +52,7 @@ class BudgetForm extends renderer_1.default {
             this.btnSearch = new button_1.default('#btnSearch').on('click', this.btnSearch_onClick.bind(this));
             this.btnToday = new button_1.default('#btnToday').on('click', this.btnToday_onClick.bind(this));
             this.btnPrev = new button_1.default('#btnPrev').on('click', this.btnPrev_onClick.bind(this));
-            this.periodMenu = new select_1.default('#periodMenu').on('change', this.periodMenu_onChange.bind(this));
+            this.periodMenu = new button_1.default('#periodMenu').on('click', this.periodMenu_onClick.bind(this)); //new Select('#periodMenu').on('change', this.periodMenu_onChange.bind(this));
             this.btnNext = new button_1.default('#btnNext').on('click', this.btnNext_onClick.bind(this));
             this.btnEditTransaction = new button_1.default('#btnEditTransaction').on('click', this.btnEditTransaction_onClick.bind(this));
             this.btnAddTransaction = new button_1.default('#btnAddTransaction').on('click', this.btnAddTransaction_onClick.bind(this));
@@ -134,8 +134,9 @@ class BudgetForm extends renderer_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             this.periodStart = this.budget.Start;
             this.periodEnd = this.budget.End;
-            this.periodMenu.val(this.periodStart);
-            this.periodMenu.refresh();
+            // this.periodMenu.val(this.periodStart);
+            // this.periodMenu.refresh();
+            $('#periodMenu').text(`${Date.parseFb(this.periodStart).format("MMM d")} - ${Date.parseFb(this.periodEnd).format("MMM d, yyyy")}`);
             if (this.periodStart <= this.budget.Config.start) {
                 this.btnPrev.disabled = true;
             }
@@ -223,7 +224,16 @@ class BudgetForm extends renderer_1.default {
     periodMenu_onChange(e) {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
-            yield this.budget.gotoDate(this.periodMenu.val().toString());
+            // await this.budget.gotoDate(this.periodMenu.val().toString())
+        });
+    }
+    periodMenu_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            e.preventDefault();
+            let calender = new calenderdialog_1.default(Date.parseFb(this.budget.Start), (date) => __awaiter(this, void 0, void 0, function* () {
+                yield this.budget.gotoDate(date);
+            }), { select: "period", start: this.budget.Config.start, period: this.budget.Config.length });
+            calender.open();
         });
     }
     btnNext_onClick(e) {
@@ -394,7 +404,7 @@ class BudgetForm extends renderer_1.default {
     config_onRead() {
         return __awaiter(this, void 0, void 0, function* () {
             this.setTheme(this.budget.Config.theme);
-            this.periodMenu.empty();
+            // this.periodMenu.empty();
             this.transactionList = new transactionlist_1.default('#tblTransactions', this.budget.Config);
             // wire up the load/save/delete functionality
             this.transactionList.LoadTransaction = (key) => { return this.budget.Transactions.load(key); };
@@ -404,10 +414,10 @@ class BudgetForm extends renderer_1.default {
             this.transactionList.LoadRecurring = (key) => { return this.budget.Recurrings.load(key); };
             this.transactionList.SaveRecurring = (transaction) => { return this.budget.saveRecurring(transaction); };
             this.transactionList.DeleteRecurring = (key) => { return this.budget.removeRecurring(key); };
-            for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
-                let label = date.format("MMM d") + " - " + date.add(this.budget.Config.length).subtract("1 day").format("MMM d, yyyy");
-                this.periodMenu.append(date.toFbString(), label);
-            }
+            // for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
+            //     let label = date.format("MMM d") + " - " + (date.add(this.budget.Config.length).subtract("1 day") as Date).format("MMM d, yyyy");
+            //     this.periodMenu.append(date.toFbString(), label);
+            // }
             if (this.periodStart) {
                 let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
                 this.periodStart = start;
@@ -544,5 +554,10 @@ class BudgetForm extends renderer_1.default {
     }
 }
 exports.default = BudgetForm;
-window.viewer = new BudgetForm();
-// new BudgetForm();
+// declare global {
+//     interface Window {
+//         viewer: BudgetForm;
+//     }
+// }
+// window.viewer = new BudgetForm();
+new BudgetForm();
