@@ -39,6 +39,7 @@ interface DateConstructor {
     ABBRMONTHS : Array<string>;
     WeekDays : typeof WeekDays;
     Timespan : typeof Timespan;
+    Iterator : (date: Date, comparer: (d: Date) => boolean, operator: (d: Date) => Date) => DateIterator;
 }
 
 Date.DAYSOFWEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -46,6 +47,37 @@ Date.ABBRDAYSOFWEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 Date.MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 Date.ABBRMONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 Date.WeekDays = WeekDays;
+
+class DateIterator implements IterableIterator<Date> {
+    constructor(public date: Date, public comparer: (d: Date) => boolean, public operator: (d: Date) => Date) {}
+
+    private pointer = this.date;
+
+    next() {
+        let result;
+        if (this.comparer(this.pointer)) {
+            result = {
+                done: false,
+                value: this.pointer
+            }
+        } else {
+            result = {
+                done: true,
+                value: null
+            }
+        }
+        this.pointer = this.operator(this.pointer);
+        return result;
+    }
+
+    [Symbol.iterator]() : IterableIterator<Date> {
+        return this;
+    }
+}
+
+Date.Iterator = function(date: Date, comparer: (d: Date) => boolean, operator: (d: Date) => Date) {
+    return new DateIterator(date, comparer, operator);
+}
 
 Date.next = function(dayOfWeek: WeekDayValue) : Date {
     if (typeof dayOfWeek === "string") {
@@ -379,7 +411,25 @@ Date.prototype.add = function(value: string | number | Timespan) : Date {
     }
     
     if (value.getTimeStruct().months != 0) {
-        result.setUTCMonth(result.getUTCMonth() + value.getTimeStruct().months);
+        if (result.getUTCDate() > 28) {
+            let DoM = result.getUTCDate() - 1; // index to 0
+            let tresult = result.subtract(DoM + " days") as Date;
+            // check for crossing daylight savings
+            if (tresult.getTimezoneOffset() !== result.getTimezoneOffset()) {
+                result = tresult.add((tresult.getTimezoneOffset() - result.getTimezoneOffset()) / 60 + " hours");
+            } else {
+                result = tresult;
+            }
+            result = result.add(value.getTimeStruct().months + " months") as Date;
+            // add back in the day component or the last day of the month
+            if (result.getUTCDate() + DoM > result.daysInMonth()) {
+                result.setUTCDate(result.daysInMonth()); 
+            } else {
+                result.setUTCDate(DoM + 1); 
+            }
+        } else {
+            result.setUTCMonth(result.getUTCMonth() + value.getTimeStruct().months);
+        }
     }
     
     if (this.getTimezoneOffset() != result.getTimezoneOffset()) {
@@ -430,7 +480,26 @@ Date.prototype.subtract = function(value : string | number | Timespan | Date) : 
     }
     
     if (value.getTimeStruct().months != 0) {
-        result.setUTCMonth(result.getUTCMonth() - value.getTimeStruct().months);
+        if (result.getUTCDate() > 28) {
+            // pick the first of the month and subtract months
+            let DoM = result.getUTCDate() - 1; // index to 0
+            let tresult = result.subtract(DoM + " days") as Date;
+            // check for crossing daylight savings
+            if (tresult.getTimezoneOffset() !== result.getTimezoneOffset()) {
+                result = tresult.add((tresult.getTimezoneOffset() - result.getTimezoneOffset()) / 60 + " hours");
+            } else {
+                result = tresult;
+            }
+            result = result.subtract(value.getTimeStruct().months + " months") as Date;
+            // add back in the day component or the last day of the month
+            if (result.getUTCDate() + DoM > result.daysInMonth()) {
+                result.setUTCDate(result.daysInMonth()); 
+            } else {
+                result.setUTCDate(DoM + 1); 
+            }
+        } else {
+            result.setUTCMonth(result.getUTCMonth() - value.getTimeStruct().months);
+        }
     }
     
     return result;
