@@ -7,17 +7,17 @@
         </h4>
     </div>
     <div role="main" class="ui-content">
-            <div class="ui-field-contain">
-                <button type="button" data-mini="true" id="btnCalToday" class="ui-btn ui-icon-clock ui-btn-icon-notext ui-corner-all">Today</button>
-                <table class="calender-table">
-                    <thead>
-                        <tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>
-                    </thead>
-                    <tbody>
-                        
-                    </tbody>
-                </table>
-            </div>
+        <button type="button" data-mini="true" id="btnCalToday" class="ui-btn ui-icon-clock ui-btn-icon-notext ui-corner-all" style="margin-top: 0px; margin-bottom: 0px;">Today</button>
+        <div class="ui-field-contain">
+            <table class="calender-table">
+                <thead>
+                    <tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+        </div>
         <div data-role="footer" style="padding-bottom: 10px;">
             <h4>
                 <button type="button" data-mini="true" id="btnBackYear" class="ui-btn ui-btn-left ui-corner-all ui-shadow ui-btn-a"><%= date.getUTCFullYear() - 1 %></button>
