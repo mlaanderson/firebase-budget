@@ -15,3 +15,11 @@
 #tblTransactions tr.row_0, #tblTransactions tr.row_0 td {
     background-color: #f1ebe5;
 }
+
+.calender-table td {
+    border: 1px solid rgb(221, 215, 209);
+}
+
+.calender-hover {
+    background-color: rgb(241, 235, 229);
+}

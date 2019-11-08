@@ -14,3 +14,11 @@
 #tblTransactions tr.row_0, #tblTransactions tr.row_0 td {
     background-color: rgb(243, 232, 252);
 }
+
+.calender-table td {
+    border: 1px solid rgb(223, 212, 242);
+}
+
+.calender-hover {
+    background-color: rgb(243, 232, 252);
+}
