@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/mlaanderson/firebase-budget#readme",
   "dependencies": {
-    "firebase-admin": "^6.0.0",
+    "firebase-admin": "^6.5.1",
     "firebase-functions": "^2.1.0"
   },
   "devDependencies": {

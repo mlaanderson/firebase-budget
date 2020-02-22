@@ -46,7 +46,7 @@
                 Transfer to Savings
             </label>
             <label for="amount">Amount</label>
-            <input type="number" id="amount" data-mini="true" value="<%= Math.abs(transaction.amount) %>" data-theme="a">
+            <input type="number" inputmode="decimal" id="amount" data-mini="true" value="<%= Math.abs(transaction.amount) %>" data-theme="a">
             <label for="note">Notes</label>
             <textarea id="note" data-theme="a"><%= typeof transaction.note === "undefined" ? "" : transaction.note %></textarea>
         </div>
