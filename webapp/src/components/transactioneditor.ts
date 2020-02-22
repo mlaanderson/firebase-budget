@@ -29,6 +29,7 @@ export default class TransactionEditor extends Dialog {
             this.transaction.cash = ($('#cash').prop('checked') as boolean) && (isDeposit == false);
             this.transaction.transfer = $('#transfer').prop('checked') as boolean;
             this.transaction.paid = $('#paid').prop('checked') as boolean;
+            this.transaction.scheduled = $('#scheduled').prop('checked') as boolean;
             this.transaction.note = $('#note').val().toString();
             this.transaction.check = $('#checkNumber').val().toString();
 

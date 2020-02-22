@@ -141,5 +141,8 @@ class Dialog extends renderer_1.default {
         });
         return this;
     }
+    get isMobile() {
+        return 'ontouchstart' in document.documentElement;
+    }
 }
 exports.default = Dialog;

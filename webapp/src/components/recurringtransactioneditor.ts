@@ -34,6 +34,7 @@ export default class RecurringTransactionEditor extends Dialog {
             this.transaction.cash = ($('#cash').prop('checked') as boolean) && (isDeposit == false);
             this.transaction.transfer = $('#transfer').prop('checked') as boolean;
             this.transaction.note = $('#note').val().toString();
+            this.transaction.scheduled = $('#scheduled').prop('checked') as boolean;
 
             Spinner.show();
             await this.saveTransaction(this.transaction);

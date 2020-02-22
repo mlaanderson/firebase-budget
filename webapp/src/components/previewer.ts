@@ -56,7 +56,10 @@ export default class Previewer extends Renderer implements TransactionViewer {
         transactions.sort((a, b) => {
             return Date.parseFb(a.date).getTime() - Date.parseFb(b.date).getTime();
         });
-        this.render(TEMPLATE, { items: transactions, title: transactions.length > 0 ? transactions[0].name : "" }).then((template) => {
+
+        let sum = transactions.map((tr) => tr.amount).reduce((p, c) => p + c, 0);
+        let sumPaid = transactions.filter((tr) => tr.paid === true).map((tr) => tr.amount).reduce((p, c) => p + c, 0);
+        this.render(TEMPLATE, { items: transactions, title: transactions.length > 0 ? transactions[0].name : "", sum: sum, sumPaid: sumPaid }).then((template) => {
             this.m_element.empty().append($(template));
             this.m_element.find('tr').on('click', this.handleItemClick.bind(this));
             this.m_element.find('tr').on('mouseover', (e) => {

@@ -160,4 +160,8 @@ export default class Dialog extends Renderer {
         });
         return this;
     }
+
+    get isMobile() : boolean {
+        return 'ontouchstart' in document.documentElement;
+    }
 }

@@ -21,6 +21,37 @@ Date.ABBRDAYSOFWEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 Date.MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 Date.ABBRMONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 Date.WeekDays = WeekDays;
+class DateIterator {
+    constructor(date, comparer, operator) {
+        this.date = date;
+        this.comparer = comparer;
+        this.operator = operator;
+        this.pointer = this.date;
+    }
+    next() {
+        let result;
+        if (this.comparer(this.pointer)) {
+            result = {
+                done: false,
+                value: this.pointer
+            };
+        }
+        else {
+            result = {
+                done: true,
+                value: null
+            };
+        }
+        this.pointer = this.operator(this.pointer);
+        return result;
+    }
+    [Symbol.iterator]() {
+        return this;
+    }
+}
+Date.Iterator = function (date, comparer, operator) {
+    return new DateIterator(date, comparer, operator);
+};
 Date.next = function (dayOfWeek) {
     if (typeof dayOfWeek === "string") {
         dayOfWeek = WeekDays[dayOfWeek];
@@ -272,7 +303,28 @@ Date.prototype.add = function (value) {
         result.setUTCFullYear(result.getUTCFullYear() + value.getTimeStruct().years);
     }
     if (value.getTimeStruct().months != 0) {
-        result.setUTCMonth(result.getUTCMonth() + value.getTimeStruct().months);
+        if (result.getUTCDate() > 28) {
+            let DoM = result.getUTCDate() - 1; // index to 0
+            let tresult = result.subtract(DoM + " days");
+            // check for crossing daylight savings
+            if (tresult.getTimezoneOffset() !== result.getTimezoneOffset()) {
+                result = tresult.add((tresult.getTimezoneOffset() - result.getTimezoneOffset()) / 60 + " hours");
+            }
+            else {
+                result = tresult;
+            }
+            result = result.add(value.getTimeStruct().months + " months");
+            // add back in the day component or the last day of the month
+            if (result.getUTCDate() + DoM > result.daysInMonth()) {
+                result.setUTCDate(result.daysInMonth());
+            }
+            else {
+                result.setUTCDate(DoM + 1);
+            }
+        }
+        else {
+            result.setUTCMonth(result.getUTCMonth() + value.getTimeStruct().months);
+        }
     }
     if (this.getTimezoneOffset() != result.getTimezoneOffset()) {
         // adjust for the timezone offset
@@ -313,7 +365,29 @@ Date.prototype.subtract = function (value) {
         result.setUTCFullYear(result.getUTCFullYear() - value.getTimeStruct().years);
     }
     if (value.getTimeStruct().months != 0) {
-        result.setUTCMonth(result.getUTCMonth() - value.getTimeStruct().months);
+        if (result.getUTCDate() > 28) {
+            // pick the first of the month and subtract months
+            let DoM = result.getUTCDate() - 1; // index to 0
+            let tresult = result.subtract(DoM + " days");
+            // check for crossing daylight savings
+            if (tresult.getTimezoneOffset() !== result.getTimezoneOffset()) {
+                result = tresult.add((tresult.getTimezoneOffset() - result.getTimezoneOffset()) / 60 + " hours");
+            }
+            else {
+                result = tresult;
+            }
+            result = result.subtract(value.getTimeStruct().months + " months");
+            // add back in the day component or the last day of the month
+            if (result.getUTCDate() + DoM > result.daysInMonth()) {
+                result.setUTCDate(result.daysInMonth());
+            }
+            else {
+                result.setUTCDate(DoM + 1);
+            }
+        }
+        else {
+            result.setUTCMonth(result.getUTCMonth() - value.getTimeStruct().months);
+        }
     }
     return result;
 };

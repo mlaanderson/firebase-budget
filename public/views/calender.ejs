@@ -1,0 +1,29 @@
+<div data-dismissible="true" data-theme="a" class="ui-corner-all calender" style="min-width: 300px;">
+    <div data-role="header" role="banner" data-theme="a" class="ui-header ui-bar-a">
+        <h4>
+            <button type="button" data-mini="true" id="btnBackMonth" class="ui-btn ui-btn-left ui-corner-all ui-shadow ui-btn-a"><%= date.subtract('1 month').format('MMMM') %></button>
+            <span id="monthLabel"><%= date.format('MMMM') %></span>
+            <button type="button" data-mini="true" id="btnForwardMonth" class="ui-btn ui-btn-right ui-corner-all ui-shadow ui-btn-a"><%= date.add('1 month').format('MMMM') %></button>
+        </h4>
+    </div>
+    <div role="main" class="ui-content">
+        <button type="button" data-mini="true" id="btnCalToday" class="ui-btn ui-icon-clock ui-btn-icon-notext ui-corner-all" style="margin-top: 0px; margin-bottom: 0px;">Today</button>
+        <div class="ui-field-contain">
+            <table class="calender-table">
+                <thead>
+                    <tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+        </div>
+        <div data-role="footer" style="padding-bottom: 10px;">
+            <h4>
+                <button type="button" data-mini="true" id="btnBackYear" class="ui-btn ui-btn-left ui-corner-all ui-shadow ui-btn-a"><%= date.getUTCFullYear() - 1 %></button>
+                <span id="yearLabel"><%= date.getUTCFullYear() %></span>
+                <button type="button" data-mini="true" id="btnForwardYear" class="ui-btn ui-btn-right ui-corner-all ui-shadow ui-btn-a"><%= date.getUTCFullYear() + 1 %></button>
+            </h4>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Anderson Budget</title>
+        <meta name="viewport" content="width=device-width">
+        <script  src="https://www.gstatic.com/firebasejs/6.4.2/firebase-app.js"></script>
+
+        <!-- Add Firebase products that you want to use -->
+        <script  src="https://www.gstatic.com/firebasejs/6.4.2/firebase-auth.js"></script>
+        <script  src="https://www.gstatic.com/firebasejs/6.4.2/firebase-messaging.js"></script>
+        <script defer>
+            async function notifyMe() {
+                new Notification('Budget', { body: 'You are on the test page' });
+            }
+            window.addEventListener("load", async () => {
+                if (typeof Notification !== "undefined") {
+                    document.body.appendChild(document.createTextNode("Notifications supported"));
+                    if (Notification.permission === "granted") {
+                        await notifyMe();
+                    } else {
+                        let permission = await Notification.requestPermission();
+                        if (permission === "granted") {
+                            await notifyMe();
+                        }
+                    }
+                } else {
+                    document.body.appendChild(document.createTextNode("Notifications not supported"));
+                }
+            });
+        </script>
+    </head> 
+    <body>
+
+    </body>
+</html>

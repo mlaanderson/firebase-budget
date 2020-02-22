@@ -72,4 +72,8 @@ export default class Button {
             }
         });
     }
+
+    get visible() : boolean {
+        return this.element.css('display') !== 'none';
+    }
 }

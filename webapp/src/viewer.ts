@@ -35,7 +35,6 @@ import { ConfigurationData } from "./controllers/config";
 import ShowIntroWizard from "./introwizard";
 import showEmergencyFundWizard from "./emergencyfundwizard";
 import SetupDialog from "./components/setupwizard";
-import { async } from "../node_modules/@firebase/util";
 
 declare global {
     interface Window {
@@ -162,18 +161,6 @@ export default class BudgetForm extends Renderer {
                         e.preventDefault();
                         this.btnRedo.click();
                     break;
-                    case 'ArrowRight':
-                        e.preventDefault();
-                        this.btnNext.click();
-                    break;
-                    case 'ArrowLeft':
-                        e.preventDefault();
-                        this.btnPrev.click();
-                    break;
-                    case 'Home':
-                        e.preventDefault();
-                        this.btnToday.click();
-                    break;
                 }
             }
         });
@@ -261,7 +248,7 @@ export default class BudgetForm extends Renderer {
     async btnPrev_onClick(e: JQuery.Event) {
         e.preventDefault();
         if (this.periodStart > this.budget.Config.start) {
-            await this.budget.gotoDate(Date.parseFb(this.periodStart).add("1 day").subtract(this.budget.Config.length) as Date);
+            await this.budget.gotoDate(Date.parseFb(this.periodStart).subtract(this.budget.Config.length) as Date);
         }
     }
 
@@ -423,7 +410,6 @@ export default class BudgetForm extends Renderer {
         this.transactionList.LoadTransaction = (key: string) => { return this.budget.Transactions.load(key); }
         this.transactionList.SaveTransaction = (transaction: Transaction) => { return this.budget.saveTransaction(transaction); }
         this.transactionList.DeleteTransaction = async (key: string) => { return this.budget.removeTransaction(key); }
-        this.transactionList.LoadNames = async () => { return this. budget.Transactions.LoadNames(); }
 
         this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
         this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.saveRecurring(transaction); }
@@ -522,14 +508,6 @@ export default class BudgetForm extends Renderer {
         });
     }
 
-    async rollUp(date : string) {
-        await ModalSpinner.show(`Archiving transactions before ${date}`);
-        setImmediate(async () => {
-            await this.budget.rollUpTo(date);
-            ModalSpinner.hide();
-        });
-    }
-
     signup() {
         $(() => {
             let dialog = new SignUpDialog(this.registerAccount.bind(this));
@@ -576,10 +554,9 @@ export default class BudgetForm extends Renderer {
         this.previewer.turnOnUpdates();
     }
 }
-// declare global {
-//     interface Window {
-//         viewer: BudgetForm;
-//     }
-// }
-// window.viewer = new BudgetForm();
-new BudgetForm();
+declare global {
+    interface Window {
+        viewer: BudgetForm;
+    }
+}
+window.viewer = new BudgetForm();

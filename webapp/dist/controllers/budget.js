@@ -92,6 +92,11 @@ class Budget extends events_1.default {
             return snapshot.val();
         });
     }
+    setBackup(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.account.set(data);
+        });
+    }
     saveTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             let initial = transaction.id ? yield this.transactions.load(transaction.id) : null;

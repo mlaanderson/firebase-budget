@@ -45,6 +45,10 @@
                 <input type="checkbox" data-mini="true" id="transfer" <% if (typeof transaction.transfer !== "undefined" && transaction.transfer === true) { %>checked<% } %>>
                 Transfer to Savings
             </label>
+            <label for="scheduled">
+                <input type="checkbox" data-mini="true" id="scheduled" <% if (typeof transaction.scheduled !== "undefined" && transaction.scheduled === true) { %>checked<% } %>>
+                Scheduled
+            </label>
             <label for="amount">Amount</label>
             <input type="number" inputmode="decimal" id="amount" data-mini="true" value="<%= Math.abs(transaction.amount) %>" data-theme="a">
             <label for="note">Notes</label>

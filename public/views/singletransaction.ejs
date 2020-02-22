@@ -6,7 +6,7 @@
         <% if (item.cash == true) { %><span aria-label="Cash"><i class="fas fa-dollar-sign"></i></span><%}%>
         <% if (item.check) { %><span aria-label="Check <%= item.check %>"><i class="fas fa-money-check"></i></span><%}%>
         <% if (item.recurring) { %><span class="recurring" id="<%= item.id %>_recurring" recurring="<%= item.recurring %>" aria-label="Recurring"><i class="fas fa-recycle"></i></span><%}%>
-        <% if (item.paid) { %><span aria-label="Paid"><i class="fas fa-check"></i></span><%}%>
+        <% if (item.paid) { %><span aria-label="Paid"><i class="fas fa-check"></i></span><%} else if (item.scheduled) { %><span aria-label="Scheduled"><i class="fas fa-clock"></i></span><% } %>
         <% if (typeof item.note != "undefined") { %><span aria-label="<%= item.note.replace(/"/g, '&quot;') %>"><i class="far fa-comment"></i></span><% } %>
         <% if (item.transfer) { %><span aria-label="Transfer to Savings"><i class="fas fa-hand-holding-usd"></i></span><%}%>
     </td>

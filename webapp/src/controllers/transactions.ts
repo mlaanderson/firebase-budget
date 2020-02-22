@@ -46,6 +46,7 @@ export default class Transactions extends Records<Transaction> {
         transaction.check = transaction.check || null;
         transaction.note = transaction.note || undefined;
         transaction.paid = transaction.paid || false;
+        transaction.scheduled = transaction.scheduled || false;
         transaction.recurring = transaction.recurring || null;
         transaction.transfer = transaction.transfer || false;
 
@@ -57,6 +58,7 @@ export default class Transactions extends Records<Transaction> {
         transaction.check = transaction.check === undefined || transaction.check === "" ? null : transaction.check;
         transaction.note = transaction.note === undefined || transaction.note === "" ? null : transaction.note;
         transaction.paid = transaction.paid ? transaction.paid : null;
+        transaction.scheduled = transaction.scheduled ? transaction.scheduled : null;
         transaction.recurring = transaction.recurring === undefined || transaction.recurring === "" ? null : transaction.recurring;
         transaction.transfer = transaction.transfer? transaction.transfer : null;
 

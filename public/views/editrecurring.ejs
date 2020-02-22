@@ -187,7 +187,7 @@
                 Transfer to Savings
             </label>
             <label for="amount">Amount</label>
-            <input type="number" id="amount" value="<%= Math.abs(amount) %>">
+            <input type="number" inputmode="decimal" id="amount" value="<%= Math.abs(amount) %>">
             <label for="note">Notes</label>
             <textarea id="note"><%= typeof note === "undefined" ? "" : note %></textarea>
             <button type="button" id="btnSave" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save Changes</button>

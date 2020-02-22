@@ -35,6 +35,7 @@ class RecurringTransactionEditor extends dialog_1.default {
             this.transaction.cash = $('#cash').prop('checked') && (isDeposit == false);
             this.transaction.transfer = $('#transfer').prop('checked');
             this.transaction.note = $('#note').val().toString();
+            this.transaction.scheduled = $('#scheduled').prop('checked');
             spinner_1.default.show();
             yield this.saveTransaction(this.transaction);
             spinner_1.default.hide();

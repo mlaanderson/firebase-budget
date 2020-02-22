@@ -113,18 +113,6 @@ class BudgetForm extends renderer_1.default {
                         e.preventDefault();
                         this.btnRedo.click();
                         break;
-                    case 'ArrowRight':
-                        e.preventDefault();
-                        this.btnNext.click();
-                        break;
-                    case 'ArrowLeft':
-                        e.preventDefault();
-                        this.btnPrev.click();
-                        break;
-                    case 'Home':
-                        e.preventDefault();
-                        this.btnToday.click();
-                        break;
                 }
             }
         });
@@ -214,7 +202,7 @@ class BudgetForm extends renderer_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
             if (this.periodStart > this.budget.Config.start) {
-                yield this.budget.gotoDate(Date.parseFb(this.periodStart).add("1 day").subtract(this.budget.Config.length));
+                yield this.budget.gotoDate(Date.parseFb(this.periodStart).subtract(this.budget.Config.length));
             }
         });
     }
@@ -366,7 +354,6 @@ class BudgetForm extends renderer_1.default {
             this.transactionList.LoadTransaction = (key) => { return this.budget.Transactions.load(key); };
             this.transactionList.SaveTransaction = (transaction) => { return this.budget.saveTransaction(transaction); };
             this.transactionList.DeleteTransaction = (key) => __awaiter(this, void 0, void 0, function* () { return this.budget.removeTransaction(key); });
-            this.transactionList.LoadNames = () => __awaiter(this, void 0, void 0, function* () { return this.budget.Transactions.LoadNames(); });
             this.transactionList.LoadRecurring = (key) => { return this.budget.Recurrings.load(key); };
             this.transactionList.SaveRecurring = (transaction) => { return this.budget.saveRecurring(transaction); };
             this.transactionList.DeleteRecurring = (key) => { return this.budget.removeRecurring(key); };
@@ -457,15 +444,6 @@ class BudgetForm extends renderer_1.default {
             }));
         });
     }
-    rollUp(date) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield modalspinner_1.default.show(`Archiving transactions before ${date}`);
-            setImmediate(() => __awaiter(this, void 0, void 0, function* () {
-                yield this.budget.rollUpTo(date);
-                modalspinner_1.default.hide();
-            }));
-        });
-    }
     signup() {
         $(() => {
             let dialog = new signupdialog_1.default(this.registerAccount.bind(this));
@@ -510,10 +488,4 @@ class BudgetForm extends renderer_1.default {
     }
 }
 exports.default = BudgetForm;
-// declare global {
-//     interface Window {
-//         viewer: BudgetForm;
-//     }
-// }
-// window.viewer = new BudgetForm();
-new BudgetForm();
+window.viewer = new BudgetForm();

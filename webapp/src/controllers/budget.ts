@@ -120,6 +120,10 @@ export default class Budget extends Events {
         return snapshot.val();
     }
 
+    public async setBackup(data: Object) : Promise<void> {
+        await this.account.set(data);
+    }
+
     public async saveTransaction(transaction: Transaction) : Promise<string> {
         let initial = transaction.id ? await this.transactions.load(transaction.id) : null;
 
