@@ -38,6 +38,8 @@ class TransactionList extends renderer_1.default {
     window_onResize() {
         $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+        console.log('setting info_div height', $('#tblTransactions').height() + 'px');
+        $('.info_div').css('max-height', $('#tblTransactions').height() + 'px');
     }
     sorter(a, b) {
         let idxA = this.m_config.categories.indexOf(a.category);

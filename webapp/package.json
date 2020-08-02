@@ -10,7 +10,7 @@
     "compile": "tsc",
     "pack": "webpack-cli",
     "productionpack": "webpack-cli --mode production",
-    "clean": "del /F /S /Q dist",
+    "clean": "rm -rf dist",
     "build": "npm run compile && npm run pack",
     "release": "npm run clean && npm run compile && npm run productionpack"
   },
