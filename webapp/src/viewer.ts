@@ -30,6 +30,7 @@ import YtdReport from "./components/ytdreport";
 import ForgotPasswordDialog from "./components/forgotpassworddialog";
 import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/messagebox";
 import SignUpDialog from "./components/signupdialog";
+import CalenderDialog from "./components/calenderdialog";
 import { ConfigurationData } from "./controllers/config";
 
 import ShowIntroWizard from "./introwizard";
@@ -52,7 +53,7 @@ export default class BudgetForm extends Renderer {
     private btnRedo: Button;
     private btnToday : Button;
     private btnPrev : Button;
-    private periodMenu : Select;
+    private periodMenu : Button;
     private btnNext : Button;
     private btnEditTransaction : Button;
     private btnAddTransaction: Button;
@@ -94,7 +95,7 @@ export default class BudgetForm extends Renderer {
             this.btnSearch = new Button('#btnSearch').on('click', this.btnSearch_onClick.bind(this));
             this.btnToday = new Button('#btnToday').on('click', this.btnToday_onClick.bind(this));
             this.btnPrev = new Button('#btnPrev').on('click', this.btnPrev_onClick.bind(this));
-            this.periodMenu = new Select('#periodMenu').on('change', this.periodMenu_onChange.bind(this));
+            this.periodMenu = new Button('#periodMenu').on('click', this.periodMenu_onClick.bind(this));
             this.btnNext = new Button('#btnNext').on('click', this.btnNext_onClick.bind(this));
             this.btnEditTransaction = new Button('#btnEditTransaction').on('click', this.btnEditTransaction_onClick.bind(this));
             this.btnAddTransaction = new Button('#btnAddTransaction').on('click', this.btnAddTransaction_onClick.bind(this));
@@ -169,8 +170,7 @@ export default class BudgetForm extends Renderer {
     private async periodLoaded() {
         this.periodStart = this.budget.Start;
         this.periodEnd = this.budget.End;
-        this.periodMenu.val(this.periodStart);
-        this.periodMenu.refresh();
+        $('#periodMenu').text(`${Date.parseFb(this.periodStart).format("MMM d")} - ${Date.parseFb(this.periodEnd).format("MMM d")}`);
 
         if (this.periodStart <= this.budget.Config.start) {
             this.btnPrev.disabled = true;
@@ -252,9 +252,13 @@ export default class BudgetForm extends Renderer {
         }
     }
 
-    async periodMenu_onChange(e: JQuery.Event) {
+    async periodMenu_onClick(e: JQuery.Event) {
         e.preventDefault();
-        await this.budget.gotoDate(this.periodMenu.val().toString())
+        new CalenderDialog(Date.parseFb(this.periodStart), (d) => this.budget.gotoDate(d), {
+            select: 'period',
+            start: this.budget.Config.start,
+            period: this.budget.Config.length
+        }).open();
     }
 
     async btnNext_onClick(e: JQuery.Event) {
@@ -403,7 +407,6 @@ export default class BudgetForm extends Renderer {
     // Configuration
     async config_onRead() {
         this.setTheme(this.budget.Config.theme);
-        this.periodMenu.empty();
 
         this.transactionList = new TransactionList('#tblTransactions', this.budget.Config);
         // wire up the load/save/delete functionality
@@ -414,12 +417,6 @@ export default class BudgetForm extends Renderer {
         this.transactionList.LoadRecurring = (key: string) => { return this.budget.Recurrings.load(key); }
         this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.saveRecurring(transaction); }
         this.transactionList.DeleteRecurring = (key: string) => { return this.budget.removeRecurring(key); }
-
-
-        for (let date = Date.parseFb(this.budget.Config.start); date.le(Date.today().add('5 years')); date = date.add(this.budget.Config.length)) {
-            let label = date.format("MMM d") + " - " + (date.add(this.budget.Config.length).subtract("1 day") as Date).format("MMM d, yyyy");
-            this.periodMenu.append(date.toFbString(), label);
-        }
 
         if (this.periodStart) {
             let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
@@ -501,11 +498,11 @@ export default class BudgetForm extends Renderer {
 
     async registerAccount(username: string, password: string) {
         await firebase.auth().createUserWithEmailAndPassword(username, password);
-        setImmediate(async () => {
+        setTimeout(async () => {
             await MessageBox.show(`Thank you for signing up ${username}. Please login now.`, "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information);
             let dialog = new LoginDialog(this.login.bind(this), this.resetPassword.bind(this), this.signup.bind(this));
             dialog.open();
-        });
+        }, 0);
     }
 
     signup() {
