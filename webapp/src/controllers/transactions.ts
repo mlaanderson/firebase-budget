@@ -274,7 +274,10 @@ export default class Transactions extends Records<Transaction> {
     }
 
     public async LoadNames() :  Promise<Array<string>> {
+        let map = await this.loadRecords();
+        if ((map == undefined) || (map == null)) return [];
         let records = Object.values(await this.loadRecords());
+        if (records.length <= 0) return []
         let names = Array.from(new Set(records.map(tr => tr.name)));
         names.sort();
         return names;

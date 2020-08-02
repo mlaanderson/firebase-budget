@@ -418,6 +418,8 @@ export default class BudgetForm extends Renderer {
         this.transactionList.SaveRecurring = (transaction: RecurringTransaction) => { return this.budget.saveRecurring(transaction); }
         this.transactionList.DeleteRecurring = (key: string) => { return this.budget.removeRecurring(key); }
 
+        this.transactionList.LoadNames = async () => { return this.budget.Transactions.LoadNames(); }
+
         if (this.periodStart) {
             let { start, end } = this.budget.Config.calculatePeriod(this.periodStart);
             this.periodStart = start;
