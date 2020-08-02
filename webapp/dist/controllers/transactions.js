@@ -257,7 +257,12 @@ class Transactions extends records_1.Records {
     }
     LoadNames() {
         return __awaiter(this, void 0, void 0, function* () {
+            let map = yield this.loadRecords();
+            if ((map == undefined) || (map == null))
+                return [];
             let records = Object.values(yield this.loadRecords());
+            if (records.length <= 0)
+                return [];
             let names = Array.from(new Set(records.map(tr => tr.name)));
             names.sort();
             return names;
