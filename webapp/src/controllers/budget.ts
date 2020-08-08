@@ -12,6 +12,7 @@ import EditHistory from "../models/history";
 import HistoryManager from "./historymanager";
 
 import "../lib/date.ext";
+import Spinner from "../components/spinner";
 
 interface Period {
     start: string;
@@ -104,15 +105,18 @@ export default class Budget extends Events {
     }
 
     public async gotoDate(date: string | Date) {  
-        this.period = this.config.calculatePeriod(date);
-        await this.transactions.loadPeriod(this.period.start, this.period.end);
+        Spinner.show();
+        setImmediate(async () => {
+            this.period = this.config.calculatePeriod(date);
+            await this.transactions.loadPeriod(this.period.start, this.period.end);
 
-        if (this.isReady === false) {
-            this.isReady = true;
-            this.readyResolver(true);
-        }
+            if (this.isReady === false) {
+                this.isReady = true;
+                this.readyResolver(true);
+            }
 
-        this.emitAsync('loadperiod', this.transactions.Records, this);
+            this.emitAsync('loadperiod', this.transactions.Records, this);
+        });
     }
 
     public async getBackup() : Promise<Object> {
