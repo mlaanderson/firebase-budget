@@ -28,7 +28,7 @@ import HistoryChart from "./components/historychart";
 import PeriodReport from "./components/periodreport";
 import YtdReport from "./components/ytdreport";
 import ForgotPasswordDialog from "./components/forgotpassworddialog";
-import MessageBox, { MessageBoxButtons, MessageBoxIcon } from "./components/messagebox";
+import MessageBox, { MessageBoxButtons, MessageBoxIcon, DialogResult } from "./components/messagebox";
 import SignUpDialog from "./components/signupdialog";
 import CalenderDialog from "./components/calenderdialog";
 import { ConfigurationData } from "./controllers/config";
@@ -60,6 +60,7 @@ export default class BudgetForm extends Renderer {
     private btnLogout : Button;
     private btnConfig : Button;
     private btnDownload : Button;
+    private btnUpload : Button;
     private btnDownloadAsCsv : Button;
     private btnDowloadPeriodAsCsv : Button;
     private btnNewRecurring : Button;
@@ -102,6 +103,7 @@ export default class BudgetForm extends Renderer {
             this.btnLogout = new Button('#btnLogout').on('click', this.btnLogout_onClick.bind(this));
             this.btnConfig = new Button('#btnConfig').on('click', this.btnConfig_onClick.bind(this));
             this.btnDownload = new Button('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
+            this.btnUpload = new Button('#btnUpload').on('click', this.btnUpload_onClick.bind(this));
             this.btnDownloadAsCsv = new Button('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
             this.btnDowloadPeriodAsCsv = new Button('#btnDowloadPeriodAsCsv').on('click', this.btnDowloadPeriodAsCsv_onClick.bind(this));
             this.btnNewRecurring = new Button('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
@@ -333,6 +335,36 @@ export default class BudgetForm extends Renderer {
         this.download(stringData, filename, 'application/json');
 
         this.pnlMenu.close();
+    }
+
+    async btnUpload_onClick(e: JQuery.Event) {
+        let filePicker = $('<input type="file" accept=".json" style="display:none">');
+        $('body').append(filePicker);
+
+        filePicker.on('change', () => {
+            let files = (filePicker[0] as HTMLInputElement).files;
+            if (files.length > 0) {
+                let fr = new FileReader();
+                fr.addEventListener("load", async (e) => {
+                    let data;
+                    try {
+                        data = JSON.parse(fr.result as string);
+                        if ("accounts" in data && "budget" in data.accounts) {
+                            // appears to be valid data
+                            let resp = await MessageBox.show("Overwrite your budget?", "Are You Sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
+                            if (resp == DialogResult.Yes) {
+                                await this.budget.setBackup(data.accounts.budget);
+                                window.location.reload();
+                            }
+                        }
+                    } catch {
+                        console.log("ERROR reading from:", files[0].name)
+                    }
+                });
+                fr.readAsText(files[0]);
+            }
+        });
+        filePicker.click()
     }
 
     btnCash_onClick(e: JQuery.Event) : void {
