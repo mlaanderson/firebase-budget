@@ -16,6 +16,7 @@ const transactions_1 = require("./transactions");
 const recurringtransactions_1 = require("./recurringtransactions");
 const historymanager_1 = require("./historymanager");
 require("../lib/date.ext");
+const spinner_1 = require("../components/spinner");
 class Budget extends events_1.default {
     constructor(reference) {
         super();
@@ -77,13 +78,16 @@ class Budget extends events_1.default {
     }
     gotoDate(date) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.period = this.config.calculatePeriod(date);
-            yield this.transactions.loadPeriod(this.period.start, this.period.end);
-            if (this.isReady === false) {
-                this.isReady = true;
-                this.readyResolver(true);
-            }
-            this.emitAsync('loadperiod', this.transactions.Records, this);
+            spinner_1.default.show();
+            setImmediate(() => __awaiter(this, void 0, void 0, function* () {
+                this.period = this.config.calculatePeriod(date);
+                yield this.transactions.loadPeriod(this.period.start, this.period.end);
+                if (this.isReady === false) {
+                    this.isReady = true;
+                    this.readyResolver(true);
+                }
+                this.emitAsync('loadperiod', this.transactions.Records, this);
+            }));
         });
     }
     getBackup() {

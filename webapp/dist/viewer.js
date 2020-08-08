@@ -59,6 +59,7 @@ class BudgetForm extends renderer_1.default {
             this.btnLogout = new button_1.default('#btnLogout').on('click', this.btnLogout_onClick.bind(this));
             this.btnConfig = new button_1.default('#btnConfig').on('click', this.btnConfig_onClick.bind(this));
             this.btnDownload = new button_1.default('#btnDownload').on('click', this.btnDownload_onClick.bind(this));
+            this.btnUpload = new button_1.default('#btnUpload').on('click', this.btnUpload_onClick.bind(this));
             this.btnDownloadAsCsv = new button_1.default('#btnDownloadAsCsv').on('click', this.btnDownloadAsCsv_onClick.bind(this));
             this.btnDowloadPeriodAsCsv = new button_1.default('#btnDowloadPeriodAsCsv').on('click', this.btnDowloadPeriodAsCsv_onClick.bind(this));
             this.btnNewRecurring = new button_1.default('#btnNewRecurring').on('click', this.btnNewRecurring_onClick.bind(this));
@@ -112,6 +113,14 @@ class BudgetForm extends renderer_1.default {
                     case 'Y':
                         e.preventDefault();
                         this.btnRedo.click();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        this.btnPrev.click();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        this.btnNext.click();
                         break;
                 }
             }
@@ -279,6 +288,37 @@ class BudgetForm extends renderer_1.default {
             let filename = 'budget-' + Date.today().toFbString() + '.json';
             this.download(stringData, filename, 'application/json');
             this.pnlMenu.close();
+        });
+    }
+    btnUpload_onClick(e) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let filePicker = $('<input type="file" accept=".json" style="display:none">');
+            $('body').append(filePicker);
+            filePicker.on('change', () => {
+                let files = filePicker[0].files;
+                if (files.length > 0) {
+                    let fr = new FileReader();
+                    fr.addEventListener("load", (e) => __awaiter(this, void 0, void 0, function* () {
+                        let data;
+                        try {
+                            data = JSON.parse(fr.result);
+                            if ("accounts" in data && "budget" in data.accounts) {
+                                // appears to be valid data
+                                let resp = yield messagebox_1.default.show("Overwrite your budget?", "Are You Sure?", messagebox_1.MessageBoxButtons.YesNo, messagebox_1.MessageBoxIcon.Warning);
+                                if (resp == messagebox_1.DialogResult.Yes) {
+                                    yield this.budget.setBackup(data.accounts.budget);
+                                    window.location.reload();
+                                }
+                            }
+                        }
+                        catch (_a) {
+                            console.log("ERROR reading from:", files[0].name);
+                        }
+                    }));
+                    fr.readAsText(files[0]);
+                }
+            });
+            filePicker.click();
         });
     }
     btnCash_onClick(e) {
