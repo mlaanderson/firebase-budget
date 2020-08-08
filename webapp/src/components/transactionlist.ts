@@ -48,8 +48,10 @@ export default class TransactionList extends Renderer implements TransactionView
     window_onResize() {
         $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
-        console.log('setting info_div height', $('#tblTransactions').height() + 'px');
-        $('.info_div').css('max-height', $('#tblTransactions').height() + 'px');
+        setImmediate(() => {
+            console.log('setting info_div height', Math.max($('#tblTransactions').height(), $('#main').height()) + 'px');
+            $('.info_div').css('max-height', Math.max($('#tblTransactions').height(), $('#main').height()) + 'px');
+        });
     }
 
     private sorter(a: { category: string, name: string, amount?: number }, b: { category: string, name: string, amount?: number }) : number {
