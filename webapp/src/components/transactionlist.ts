@@ -49,7 +49,6 @@ export default class TransactionList extends Renderer implements TransactionView
         $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
         setImmediate(() => {
-            console.log('setting info_div height', Math.max($('#tblTransactions').height(), $('#main').height()) + 'px');
             $('.info_div').css('max-height', Math.max($('#tblTransactions').height(), $('#main').height()) + 'px');
         });
     }
@@ -104,7 +103,7 @@ export default class TransactionList extends Renderer implements TransactionView
         }
     }
 
-    private onMouseOverTitle(e: JQuery.Event) { console.log(e);
+    private onMouseOverTitle(e: JQuery.Event) { 
         let target = this.findTitleElement(e);
         if (target.jqmData('title')) {
             if (target.data('titleShow') !== true) {

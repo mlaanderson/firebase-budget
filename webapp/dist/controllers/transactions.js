@@ -231,7 +231,6 @@ class Transactions extends records_1.Records {
                     balance -= transaction.amount;
                 }
             }
-            console.log("Bank:", balance.toCurrency());
             return balance;
         });
     }

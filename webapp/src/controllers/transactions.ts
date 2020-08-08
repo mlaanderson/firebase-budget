@@ -249,8 +249,6 @@ export default class Transactions extends Records<Transaction> {
             }
         }
 
-        console.log("Bank:", balance.toCurrency());
-
         return balance;
     }
 
