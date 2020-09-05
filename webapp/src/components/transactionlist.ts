@@ -46,11 +46,17 @@ export default class TransactionList extends Renderer implements TransactionView
     }
 
     window_onResize() {
-        $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
-        $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+        let h = ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px';
         setImmediate(() => {
-            $('.info_div').css('max-height', Math.max($('#tblTransactions').height(), $('#main').height()) + 'px');
-        });
+            $('#transaction_table').css({'max-height': h, 'height': h, 'overflow-y': 'scroll'});
+            $('.info_div').css({'max-height': h, 'height': h, 'overflow-y': 'scroll'});
+        })
+
+        // $('#main').css('max-height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+        // $('#main').css('height', ($(window).height() - $('[data-role=header]').height() - $('[data-role=footer]').height() - 4) + 'px');
+        // setImmediate(() => {
+        //     $('.info_div').css('max-height', Math.max($('#tblTransactions').height(), $('#main').height()) + 'px');
+        // });
     }
 
     private sorter(a: { category: string, name: string, amount?: number }, b: { category: string, name: string, amount?: number }) : number {
@@ -135,11 +141,11 @@ export default class TransactionList extends Renderer implements TransactionView
     }
 
     private get totalElement() : JQuery<HTMLElement> {
-        return $(this.m_element).parent().find('tfoot th#total_calc');
+        return $('#total_calc');
     }
 
     private get balanceElement() : JQuery<HTMLElement> {
-        return $(this.m_element).parent().find('tfoot th#balance_calc');
+        return $('#balance_calc');
     }
 
     private get rows() : JQuery<HTMLElement> {

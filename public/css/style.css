@@ -128,6 +128,22 @@ body { background-color: #e9e9e9; }
     border-bottom: 0px;
 }
 
+/* Sticky table headers for transaction_list and info_div */
+#transaction_table thead th {
+    position: -webkit-sticky; 
+    position: sticky; 
+    top: 0; 
+    z-index: 2; 
+    background-color: #e9e9e9; 
+}
+
+.info_div thead th {
+    position: -webkit-sticky; 
+    position: sticky; 
+    top: 0; 
+    z-index: 2; 
+    background-color: #e9e9e9; 
+}
 
 
 /* Most desktops - hover: hover means browsers with mice */
