@@ -69,7 +69,6 @@ class Transactions extends records_1.Records {
                     this.records = {};
                 }
                 this.records[transaction.id] = transaction;
-                this.populateTransactionList();
                 this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
             }
             else if (transaction.date < this.periodStart) {
@@ -88,14 +87,12 @@ class Transactions extends records_1.Records {
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 // update the transaction in the local cache
                 this.records[transaction.id] = transaction;
-                this.populateTransactionList();
                 this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
             }
             else {
                 // remove the transaction from the local cache
                 if (transaction.id in this.records) {
                     delete this.records[transaction.id];
-                    this.populateTransactionList();
                 }
                 if (transaction.date < this.periodStart) {
                     // add this transaction to the total
@@ -115,7 +112,6 @@ class Transactions extends records_1.Records {
             // remove the transaction from the local cache
             if (transaction.id in this.records) {
                 delete this.records[transaction.id];
-                this.populateTransactionList();
             }
             if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
                 this.emitAsync(TransactonEvents.RemovedInPeriod, transaction, this);
@@ -139,21 +135,16 @@ class Transactions extends records_1.Records {
             else {
                 delete this.records[current.id];
             }
-            this.populateTransactionList();
         });
     }
-    populateTransactionList() {
-        let list = new Array();
-        for (let k in this.records) {
-            list.push(this.records[k]);
-        }
-        this.transactionList = list;
+    get TransactionList() {
+        return Object.values(this.records);
     }
     get Records() {
         return this.records || {};
     }
     get List() {
-        return this.transactionList;
+        return this.TransactionList;
     }
     get Start() {
         return this.periodStart;
@@ -163,7 +154,7 @@ class Transactions extends records_1.Records {
     }
     get Cash() {
         let result = cash_1.default.default();
-        for (let transaction of this.transactionList) {
+        for (let transaction of this.TransactionList) {
             if (transaction.cash === true && transaction.paid !== true && transaction.amount < 0) {
                 result.add(Math.abs(transaction.amount).toCash());
             }
@@ -171,13 +162,7 @@ class Transactions extends records_1.Records {
         return result;
     }
     get Transfer() {
-        let result = 0;
-        for (let transaction of this.transactionList) {
-            if (transaction.transfer === true && transaction.paid === false) {
-                result -= transaction.amount;
-            }
-        }
-        return result;
+        return this.TransactionList.filter(tr => tr.transfer && !tr.paid).map(tr => tr.amount).reduce((p, c) => p - c, 0);
     }
     getSame(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -191,10 +176,9 @@ class Transactions extends records_1.Records {
             this.periodStart = start;
             this.periodEnd = end;
             this.records = yield this.loadRecordsByChild('date', start, end);
-            this.populateTransactionList();
             let total = yield this.getTotal();
             let balance = yield this.getBalance(total);
-            this.emitAsync('periodloaded', this.transactionList, total, balance);
+            this.emitAsync('periodloaded', this.TransactionList, total, balance);
             return this.records;
         });
     }
@@ -222,11 +206,10 @@ class Transactions extends records_1.Records {
                 return Number.NaN;
             total = total || (yield this.getTotal());
             let balance = total;
-            if (this.transactionList === undefined || this.transactionList.length == 0) {
+            if (this.TransactionList.length == 0) {
                 this.records = yield this.loadRecordsByChild('date', this.periodStart, this.periodEnd);
-                this.populateTransactionList();
             }
-            for (let transaction of this.transactionList) {
+            for (let transaction of this.TransactionList) {
                 if (transaction.paid !== true) {
                     balance -= transaction.amount;
                 }

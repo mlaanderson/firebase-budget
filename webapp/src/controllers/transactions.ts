@@ -33,7 +33,6 @@ class TransactonEvents {
 
 export default class Transactions extends Records<Transaction> {
     private records: RecordMap<Transaction> = {};
-    private transactionList: Array<Transaction>;
     private periodStart: string;
     private periodEnd: string;
 
@@ -74,7 +73,6 @@ export default class Transactions extends Records<Transaction> {
                 this.records = {};
             }
             this.records[transaction.id] = transaction;
-            this.populateTransactionList();
             
             this.emitAsync(TransactonEvents.AddedInPeriod, transaction, this);
         } else if (transaction.date < this.periodStart) {
@@ -91,14 +89,12 @@ export default class Transactions extends Records<Transaction> {
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
             // update the transaction in the local cache
             this.records[transaction.id] = transaction;
-            this.populateTransactionList();
 
             this.emitAsync(TransactonEvents.ChangedInPeriod, transaction, this);
         } else { 
             // remove the transaction from the local cache
             if (transaction.id in this.records) {
                 delete this.records[transaction.id];
-                this.populateTransactionList();
             }            
             
             if (transaction.date < this.periodStart) {
@@ -117,7 +113,6 @@ export default class Transactions extends Records<Transaction> {
         // remove the transaction from the local cache
         if (transaction.id in this.records) {
             delete this.records[transaction.id];
-            this.populateTransactionList();
         }   
 
         if (this.periodStart <= transaction.date && transaction.date <= this.periodEnd) {
@@ -138,19 +133,10 @@ export default class Transactions extends Records<Transaction> {
         } else {
             delete this.records[current.id];
         }
-
-        this.populateTransactionList();
     }
 
-    private populateTransactionList() {
-        let list = new Array<Transaction>();
-
-        
-        for (let k in this.records) {
-            list.push(this.records[k]);
-        }
-
-        this.transactionList = list;
+    public get TransactionList() {
+        return Object.values(this.records);
     }
 
     public get Records() : RecordMap<Transaction> {
@@ -158,7 +144,7 @@ export default class Transactions extends Records<Transaction> {
     }
 
     public get List() : Array<Transaction> {
-        return this.transactionList;
+        return this.TransactionList;
     }
 
     public get Start() : string {
@@ -172,7 +158,7 @@ export default class Transactions extends Records<Transaction> {
     public get Cash() : Cash {
         let result = Cash.default();
 
-        for (let transaction of this.transactionList) {
+        for (let transaction of this.TransactionList) {
             if (transaction.cash === true && transaction.paid !== true && transaction.amount < 0) {
                 result.add(Math.abs(transaction.amount).toCash());
             }
@@ -182,15 +168,7 @@ export default class Transactions extends Records<Transaction> {
     }
 
     public get Transfer() : number {
-        let result = 0;
-
-        for (let transaction of this.transactionList) {
-            if (transaction.transfer === true && transaction.paid === false) {
-                result -= transaction.amount;
-            }
-        }
-
-        return result;
+        return this.TransactionList.filter(tr => tr.transfer && !tr.paid).map(tr => tr.amount).reduce((p,c) => p - c, 0);
     }
 
     public async getSame(transaction: Transaction) : Promise<Array<Transaction>> {
@@ -205,11 +183,10 @@ export default class Transactions extends Records<Transaction> {
         this.periodEnd = end;
 
         this.records = await this.loadRecordsByChild('date', start, end);
-        this.populateTransactionList();
         let total = await this.getTotal();
         let balance = await this.getBalance(total);
 
-        this.emitAsync('periodloaded', this.transactionList, total, balance);
+        this.emitAsync('periodloaded', this.TransactionList, total, balance);
 
         return this.records;
     }
@@ -238,12 +215,11 @@ export default class Transactions extends Records<Transaction> {
         total = total || await this.getTotal();
         let balance = total;
 
-        if (this.transactionList === undefined || this.transactionList.length == 0) {
+        if (this.TransactionList.length == 0) {
             this.records = await this.loadRecordsByChild('date', this.periodStart, this.periodEnd);
-            this.populateTransactionList();
         }
 
-        for (let transaction of this.transactionList) {
+        for (let transaction of this.TransactionList) {
             if (transaction.paid !== true) {
                 balance -= transaction.amount;
             }

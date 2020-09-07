@@ -138,6 +138,9 @@ class BudgetForm extends renderer_1.default {
                 this.btnPrev.disabled = false;
             }
             $('[data-role=header] h1').text(`${Date.parseFb(this.periodStart).format("MMM d")} - ${Date.parseFb(this.periodEnd).format("MMM d")}`);
+            // scroll the transaction list and info_div to the top
+            $('#transaction_list').scrollTop(0);
+            $('.info_div').scrollTop(0);
         });
     }
     download(data, filename, type) {
