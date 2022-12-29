@@ -25,6 +25,6 @@
   },
   "devDependencies": {
     "uglifyjs-webpack-plugin": "^1.2.5",
-    "webpack": "^4.12.0"
+    "webpack": "^5.75.0"
   }
 }
